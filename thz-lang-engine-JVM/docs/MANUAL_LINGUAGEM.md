@@ -262,14 +262,16 @@ METADADOS_ARQUITETURA
 FIM_METADADOS
 ```
 
-### Regras de Negócio e Operações
-As regras encapsulam lógica e validam contratos formais:
+### Regras de Negócio, Contratos e Idempotência
+As regras encapsulam lógica de domínio, validam contratos formais e podem declarar garantias de idempotência para processamento seguro e resiliente:
 
 ```thz
 REGRA_NEGOCIO MotorCredito
     IDENTIFICADOR_REGRA: "RN-CRED-010"
     RASTREIO_REQUISITO: "REQ-FIN-089"
-    DESCRICAO: "Analisa e aprova limite de crédito baseado em score e renda"
+    DESCRICAO: "Analisa e aprova limite de crédito baseado em score e renda com garantia de idempotência"
+    IDEMPOTENTE: VERDADEIRO
+    CHAVE_IDEMPOTENCIA: "cpfCliente"
 
     # Pré-condições obrigatórias
     CONTRATO_ENTRADA
@@ -355,10 +357,11 @@ Permite gerar documentos corporativos oficiais diretamente a partir de registros
 * `DOCUMENTO.exportar(caminho: TEXTO, titulo: TEXTO, dados: REGISTRO | FATIA): TEXTO`  
   Detecta automaticamente o formato pela extensão do arquivo (`.pdf`, `.xlsx`, `.docx`).
 
-### Entrada e Saída
+### Entrada, Saída e Sinais de Controle
 * `EXIBA valor1, valor2, ...`: Exibe valores na saída padrão / console com quebra de linha.
-* `LER(): TEXTO`: Lê uma linha de texto da entrada padrão.
-* `RETORNE expressao`: Retorna o valor de uma `OPERACAO` ou encerra um `PROCEDIMENTO`.
+* `LER(): TEXTO`: Lê uma linha de texto da entrada padrão (ou diálogo na GUI).
+* `RETORNE expressao`: Retorna o valor de uma `OPERACAO` ou encerra antecipadamente um `PROCEDIMENTO`.
+* `FALHAR_COM expressao`: Interrompe a execução sinalizando uma falha de domínio (utilizado em conjunto com `RESULTADO[T, E]`).
 
 ---
 
@@ -397,32 +400,32 @@ VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "RegraNegocio.MinhaOp
 
 ## 11. Guia do Tooling e Linha de Comando (CLI)
 
-### Comandos do CLI (`thz` / `thz.exe` / `thz-jvm.jar`):
+### Comandos do CLI (via Gradle ou executável autônomo):
 
 ```bash
 # 1. Verificar sintaxe, semântica e contratos estritos
-thz check caminho/arquivo.thz
+./gradlew run --args="check caminho/arquivo.thz --estrito"
 
 # 2. Executar programa
-thz run caminho/arquivo.thz
+./gradlew run --args="run caminho/arquivo.thz"
 
 # 3. Formatar código canonicamente (idempotente)
-thz fmt caminho/arquivo.thz --escrever
+./gradlew run --args="fmt caminho/arquivo.thz --escrever"
 
 # 4. Auditoria de Governança e Matriz de Rastreabilidade (G4)
-thz audit caminho/arquivo.thz
+./gradlew run --args="audit caminho/arquivo.thz"
 
 # 5. Emitir THZ-IR e código LLVM (G5)
-thz ir caminho/arquivo.thz --llvm
+./gradlew run --args="ir caminho/arquivo.thz --llvm"
 
 # 6. Gerar documentação técnica em Markdown + Mermaid
-thz doc caminho/arquivo.thz
+./gradlew run --args="doc caminho/arquivo.thz --saida docs/"
 
 # 7. Iniciar console REPL interativo multi-linha
-thz repl
+./gradlew run --args="repl"
 
 # 8. Iniciar Ambiente de Desenvolvimento Integrado Gráfico (IDE Desktop)
-thz gui
+./gradlew gui
 ```
 
 ### Atalhos da IDE THZ-LANG Desktop:

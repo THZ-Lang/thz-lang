@@ -1,61 +1,87 @@
-# Exemplos THZ-LANG — coleção de partida
+# Exemplos THZ-LANG — Coleção Canônica & Galeria Desktop
 
-Programas autossuficientes que exercitam a gramática canônica (v2.3) no motor JVM.
-Todos passam em `thz check` **e** executam com `thz run` sem argumentos extras
-(exceto o nº 10, que lê da entrada padrão).
+Programas autossuficientes e demonstradores que exercitam a gramática canônica (v2.3) e as extensões visuais e documentais do motor JVM.
+Todos passam em checagem estrita (`./gradlew run --args="check <arquivo> --estrito"`) e executam de forma determinística.
 
-## Como executar
+---
 
-```bat
-:: Via distribuição autônoma (Windows)
+## Como Executar
+
+### 1. Via Gradle Wrapper (Canônico)
+```bash
+# Executar programa da coleção
+./gradlew run --args="run exemplos/colecao/01-ola-mundo.thz"
+./gradlew run --args="run exemplos/exportacao_documentos.thz"
+
+# Checagem estrita de conformidade arquitetural e tipos
+./gradlew run --args="check exemplos/colecao/05-decimal-financeiro.thz --estrito"
+
+# Auditoria de governança G4
+./gradlew run --args="audit exemplos/faturamento.thz"
+
+# Geração de documentação técnica em Markdown + Mermaid
+./gradlew run --args="doc exemplos/faturamento.thz --saida docs/"
+
+# Iniciar a IDE Desktop Swing
+./gradlew gui
+```
+
+### 2. Via Distribuição Autônoma (.exe)
+```powershell
 dist\thz\thz.exe run   exemplos\colecao\01-ola-mundo.thz
 dist\thz\thz.exe check exemplos\colecao\05-decimal-financeiro.thz
 dist\thz\thz.exe audit exemplos\faturamento.thz
-dist\thz\thz.exe doc   exemplos\faturamento.thz
-dist\thz\thz.exe gui
-
-:: Ou via JAR com Java 25
-java -jar target\thz-jvm-2.3.0.jar run   exemplos\colecao\01-ola-mundo.thz
-java -jar target\thz-jvm-2.3.0.jar check exemplos\colecao\05-decimal-financeiro.thz
-java -jar target\thz-jvm-2.3.0.jar gui
+dist\thz\thz-gui.exe
 ```
 
-Na IDE Swing (`thz gui`), os arquivos desta pasta aparecem no menu **Exemplos** — clique para
-carregar no editor (realce, verificar ▸ executar ▸ formatar ▸ auditoria ▸ doc ▸ IR).
+### 3. Na IDE Desktop Swing (`thz gui`)
+Todos os exemplos desta pasta são detectados dinamicamente e listados no menu **Exemplos** da IDE Desktop. Clique em qualquer um para carregar com realce léxico imediato, formatação, inspeção de AST, auditoria de governança e compilação de telas visuais.
 
-## Índice
+---
 
-| # | Arquivo | Tema | Construtos demonstrados |
-|---|---------|------|--------------------------|
-| 01 | `01-ola-mundo.thz` | Programa mínimo | `VERSAO_LINGUAGEM`, `PROGRAMA`, `METADADOS_ARQUITETURA`, `PROCEDIMENTO Principal`, `EXIBA` |
-| 02 | `02-tipos-estruturas.thz` | Tipos e estruturas | primitivos (`TEXTO/NATURAL32/DECIMAL/LOGICO/DATA`), `CRIAR`, acesso `campo`, mutação, `INVARIANTE` |
-| 03 | `03-enumeracoes.thz` | Enumerações | `ENUMERACAO`, membros globais tipados, comparação `= <>`, `E` |
-| 04 | `04-controle-fluxo.thz` | Fluxo de controle | `SE/SENAO/FIM_SE`, `ENQUANTO`, `PARA..DE..ATE [PASSO]`, conectivo `NAO` |
-| 05 | `05-decimal-financeiro.thz` | Decimais exatos | `DECIMAL(p,s)` BigInt escalado, half-even via `MATEMATICA.arredondar`, `abs/min/max/raiz/potencia` |
-| 06 | `06-texto-datas.thz` | Stdlib TEXTO/DATA | `comprimento/aparar/contem/subtexto/substituir/dividir/juntar`, `DATA.hoje/agora/adicionarDias/diferencaDias/diaDaSemana`, indexação `dividir(...)[i]` |
-| 07 | `07-resultado-ddd.thz` | DDD + contratos | `RESULTADO[T,E]`, `FALHAR_COM`, `EXIGE/GARANTE` quantificados sobre FATIA (∀) |
-| 08 | `08-vetorizado-simd.thz` | Lote vetorizado | `LAYOUT_COLUNAR` (SoA), `VETORIZAR_PARA..PASSO_SIMD`, UUID, acumulador DECIMAL |
-| 09 | `09-bloco-memoria.thz` | Memória Efêmera (Arena O(1)) | `USAR_BLOCO_MEMORIA..FIM_BLOCO_MEMORIA`, alocação linear contígua, descarte instantâneo O(1) |
-| 10 | `10-entrada-interativa.thz` | Entrada de dados | `LER destino`, fallback com `SE`, conversão para `NATURAL32` |
-| 11 | `11-idempotencia-larga-escala.thz` | Idempotência Larga Escala | `IDEMPOTENTE`, `CHAVE_IDEMPOTENCIA`, memoização transacional O(1), supressão de re-execução redundante |
+## Índice da Coleção Básica (`exemplos/colecao/`)
 
+| # | Arquivo | Tema Principal | Construtos e Funcionalidades Demonstradas |
+|:---:|---|---|---|
+| **01** | `01-ola-mundo.thz` | Programa Mínimo | `VERSAO_LINGUAGEM`, `PROGRAMA`, `METADADOS_ARQUITETURA`, `PROCEDIMENTO Principal`, `EXIBA`. |
+| **02** | `02-tipos-estruturas.thz` | Tipos e Estruturas | Primitivos (`TEXTO`, `NATURAL32`, `DECIMAL`, `LOGICO`, `DATA`), `CRIAR`, acesso a campos, mutação com `<-`, `INVARIANTE`. |
+| **03** | `03-enumeracoes.thz` | Enumerações | `ENUMERACAO`, membros globais tipados, comparações verbais e conjunção `E`. |
+| **04** | `04-controle-fluxo.thz` | Fluxo de Controle | `SE/SENAO/FIM_SE`, `ENQUANTO`, `PARA..DE..ATE [PASSO]`, conectivo verbal `NAO`. |
+| **05** | `05-decimal-financeiro.thz` | Decimais Exatos | `DECIMAL(p,s)` BigInteger escalado, arredondamento bancário half-even via `MATEMATICA.arredondar`, `abs/min/max/raiz/potencia`. |
+| **06** | `06-texto-datas.thz` | Stdlib TEXTO e DATA | `comprimento/aparar/contem/subtexto/substituir/dividir/juntar`, `DATA.hoje/agora/somarDias/diferencaDias/texto`, indexação `dividir(...)[i]`. |
+| **07** | `07-resultado-ddd.thz` | DDD & Contratos Formais | `RESULTADO[T,E]`, `FALHAR_COM`, pré-condições `EXIGE` e pós-condições `GARANTE` quantificadas sobre fatia ($\forall$). |
+| **08** | `08-vetorizado-simd.thz` | Lote Vetorizado SIMD | Estrutura `LAYOUT_COLUNAR` (SoA), laço `VETORIZAR_PARA..PASSO_SIMD`, acumuladores `DECIMAL(18,4)`. |
+| **09** | `09-bloco-memoria.thz` | Memória Efêmera ($O(1)$) | `USAR_BLOCO_MEMORIA..FIM_BLOCO_MEMORIA`, alocação linear contígua, descarte instantâneo sem pressão de GC. |
+| **10** | `10-entrada-interativa.thz` | Entrada Interativa | `LER`, fallback condicional e conversão para inteiros. |
+| **11** | `11-idempotencia-larga-escala.thz` | Idempotência Inteligente | Cláusulas `IDEMPOTENTE`, `CHAVE_IDEMPOTENCIA`, memoização transacional $O(1)$ e supressão de execuções duplicadas. |
 
+---
 
-## Canônicos (paridade TS ⇄ JVM)
+## Exemplos de Interfaces Visuais e Exportação (`exemplos/`)
 
-Fora desta coleção, na raiz `exemplos/`:
+| Arquivo | Descrição e Funcionalidades |
+|---|---|
+| `cadastro_cliente_gui.thz` | Formulário de cadastro de clientes com validação de CPF, email, combos e submissão vinculada à regra de negócio. |
+| `cadastro_produto_gui.thz` | Tela de cadastro de mercadorias com campos numéricos de preço, estoque e tabela de fornecedores. |
+| `pedido_vendas_gui.thz` | Interface complexa com tabela dinâmica interativa (`FATIA[ItemPedido]`), cálculo em tempo real e fechamento de pedido. |
+| `showcase_widgets_gui.thz` | Demonstração exaustiva de todos os widgets do subsistema `TELA` (texto, senha, cores, arquivos, sliders, spinners, combos, radios, tabelas e textareas). |
+| `simulador_credito_gui.thz` | Simulador financeiro com sliders de valor, radios de score de crédito e emissão de proposta. |
+| `exportacao_documentos.thz` | Demonstração do motor corporativo `DOCUMENTO`, gerando relatório em **PDF**, planilha **Excel (.xlsx)** e documento **Word (.docx)**. |
 
-* `faturamento.thz` — processamento tributário em lote (motor injeta LOTE demo).
-* `pedidos.thz` — DDD com `ENUMERACAO`/`RESULTADO` (requer `--principal` com args).
-* `agenda.thz` — procedimentos, `FATIA[ESTRUTURA]` literal e stdlib DATA.
+---
 
-## Convenções usadas nos exemplos
+## Exemplos Canônicos de Paridade (TS ⇄ JVM)
 
-1. Todo programa declara `VERSAO_LINGUAGEM "2.3"` antes de `PROGRAMA`.
-2. `METADADOS_ARQUITETURA` completo (domínio/SLO/conformidade) — exigido pelo lint `--estrito`.
-3. Atribuição é `<-`; comparação é `=`; conectivos verbais `E OU NAO`.
-4. Comentários com `#` até o fim da linha (descartados pelo formatador canônico).
-5. Acesso canônico: indexe primeiro (`lote[i]`), depois campos (`.valor`) — via variável temporária.
+* `faturamento.thz`: Processamento tributário em lote com aceleração vetorial SIMD e injeção de lote demo.
+* `pedidos.thz`: Domínio rico DDD com enumerações de status, tipos de resultado e validação de contratos.
+* `agenda.thz`: Procedimentos com manipulação de fatias literais de estruturas e módulo de datas.
 
-> Nota: cláusulas `EXIGE/GARANTE` sobre parâmetros `FATIA[T]` são **universais**
-> (valem para todo elemento). Veja a nota dentro do exemplo 07.
+---
+
+## Convenções da Linguagem THZ-LANG
+
+1. **Pragma de Versão:** Todo programa inicia com `VERSAO_LINGUAGEM "2.3"` antes de `PROGRAMA`.
+2. **Metadados Obrigatórios:** Bloco `METADADOS_ARQUITETURA` com domínio, autor, SLO e conformidade regulatória.
+3. **Fluxo de Dados Unidirecional:** O operador de atribuição e inicialização é `<-` (a seta indica o fluxo para o identificador).
+4. **Comparação e Conectivos:** Igualdade com `=` e conectivos lógicos verbais em português: `E`, `OU`, `NAO`.
+5. **Comentários:** Linhas ou trechos iniciados por `#` são comentários (preservados no código e descartados no formatador canônico).

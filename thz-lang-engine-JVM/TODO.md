@@ -1,40 +1,37 @@
-# TODO — THZ-LANG JVM
+# TODO — THZ-LANG Engine JVM
 
-* [x] Fundações — pom.xml Java 25 + JUnit5, esqueleto de pacotes
-* [x] Fase 1 — Léxico (TokenType, PalavrasReservadas, ThzLexer) + tolerância a BOM
-* [x] Fase 2 — AST + Parser (sealed records, textoCanonicoDe)
-* [x] Fase 3 — Runtime (DecimalFixo half-even, Monetario ISO4217, DataThz/DataHoraThz Hinnant, BlocoMemoria)
-* [x] Fase 4 — Semântica (Tipos, AnalisadorSemantico com contratos ∀ sobre FATIA + lint estrito)
-* [x] Fase 5 — Interpretador (ValorThz sealed ×12, stdlib 28 fn, LER/VETORIZAR/PARA/bloco de memória)
-* [x] Fase 6 — CLI (check/ast/fmt/run/repl/**gui**) + REPL multi-linha + Formatador idempotente
-* [x] Fase 7 — Paridade JUnit (**69/69**)
-* [x] GUI Swing: realce zero-dep (EditorThz+PaletaThz), FlatLaf dark/light, gutter alinhado ao View, marcação de erros
-* [x] Coleção de exemplos `exemplos/colecao` (01–11) + índice README + galeria no menu Exemplos da IDE
-* [x] Manifesto jar `Enable-Native-Access: ALL-UNNAMED` (sem warnings JDK25/FlatLaf)
-* [x] Compilação nativa AOT GraalVM Native Image (`scripts/build-native.ps1`)
-* [x] Empacotamento de distribuição via `jpackage` (`scripts/build-package.ps1` gerando pasta autônoma `dist/thz` com `thz.exe`, `thz-gui.exe` e `thz-desktop.exe`)
-* [x] G4 Governança — `auditar()` + matriz RASTREIO→Regra→Contrato (`thz audit` / botão "🛡️ Auditoria" na IDE)
-* [x] DocGen — Documentação Markdown com diagramas Mermaid (`thz doc` / botão "📘 Doc" na IDE)
-* [x] G5 THZ-IR & SIMD — `baixarParaIr()` (`thz-ir/1`), emissão LLVM e validador SIMD R1–R5 (`thz ir` / botão "🧩 IR" na IDE)
-* [x] IDE: ações Novo/Salvar Como, execução de OPERACAO parametrizada (lote demo / diálogo interativo) e polimento de temas
-* [x] Persistência de Configuração Desktop: armazenamento em JSON (~/.thz/desktop-config.json) de tema, modo estrito, dimensões de janela, divisor e histórico de arquivos recentes
-* [x] Menu de Configuração de JVM: diálogo modal de detecção/seleção/teste de JVMs locais (Scoop, SDKMAN, Program Files, JAVA_HOME) com persistência e diagnóstico
-* [x] Idempotência Inteligente de Larga Escala: cláusulas `IDEMPOTENTE` e `CHAVE_IDEMPOTENCIA` integradas em todos os níveis
-* [x] Motor de Exportação de Documentos Corporativos: geração de PDF, XLSX (Excel) e DOCX (Word) na Stdlib e GUI
-* [x] Migração de Build System: Gradle canônico com Kotlin DSL (`build.gradle.kts`) e Gradle Wrapper
+## Marcos Concluídos (Núcleo v2.3 & Tooling) ✅
 
-## Notas
+* [x] **Fundações & Build Canônico:** Gradle 9.7 com Kotlin DSL (`build.gradle.kts`), Gradle Wrapper autônomo, Java 25 toolchain e JUnit 5.11.
+* [x] **Fase 1 — Scanner Léxico:** `TokenType` (63 tokens canônicos), `PalavrasReservadas`, `ThzLexer` com rastreio de linha/coluna e descarte de BOM UTF-8.
+* [x] **Fase 2 — AST & Parser:** Árvore com sealed records (`ProgramaAst`, `EstruturaAst`, `RegraNegocioAst`, `OperacaoAst`, `ProcedimentoAst`, `ExprAst`, `ComandoAst`) e `ThzParser` recursivo descendente.
+* [x] **Fase 3 — Runtime Determinístico:** `DecimalFixo` (aritmética decimal bancária half-even ISO/IEC 10967 sem float), `Monetario` (ISO-4217), `DataThz/DataHoraThz` (algoritmos Hinnant) e `BlocoMemoria` (memória contígua efêmera $O(1)$).
+* [x] **Fase 4 — Análise Semântica:** `AnalisadorSemantico`, tabela de tipos estáticos, resolução de escopos, verificação de contratos universais $\forall$ sobre `FATIA` e lint `--estrito`.
+* [x] **Fase 5 — Interpretador & Stdlib:** `InterpretadorThz`, despacho polimórfico de nós da AST, validação dinâmica de contratos (`EXIGE`/`GARANTE`/`INVARIANTE`) e stdlib completa (`TEXTO`, `MATEMATICA`, `DATA`, `FATIA`, `DOCUMENTO`, `TELA`).
+* [x] **Fase 6 — Tooling, CLI & REPL:** `Formatador` canônico idempotente, `JsonEscritor` determinístico, `ThzCli` (`check`, `run`, `fmt`, `ast`, `audit`, `doc`, `ir`, `repl`, `gui`) e `Repl` interativo multi-linha.
+* [x] **Fase 7 — Suíte de Testes & Paridade:** **68/68 testes automatizados verdes** no JUnit 5 garantindo paridade total com o motor TypeScript de referência.
+* [x] **G4 Governança & Rastreabilidade:** `AuditorGovernanca` gerando matriz `RASTREIO_REQUISITO → Regra → Contrato`, conferência de SLOs e relatórios Markdown/JSON (`thz audit` e botão na IDE).
+* [x] **DocGen:** `ThzDocGen` gerando documentação arquitetural em Markdown com diagramas de classes e diagramas de fluxo Mermaid.js (`thz doc` e botão na IDE).
+* [x] **G5 THZ-IR & Validação SIMD:** `GeradorIr` (`thz-ir/1`), emissor LLVM IR textual e `ValidadorSimd` com regras vetoriais R1 a R5 (`thz ir` e botão na IDE).
+* [x] **IDE Desktop Swing (FlatLaf):**
+  * Editor com realce léxico em tempo real, auto-indentação e sublinhado de erros com debounce de 300ms.
+  * Gutter com numeração de linhas ancorada ao modelo de layout da View.
+  * Temas profissionais Escuro e Claro com chaveamento dinâmico em tempo de execução.
+  * Galeria de exemplos com varredura dinâmica e carregamento instantâneo.
+  * Persistência de configurações desktop em JSON (`~/.thz/desktop-config.json`).
+  * Diálogo modal de detecção automática, validação e configuração de JVMs locais (Scoop, SDKMAN, Program Files, JAVA_HOME).
+* [x] **Motor de Formulários Visuais Declarativos (`TELA`):** Renderização automática de interfaces gráficas a partir de estruturas `ESTRUTURA`, mapeamento automático de widgets (texto, senha, seletor de arquivos, cores, sliders, spinners, combos, radios, tabelas dinâmicas para `FATIA[Estrutura]`, listas de seleção múltipla) e exportação de dados.
+* [x] **Motor de Exportação de Documentos Corporativos (`DOCUMENTO`):** Emissão direta de relatórios institucionais em PDF (OpenPDF), planilhas Excel XLSX (Apache POI) e documentos Word DOCX (Apache POI).
+* [x] **Idempotência Inteligente de Larga Escala:** Cláusulas `IDEMPOTENTE` e `CHAVE_IDEMPOTENCIA` com cache transacional LRU/TTL (`RegistroIdempotencia`).
+* [x] **Empacotamento e Distribuição:**
+  * Script `scripts/build-package.ps1` (`jpackage`) gerando pasta autônoma `dist/thz/` com executáveis `thz.exe` e `thz-gui.exe` com JRE 25 embutido.
+  * Script `scripts/build-native.ps1` gerando binário estático único AOT `dist/bin/thz.exe` via GraalVM Native Image.
 
-- Versão alvo sobre a JVM, baseada no `thz-lang-engine` Node/TS.
-- Build atual: **Gradle (Kotlin DSL com Gradle Wrapper)**.
-  com receita java/application/shadow). Migração sem tocar no código-fonte.
-- Histórico detalhado: ver **PROGRESSO.md**.
+---
 
+## Próximos Passos & Extensões Futuras
 
-
-
-## Fase futura (fora do núcleo v2.3)
-
-- LSP stdio + extensão VS Code (espelho do G3 TS)
-- Playground web não se aplica à trilha JVM (substituído pela IDE Desktop Swing)
+- [ ] **LSP Stdio:** Servidor Language Server Protocol sobre stdio para integração direta com VS Code, NeoVim e Helix.
+- [ ] **Extensão VS Code para a JVM:** Conector para executar a CLI/LSP do motor JVM diretamente no VS Code.
+- [ ] **Otimizações no Codegen LLVM:** Emissão de binários nativos AOT via backend LLVM Inkwell/Rust compartilhado.
 
