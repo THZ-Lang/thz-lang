@@ -106,6 +106,10 @@ const SIG_STDLIB: Record<string, SigStdlib> = {
   'DATA.dia': { paramMin: 1, paramMax: 1, retorno: TIPO_INTEIRO_GENERICO },
   'DATA.diaDaSemana': { paramMin: 1, paramMax: 1, retorno: TIPO_INTEIRO_GENERICO },
   'DATA.texto': { paramMin: 1, paramMax: 1, retorno: TIPO_TEXTO },
+  'TELA.renderizarFormulario': { paramMin: 2, paramMax: 2, retorno: TIPO_TEXTO },
+  'TELA.alerta': { paramMin: 2, paramMax: 2, retorno: TIPO_TEXTO },
+  'TELA.confirmar': { paramMin: 2, paramMax: 2, retorno: TIPO_LOGICO },
+  'TELA.pedirTexto': { paramMin: 2, paramMax: 2, retorno: TIPO_TEXTO },
 };
 
 export class AnalisadorSemantico {
@@ -241,10 +245,14 @@ export class AnalisadorSemantico {
       for (const parametro of operacao.parametros) {
         escopoRaiz.definir(parametro.nome, this.tipoValido(parametro.tipo, 1, 1) ?? TIPO_NULO, 1, 1, this.erros);
       }
-      this.tipoValido(operacao.tipoRetorno, 1, 1);
-
       for (const clausula of regra.clausulasEntrada) this.validarClausula(clausula, escopoRaiz);
-      for (const clausula of regra.clausulasSaida) this.validarClausula(clausula, escopoRaiz);
+
+      const escopoSaida = new EscopoTipos(escopoRaiz);
+      const retornoTipo = this.tipoValido(operacao.tipoRetorno, 1, 1);
+      if (retornoTipo) {
+        escopoSaida.definir('RESULTADO', retornoTipo, 1, 1, this.erros);
+      }
+      for (const clausula of regra.clausulasSaida) this.validarClausula(clausula, escopoSaida);
 
       this.validarBlocoFilho(operacao.corpo, escopoRaiz, contexto);
     }

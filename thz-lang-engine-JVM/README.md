@@ -1,48 +1,51 @@
 # THZ-LANG Engine — JVM
 
-Porto **Java 25 + Maven** do motor THZ-LANG v2.3 (interpretador tree-walking), com paridade comportamental com o motor original em Node/TypeScript.
+Porto **Java 25 + Gradle** do motor THZ-LANG v2.3 (interpretador tree-walking), com paridade comportamental com o motor original em Node/TypeScript.
 
 ## Visão Geral
 Este é o motor de execução para THZ-LANG, focado em alta performance na JVM.
 
 ### Diretrizes Técnicas
 - **Aritmética Monetária/Fiscal**: Uso obrigatório de `DecimalFixo` (BigInteger escalado); proibido ponto flutuante binário IEEE 754.
-- **Gerenciamento de Memória Efêmera**: Alocação linear por bloco contíguo (`ArenaMemoria`) com descarte instantâneo em tempo constante $O(1)$, eliminando sobrecarga e pausas de Garbage Collector em processamento em lote.
+- **Gerenciamento por Bloco de Memória Temporária**: Alocação rápida por bloco contíguo (`BlocoMemoria`) com descarte automático ao final da execução, eliminando sobrecarga e pausas de Garbage Collector em processamento em lote.
 - **Contratos e Arquitetura Viva**: Validação rigorosa de `EXIGE`/`GARANTE`/`INVARIANTE` via `AnalisadorSemantico` e `InterpretadorThz`.
+- **Manual Completo da Linguagem**: Consulte o [Manual Oficial da Linguagem THZ-LANG v2.3](docs/MANUAL_LINGUAGEM.md) para referência de sintaxe, operador `<-`, tipos, contratos, stdlib, GUI e ferramentas.
 
 
 ## Requisitos
 - JDK 25 (OpenJDK 25)
-- Maven 3.9+
 
 ## Build e Execução
-O projeto utiliza **Maven** como sistema de build canônico. O suporte ao Gradle é previsto como alternativa futura (`build.gradle.kts` placeholder disponível).
+O projeto utiliza **Gradle (Kotlin DSL com Gradle Wrapper autônomo)** como sistema de build canônico.
 
-### Comandos de Build
+### Comandos de Build (via Gradle Wrapper)
 ```bash
-mvn clean compile      # Compila o projeto
-mvn test               # Executa testes (JUnit 5)
-mvn package            # Gera o jar em target\thz-jvm-2.3.0.jar
-mvn verify             # Build completo + testes
+./gradlew compileJava    # Compila o código fonte
+./gradlew test           # Executa todos os testes automatizados (JUnit 5)
+./gradlew shadowJar      # Gera o Uber/Fat JAR em build/libs/ e target/
+./gradlew check          # Validação e checagem completa
 ```
 
-### Comandos de Execução
+### Comandos de Execução Direta
 ```bash
-# Sem flags especiais (nenhum recurso preview é usado)
-java -jar target\thz-jvm-2.3.0.jar check exemplos\agenda.thz
-java -jar target\thz-jvm-2.3.0.jar run   exemplos\agenda.thz
-java -jar target\thz-jvm-2.3.0.jar fmt   exemplos\agenda.thz
-java -jar target\thz-jvm-2.3.0.jar repl
-java -jar target\thz-jvm-2.3.0.jar gui    # IDE Swing (galeria de exemplos no menu)
+# Executa a CLI passando argumentos
+./gradlew run --args="check exemplos/agenda.thz"
+./gradlew run --args="run exemplos/faturamento.thz"
+./gradlew run --args="repl"
+
+# Inicia a IDE Desktop Swing diretamente
+./gradlew gui
+
+# Ou execute diretamente pelo JAR compilado
+java -jar build/libs/thz-jvm-2.3.0.jar check exemplos/agenda.thz
+java -jar build/libs/thz-jvm-2.3.0.jar run   exemplos/agenda.thz
+java -jar build/libs/thz-jvm-2.3.0.jar gui
 ```
 
-### Importar na IDE (IntelliJ)
-1. **File → Open** e selecione apenas o `pom.xml` desta pasta (Open as Project).
-2. Garanta **Project SDK = 25** (Settings → Project) — sem flags extras.
-3. Não mantenha `build.gradle.kts` ativo junto com o Maven: dois sistemas sobre a
-   mesma raiz fazem o compilador da IDE enxergar módulos parciais
-   (`package thz.lang.ast does not exist`). O Gradle fica desativado em
-   `build.gradle.kts.desativado` até a trilha futura.
+### Importar na IDE (IntelliJ / VS Code)
+1. **File → Open** e selecione o diretório desta pasta ou o arquivo `build.gradle.kts` (Open as Project).
+2. Garanta **Project SDK = 25** (Settings → Project).
+3. O Gradle Wrapper (`gradlew.bat`) cuidará automaticamente do download do runtime do Gradle e das dependências.
 
 ## Distribuição e Executáveis Autônomos (.exe)
 
@@ -79,22 +82,45 @@ O projeto garante paridade com o motor TypeScript original e 100% de conformidad
   - `InterpretadorTest` (4 testes)
   - `ParidadeTest` (8 testes)
 
-## Estrutura do Projeto
+## Estrutura do Projeto (Arquitetura Modular SRP)
 ```
 src/main/java/thz/lang/
-├── ast           # Árvore de Sintaxe Abstrata (Sealed Records)
-├── cli           # Ponto de entrada CLI (ThzCli.java)
-├── interpretador # Interpretador tree-walking & stdlib (BibliotecaPadrao.java)
-├── lexico        # Analisador léxico determinístico (ThzLexer.java)
-├── sintatico     # Analisador sintático (ThzParser.java)
-├── semantico     # Analisador semântico (AnalisadorSemantico.java)
-├── runtime       # Ambiente de execução (DecimalFixo, ArenaMemoria)
-├── formato       # Utilitários de formatação canônica (Formatador.java)
-├── repl          # REPL interativo multi-linha
-├── gui           # IDE Desktop Swing (EditorThz, PaletaThz, Gutter, GaleriaExemplos)
-└── diagnosticos  # Sistema de diagnósticos com caret
+├── ast/              # Nós da Árvore de Sintaxe Abstrata (Sealed Records)
+├── lexico/           # Analisador Léxico Determinístico (ThzLexer.java, TokenType.java)
+├── sintatico/        # Analisador Sintático Recursivo Descendente (ThzParser.java)
+├── semantico/        # Analisador Semântico e Verificador de Contratos (AnalisadorSemantico.java)
+├── runtime/          # Runtime determinístico (DecimalFixo, Monetario, BlocoMemoria, Idempotencia)
+├── interpretador/    # Interpretador Tree-Walking e Stdlib (InterpretadorThz.java, BibliotecaPadrao.java)
+├── documento/        # Motor de Exportação Empresarial (PDF, XLSX, DOCX)
+├── governanca/       # Auditoria de Arquitetura Viva e Governança G4 (AuditorGovernanca.java)
+├── docgen/           # Gerador de Documentação Markdown + Mermaid (ThzDocGen.java)
+├── ir/               # Emissão de THZ-IR/1 e LLVM IR preliminar (GeradorIr.java)
+├── simd/             # Validador Vetorial SIMD com Regras R1–R5 (ValidadorSimd.java)
+├── formato/          # Formatador de Código Idempotente Canônico (Formatador.java)
+├── diagnosticos/     # Renderização de diagnósticos com trecho de fonte e caret
+├── cli/              # Ponto de entrada CLI (ThzCli.java)
+├── repl/             # Shell REPL multi-linha interativo (Repl.java)
+└── gui/              # IDE Desktop Modularizada
+    ├── ThzGui.java                   # Orquestrador da janela principal
+    ├── EditorThz.java                # Editor com realce de sintaxe nativo
+    ├── Gutter.java                   # Calha de numeração de linhas
+    ├── PaletaThz.java                # Paletas de cores para temas Claro e Escuro
+    ├── GaleriaExemplos.java          # Varredura e montagem da galeria de exemplos
+    ├── barra/                        # Componentes de interface
+    │   ├── BarraMenuGui.java         # Barra de Menus (Arquivo, Editar, Ver, Ações, Ajuda)
+    │   ├── BarraFerramentasGui.java  # Toolbar e Header
+    │   └── BarraStatusGui.java       # Indicador de linha/coluna, lint e JVM
+    ├── execucao/                     # Despacho assíncrono do motor
+    │   └── ExecutorMotorGui.java     # Worker de verificação, execução e compilação
+    ├── formulario/                   # Motor de Interfaces Declarativas
+    │   ├── RenderizadorFormularioSwing.java # Orquestrador de formulários dinâmicos
+    │   ├── FabricaCamposFormulario.java     # Fábrica de widgets especializados
+    │   ├── PainelTabelaFatia.java           # Visualização de coleções FATIA[...]
+    │   └── ExportadorFormularioGui.java     # Exportação de formulários para documentos
+    └── config/                       # Persistência e detecção de ambiente
+        ├── ConfiguracaoDesktop.java
+        ├── GerenciadorConfiguracao.java
+        ├── DetectorJvm.java
+        └── DialogoConfiguracaoJvm.java
 ```
-
-## RoadMap
-Núcleo v2.3: check/run/fmt/repl/gui + stdlib + jpackage/GraalVM — Governança (audit) e IR/SIMD/docgen como próximas etapas.
 

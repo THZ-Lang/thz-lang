@@ -23,7 +23,13 @@ public final class GaleriaExemplos {
         menu.setToolTipText("Galeria de programas de partida — clique para carregar no editor");
         File raiz = new File("exemplos");
         if (!raiz.isDirectory()) {
-            JMenuItem vazio = new JMenuItem("(pasta 'exemplos' não encontrada ao lado do jar)");
+            raiz = new File("thz-lang-engine-JVM", "exemplos");
+        }
+        if (!raiz.isDirectory()) {
+            raiz = new File("..", "exemplos");
+        }
+        if (!raiz.isDirectory()) {
+            JMenuItem vazio = new JMenuItem("(pasta 'exemplos' não encontrada)");
             vazio.setEnabled(false);
             menu.add(vazio);
             return menu;

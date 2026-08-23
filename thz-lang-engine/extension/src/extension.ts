@@ -1,3 +1,4 @@
+﻿import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -10,17 +11,22 @@ import {
 let client: LanguageClient | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
-  // O servidor é compilado para thz-lang-engine/dist/lsp/server.js (fora da pasta extension)
-  // Para uso empacotado, copie dist/lsp -> extension/server no build do vsix
   const candidatos = [
+    context.asAbsolutePath(path.join('server', 'lsp', 'server.js')),
+    context.asAbsolutePath(path.join('server', 'server.js')),
+    context.asAbsolutePath(path.join('dist', 'lsp', 'server.js')),
+    context.asAbsolutePath(path.join('dist', 'server', 'server.js')),
     context.asAbsolutePath(path.join('..', 'dist', 'lsp', 'server.js')),
     context.asAbsolutePath(path.join('..', 'dist', 'src', 'lsp', 'server.js')),
-    context.asAbsolutePath(path.join('server', 'server.js')),
   ];
 
-  // Escolhe o primeiro existente em tempo de ativação; o LanguageClient exige um único path,
-  // então resolvemos aqui e deixamos o fallback para o primeiro candidato.
-  const serverModule = candidatos[0];
+  let serverModule = candidatos[0];
+  for (const cand of candidatos) {
+    if (fs.existsSync(cand)) {
+      serverModule = cand;
+      break;
+    }
+  }
 
   const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },

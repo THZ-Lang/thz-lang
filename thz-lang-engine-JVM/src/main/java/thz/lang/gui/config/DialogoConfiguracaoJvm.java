@@ -1,8 +1,32 @@
 package thz.lang.gui.config;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -12,15 +36,12 @@ import java.util.List;
 /**
  * Diálogo moderno de Configuração e Seleção de JVM para a interface THZ-LANG Desktop.
  */
+
 public final class DialogoConfiguracaoJvm extends JDialog {
 
     private final JComboBox<DetectorJvm.InfoJvm> comboJvms;
     private final JTextField txtCaminhoPersonalizado;
     private final JTextArea txtDetalhes;
-    private final JButton btnSalvar;
-    private final JButton btnCancelar;
-    private final JButton btnProcurar;
-    private final JButton btnTestar;
 
     private boolean salvo = false;
     private String jvmSelecionada = "";
@@ -28,8 +49,6 @@ public final class DialogoConfiguracaoJvm extends JDialog {
     public DialogoConfiguracaoJvm(Frame proprietario, ConfiguracaoDesktop configAtual) {
         super(proprietario, "Configurações de JVM — THZ-LANG Desktop", true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(650, 480);
-        setLocationRelativeTo(proprietario);
         setLayout(new BorderLayout(12, 12));
 
         JPanel painelPrincipal = new JPanel();
@@ -81,7 +100,7 @@ public final class DialogoConfiguracaoJvm extends JDialog {
         JPanel painelManual = new JPanel(new BorderLayout(8, 0));
         painelManual.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
         txtCaminhoPersonalizado = new JTextField(salva);
-        btnProcurar = new JButton("Procurar…");
+        JButton btnProcurar = new JButton("Procurar…");
         painelManual.add(txtCaminhoPersonalizado, BorderLayout.CENTER);
         painelManual.add(btnProcurar, BorderLayout.EAST);
         painelPrincipal.add(painelManual);
@@ -100,21 +119,44 @@ public final class DialogoConfiguracaoJvm extends JDialog {
         painelPrincipal.add(scrollDetalhes);
         painelPrincipal.add(Box.createVerticalStrut(8));
 
-        btnTestar = new JButton("🧪 Testar JVM Selecionada");
+        JButton btnTestar = new JButton("🧪 Testar JVM Selecionada");
         btnTestar.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelPrincipal.add(btnTestar);
 
-        add(painelPrincipal, BorderLayout.CENTER);
+        JScrollPane scrollPrincipal = new JScrollPane(painelPrincipal);
+        scrollPrincipal.setBorder(BorderFactory.createEmptyBorder());
+        scrollPrincipal.getVerticalScrollBar().setUnitIncrement(16);
+        add(scrollPrincipal, BorderLayout.CENTER);
 
         // Barra inferior de botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 12));
-        btnCancelar = new JButton("Cancelar");
-        btnSalvar = new JButton("Salvar e Aplicar");
+        JButton btnCancelar = new JButton("Cancelar");
+        JButton btnSalvar = new JButton("Salvar e Aplicar");
         btnSalvar.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
 
         painelBotoes.add(btnCancelar);
         painelBotoes.add(btnSalvar);
         add(painelBotoes, BorderLayout.SOUTH);
+
+        // Ajustar tamanho e centralizar respeitando a tela útil
+        GraphicsConfiguration gc = (proprietario != null) ? proprietario.getGraphicsConfiguration() : getGraphicsConfiguration();
+        if (gc == null) {
+            gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        }
+        Rectangle telaBounds = (gc != null) ? gc.getBounds() : new Rectangle(0, 0, 1024, 768);
+        Insets insets = (gc != null) ? Toolkit.getDefaultToolkit().getScreenInsets(gc) : new Insets(0, 0, 0, 0);
+        int maxLarguraUtil = Math.max(300, telaBounds.width - insets.left - insets.right);
+        int maxAlturaUtil = Math.max(300, telaBounds.height - insets.top - insets.bottom);
+        int dLarg = Math.min(650, (int) (maxLarguraUtil * 0.90));
+        int dAlt = Math.min(480, (int) (maxAlturaUtil * 0.85));
+        setSize(dLarg, dAlt);
+        if (proprietario != null && proprietario.isShowing()) {
+            setLocationRelativeTo(proprietario);
+        } else {
+            int posX = telaBounds.x + insets.left + Math.max(0, (maxLarguraUtil - dLarg) / 2);
+            int posY = telaBounds.y + insets.top + Math.max(0, (maxAlturaUtil - dAlt) / 2);
+            setLocation(posX, posY);
+        }
 
         // Listeners
         comboJvms.addActionListener(e -> {

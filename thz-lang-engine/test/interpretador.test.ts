@@ -197,3 +197,26 @@ test('identificador não declarado produz erro com linha/coluna', () => {
   FIM_PROGRAMA`;
   assert.throws(() => executar(codigo), /\[Linha 5:\d+\] Identificador não declarado: 'inexistente'/);
 });
+
+test('módulo TELA executa funções declarativas', () => {
+  const codigo = `PROGRAMA TesteTela
+    ESTRUTURA Form
+      titulo: TEXTO
+      nome: TEXTO
+    FIM_ESTRUTURA
+    REGRA_NEGOCIO R
+      OPERACAO Gui() : TEXTO
+      INICIO
+        VARIAVEL f : Form <- CRIAR Form(titulo: "Meu Painel", nome: "Lucas")
+        VARIAVEL res : TEXTO <- TELA.renderizarFormulario(f, "R.Gui")
+        VARIAVEL a : TEXTO <- TELA.alerta("Titulo", "Msg")
+        VARIAVEL c : LOGICO <- TELA.confirmar("Confirm", "Pergunta?")
+        VARIAVEL p : TEXTO <- TELA.pedirTexto("Entrada", "Prompt")
+        RETORNE res
+      FIM
+    FIM_REGRA_NEGOCIO
+  FIM_PROGRAMA`;
+  const r = executar(codigo);
+  assert.equal(r.resultado?.classe, 'TEXTO');
+  assert.equal((r.resultado as any).valor, "Formulário 'Meu Painel' renderizado.");
+});

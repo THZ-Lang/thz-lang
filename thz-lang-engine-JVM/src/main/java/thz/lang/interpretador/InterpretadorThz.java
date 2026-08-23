@@ -4,8 +4,6 @@ import thz.lang.ast.*;
 import thz.lang.runtime.*;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -67,6 +65,10 @@ public class InterpretadorThz {
         this(ast, new OpcoesInterpretador(saida, entrada, null));
     }
 
+    public ProgramaAst ast() {
+        return ast;
+    }
+
 
     // ---- Helpers STDLIB ----
 
@@ -76,23 +78,6 @@ public class InterpretadorThz {
 
     public boolean ehStdlibInstancia(String nome) {
         return BibliotecaPadrao.ehStdlib(nome);
-    }
-
-    private static void exigirAridade(String nome, List<ValorThz> args, int esperada, ExprAst ctx) {
-        if (args.size() != esperada) {
-            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Função '" + nome + "' exige " + esperada + " argumento(s), recebidos " + args.size() + ".");
-        }
-    }
-
-    private static void exigirClasse(String nome, ValorThz v, String classeEsperada, ExprAst ctx) {
-        if (!v.classe().equals(classeEsperada)) {
-            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Função '" + nome + "' exige " + classeEsperada + ", recebido " + v.classe() + ".");
-        }
-    }
-
-    private static BigInteger comoInteiroArg(ValorThz v, ExprAst ctx) {
-        if (v instanceof ValorThz.Inteiro i) return i.valor();
-        throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Esperado INTEIRO, recebido " + v.classe() + ".");
     }
 
     // ---- Resolução de operações ----
@@ -383,7 +368,7 @@ public class InterpretadorThz {
         for (ExprAst a : ch.argumentos()) args.add(avaliar(a, escopo));
         if (BibliotecaPadrao.ehStdlib(nomeQualificado)) {
             try {
-                return BibliotecaPadrao.executar(nomeQualificado, args, ch);
+                return BibliotecaPadrao.executar(nomeQualificado, args, ch, this);
             } catch (ErroExecucao e) {
                 throw e;
             } catch (Exception e) {
@@ -789,12 +774,12 @@ public class InterpretadorThz {
     }
 
     private void executarBlocoMemoria(ComandoAst.BlocoMemoria bm, Escopo escopo) {
-        ArenaMemoria arena = new ArenaMemoria(1);
-        arena.alocar(1024);
+        BlocoMemoria bloco = new BlocoMemoria(1);
+        bloco.alocar(1024);
         try {
             executarComandos(bm.corpo(), new Escopo(escopo));
         } finally {
-            arena.liberarTudo();
+            bloco.liberarTudo();
         }
     }
 

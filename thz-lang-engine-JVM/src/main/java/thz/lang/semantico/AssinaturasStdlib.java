@@ -72,6 +72,18 @@ public final class AssinaturasStdlib {
         m.put("DATA.diaDaSemana", new Assinatura(1, 1, TIPO_INTEIRO_GENERICO));
         m.put("DATA.texto", new Assinatura(1, 1, TIPO_TEXTO));
 
+        // ---- TELA ----
+        m.put("TELA.renderizarFormulario", new Assinatura(2, 2, TIPO_TEXTO));
+        m.put("TELA.alerta", new Assinatura(2, 2, TIPO_TEXTO));
+        m.put("TELA.confirmar", new Assinatura(2, 2, TIPO_LOGICO));
+        m.put("TELA.pedirTexto", new Assinatura(2, 2, TIPO_TEXTO));
+
+        // ---- DOCUMENTO ----
+        m.put("DOCUMENTO.exportar", new Assinatura(3, 3, TIPO_TEXTO));
+        m.put("DOCUMENTO.exportarPdf", new Assinatura(3, 3, TIPO_TEXTO));
+        m.put("DOCUMENTO.exportarXlsx", new Assinatura(3, 3, TIPO_TEXTO));
+        m.put("DOCUMENTO.exportarDocx", new Assinatura(3, 3, TIPO_TEXTO));
+
         return Collections.unmodifiableMap(m);
     }
 }

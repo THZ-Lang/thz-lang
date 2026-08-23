@@ -84,28 +84,35 @@ if (-not $TemCl) {
     Write-Host "[OK] Compilador C++ (MSVC cl.exe) disponivel no PATH." -ForegroundColor Green
 }
 
-# 3. Executar compilacao com Maven (Perfil native)
-Write-Host "`n[1/2] Compilando Native Image AOT com Maven (-Pnative)..." -ForegroundColor Yellow
-$MvnArgs = @("-Pnative", "package")
+# 3. Compilar Shaded JAR via Gradle
+Write-Host "`n[1/2] Compilando Shaded JAR com Gradle..." -ForegroundColor Yellow
+$Gradlew = if (Test-Path "$Raiz\gradlew.bat") { "$Raiz\gradlew.bat" } else { "gradle" }
+$GradleArgs = @("shadowJar")
 if ($PularTestes.IsPresent) {
-    $MvnArgs += "-DskipTests"
+    $GradleArgs += "-x"
+    $GradleArgs += "test"
 }
-& mvn @MvnArgs
+& $Gradlew @GradleArgs
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Falha na compilacao nativa via Maven."
+    Write-Error "Falha na compilacao do Gradle."
 }
 
-# 4. Publicar executavel em dist/bin
+$JarPath = "$Raiz\target\thz-jvm-2.3.0.jar"
+if (-not (Test-Path $JarPath)) {
+    $JarPath = "$Raiz\build\libs\thz-jvm-2.3.0.jar"
+}
+
+# 4. Compilar AOT Nativo com GraalVM native-image
+Write-Host "`n[2/2] Gerando executavel nativo com native-image..." -ForegroundColor Yellow
 $DistBin = "$Raiz\dist\bin"
 if (-not (Test-Path $DistBin)) { New-Item -ItemType Directory -Path $DistBin | Out-Null }
+$TargetExe = "$DistBin\thz.exe"
 
-$TargetExe = "$Raiz\target\thz.exe"
-if (Test-Path $TargetExe) {
-    Copy-Item $TargetExe -Destination "$DistBin\thz.exe" -Force
-    Write-Host "[OK] Executavel nativo publicado em: $DistBin\thz.exe" -ForegroundColor Green
-} else {
-    Write-Error "Arquivo target\thz.exe nao foi encontrado apos o build."
+& native-image.cmd --no-fallback -jar $JarPath -o "$DistBin\thz"
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Falha na compilacao com native-image."
 }
+Write-Host "[OK] Executavel nativo publicado em: $DistBin\thz.exe" -ForegroundColor Green
 
 # 5. Teste de fumaca
 Write-Host "`n[2/2] Executando teste de fumaca nativo..." -ForegroundColor Yellow

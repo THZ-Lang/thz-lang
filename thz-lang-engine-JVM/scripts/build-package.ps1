@@ -50,15 +50,17 @@ $env:PATH = "$JavaHome\bin;" + $env:PATH
 Write-Host "[OK] Usando JDK 25: $JavaHome" -ForegroundColor Green
 
 
-# 2. Build Maven
-Write-Host "`n[1/3] Compilando Shaded JAR com Maven..." -ForegroundColor Yellow
-$MvnArgs = @("package")
+# 2. Build Gradle
+Write-Host "`n[1/3] Compilando Shaded JAR com Gradle..." -ForegroundColor Yellow
+$Gradlew = if (Test-Path "$Raiz\gradlew.bat") { "$Raiz\gradlew.bat" } else { "gradle" }
+$GradleArgs = @("shadowJar")
 if ($PularTestes.IsPresent) {
-    $MvnArgs += "-DskipTests"
+    $GradleArgs += "-x"
+    $GradleArgs += "test"
 }
-& mvn @MvnArgs
+& $Gradlew @GradleArgs
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Falha na compilacao do Maven."
+    Write-Error "Falha na compilacao do Gradle."
 }
 
 $JarPath = "$Raiz\target\thz-jvm-$Versao.jar"

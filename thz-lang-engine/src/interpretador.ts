@@ -229,6 +229,32 @@ const STDLIB: Record<string, FnStdlib> = {
   'DATA.dia': (args, ctx) => { exigirAridade('DATA.dia', args, 1, ctx); if (args[0].classe === 'DATA') return INTEIRO(BigInt(( (args[0] as any).valor as DataThz).dia)); if (args[0].classe === 'DATA_HORA') return INTEIRO(BigInt(( (args[0] as any).valor as DataHoraThz).data.dia)); throw new ErroExecucao('[Erro de Execução][Linha ' + ctx.linha + ':' + ctx.coluna + '] DATA.dia exige DATA ou DATA_HORA'); },
   'DATA.diaDaSemana': (args, ctx) => { exigirAridade('DATA.diaDaSemana', args, 1, ctx); if (args[0].classe !== 'DATA') throw new ErroExecucao('[Erro de Execução][Linha ' + ctx.linha + ':' + ctx.coluna + '] DATA.diaDaSemana exige DATA'); return INTEIRO(BigInt(( (args[0] as any).valor as DataThz).diaDaSemana())); },
   'DATA.texto': (args, ctx) => { exigirAridade('DATA.texto', args, 1, ctx); if (args[0].classe === 'DATA') return TEXTO(( (args[0] as any).valor as DataThz).formatar()); if (args[0].classe === 'DATA_HORA') return TEXTO(( (args[0] as any).valor as DataHoraThz).formatar()); throw new ErroExecucao('[Erro de Execução][Linha ' + ctx.linha + ':' + ctx.coluna + '] DATA.texto exige DATA ou DATA_HORA'); },
+  'TELA.renderizarFormulario': (args, ctx) => {
+    exigirAridade('TELA.renderizarFormulario', args, 2, ctx);
+    if (args[0].classe !== 'REGISTRO') throw new ErroExecucao('[Erro de Execução][Linha ' + ctx.linha + ':' + ctx.coluna + '] TELA.renderizarFormulario exige REGISTRO como 1º arg');
+    const reg = args[0] as any;
+    const campoTitulo = reg.campos instanceof Map ? reg.campos.get('titulo') : reg.campos?.titulo;
+    const titulo = (campoTitulo && campoTitulo.classe === 'TEXTO') ? campoTitulo.valor : reg.nomeEstrutura;
+    return TEXTO("Formulário '" + titulo + "' renderizado.");
+  },
+  'TELA.alerta': (args, ctx) => {
+    exigirAridade('TELA.alerta', args, 2, ctx);
+    exigirClasse('TELA.alerta', args[0], 'TEXTO', ctx);
+    exigirClasse('TELA.alerta', args[1], 'TEXTO', ctx);
+    return TEXTO('OK');
+  },
+  'TELA.confirmar': (args, ctx) => {
+    exigirAridade('TELA.confirmar', args, 2, ctx);
+    exigirClasse('TELA.confirmar', args[0], 'TEXTO', ctx);
+    exigirClasse('TELA.confirmar', args[1], 'TEXTO', ctx);
+    return LOGICO(true);
+  },
+  'TELA.pedirTexto': (args, ctx) => {
+    exigirAridade('TELA.pedirTexto', args, 2, ctx);
+    exigirClasse('TELA.pedirTexto', args[0], 'TEXTO', ctx);
+    exigirClasse('TELA.pedirTexto', args[1], 'TEXTO', ctx);
+    return TEXTO('');
+  },
 };
 
 export function ehStdlib(nome: string): boolean { return nome in STDLIB; }

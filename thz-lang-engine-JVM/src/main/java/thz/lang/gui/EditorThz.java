@@ -6,7 +6,17 @@ import thz.lang.lexico.ThzLexer;
 import thz.lang.lexico.Token;
 import thz.lang.lexico.TokenType;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -14,15 +24,19 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Editor THZ realçado — zero-dependência no motor, FlatLaf-aware no chrome.
  * Gutter com linha ativa, highlight de linha atual, fonte de luxo e debounce.
  */
+
 public final class EditorThz extends JPanel {
 
     private final JTextPane pane = new JTextPane();
@@ -30,7 +44,7 @@ public final class EditorThz extends JPanel {
     private final Gutter gutter;
     private final UndoManager undo = new UndoManager();
     private final Timer debounce;
-    private final java.util.List<Object> errorTags = new java.util.ArrayList<>();
+    private final List<Object> errorTags = new ArrayList<>();
     private PaletaThz paleta = PaletaThz.ESCURO;
     private boolean highlighting = false;
     private boolean suppressAuto = false;
@@ -99,10 +113,15 @@ public final class EditorThz extends JPanel {
         // margem interna
         pane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
+        // Tema padrão, pode ser trocado para CLARO ou nas configurações
         aplicarTema(PaletaThz.ESCURO);
         realcar();
     }
 
+    /**
+     * Retorna uma fonte mono.
+     * @return Fonte mono.
+     */
     private static Font escolherFonteMono() {
         String[] cands = {"JetBrains Mono", "Cascadia Code", "Cascadia Mono", "Fira Code", "Consolas", Font.MONOSPACED};
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -112,6 +131,11 @@ public final class EditorThz extends JPanel {
         return new Font(Font.MONOSPACED, Font.PLAIN, (int) (float) 14.0);
     }
 
+    /**
+     * Computa os inícios das linhas do texto.
+     * @param text Texto do editor.
+     * @return Array de inícios das linhas.
+     */
     private static int[] computeLineStarts(String text) {
         java.util.ArrayList<Integer> s = new java.util.ArrayList<>();
         s.add(0);
@@ -149,10 +173,6 @@ public final class EditorThz extends JPanel {
         return tok.value().length();
     }
 
-    public Dimension getSize() {
-        return new Dimension();
-    }
-
     private void refreshChrome() {
         pane.setCaretColor(paleta.corCaret);
         pane.setSelectionColor(paleta.corSelecao);
@@ -164,6 +184,9 @@ public final class EditorThz extends JPanel {
         }
     }
 
+    /**
+     * Vincula o editor ao sistema de desfazer/refazer.
+     */
     private void bindUndoRedo() {
         InputMap im = pane.getInputMap(JComponent.WHEN_FOCUSED);
         ActionMap am = pane.getActionMap();
@@ -183,6 +206,10 @@ public final class EditorThz extends JPanel {
         });
     }
 
+    /**
+     * Lida com a tecla de enter.
+     * @param e Evento de teclado.
+     */
     private void handleEnter(KeyEvent e) {
         try {
             int caret = pane.getCaretPosition();
@@ -212,6 +239,10 @@ public final class EditorThz extends JPanel {
         }
     }
 
+    /**
+     * Lida com a tecla de aspas.
+     * @param e Evento de teclado.
+     */
     private void handleQuote(KeyEvent e) {
         int caret = pane.getCaretPosition();
         String text = pane.getText();
@@ -231,10 +262,17 @@ public final class EditorThz extends JPanel {
         }
     }
 
+    /**
+     * Agenda o realce do editor.
+     */
     public void agendarRealce() {
         debounce.restart();
     }
 
+    /**
+     * Aplica o tema no editor.
+     * @param nova Paleta de cores.
+     */
     public void aplicarTema(PaletaThz nova) {
         this.paleta = nova;
         pane.setFont(escolherFonteMono());
@@ -253,6 +291,10 @@ public final class EditorThz extends JPanel {
         return pane.getText();
     }
 
+    /**
+     * Define o texto do editor.
+     * @param t Texto a ser definido.
+     */
     public void setText(String t) {
         pane.setText(t);
         pane.setCaretPosition(0);
@@ -283,7 +325,9 @@ public final class EditorThz extends JPanel {
         }
     }
 
-    // ---- highlight ----
+    /**
+     * Realça a sintaxe do editor.
+     */
     private void realcar() {
         if (highlighting) return;
         highlighting = true;
@@ -338,6 +382,11 @@ public final class EditorThz extends JPanel {
         }
     }
 
+    /**
+     * Aplica comentários no editor.
+     * @param text Texto do editor.
+     * @param doc Documento do editor.
+     */
     private void aplicarComentarios(String text, StyledDocument doc) {
         boolean inString = false;
         for (int i = 0; i < text.length(); i++) {
@@ -359,6 +408,9 @@ public final class EditorThz extends JPanel {
         }
     }
 
+    /**
+     * Limpa todas as marcações de erro do editor.
+     */
     public void limparMarcacoesErro() {
         Highlighter hl = pane.getHighlighter();
         for (Object t : errorTags) hl.removeHighlight(t);
@@ -373,6 +425,100 @@ public final class EditorThz extends JPanel {
         if (undo.canRedo()) undo.redo();
     }
 
+    public void cut() { pane.cut(); }
+    public void copy() { pane.copy(); }
+    public void paste() { pane.paste(); }
+    public void selectAll() { pane.selectAll(); }
+
+    /**
+     * Obtém o tamanho da fonte atual.
+     * @return Tamanho da fonte.
+     */
+    public int getTamanhoFonteAtual() {
+        return pane.getFont().getSize();
+    }
+
+    /**
+     * Altera o tamanho da fonte.
+     * @param delta Quantidade de pontos para aumentar/diminuir.
+     */
+    public void alterarTamanhoFonte(int delta) {
+        int novoTamanho = Math.max(9, Math.min(32, getTamanhoFonteAtual() + delta));
+        definirTamanhoFonte(novoTamanho);
+    }
+
+    /**
+     * Define o tamanho da fonte.
+     * @param pt Tamanho da fonte em pontos.
+     */
+    public void definirTamanhoFonte(int pt) {
+        Font f = pane.getFont();
+        Font nova = f.deriveFont((float) pt);
+        pane.setFont(nova);
+        gutter.repaint();
+    }
+
+    /**
+     * Obtém a linha e coluna do cursor.
+     * @return Array com a linha e coluna do cursor.
+     */
+    public int[] obterLinhaColunaCaret() {
+        try {
+            int caret = pane.getCaretPosition();
+            String text = pane.getText();
+            int line = 1;
+            int col = 1;
+            for (int i = 0; i < caret && i < text.length(); i++) {
+                if (text.charAt(i) == '\n') {
+                    line++;
+                    col = 1;
+                } else {
+                    col++;
+                }
+            }
+            return new int[]{line, col};
+        } catch (Exception e) {
+            return new int[]{1, 1};
+        }
+    }
+
+    /**
+     * Marca uma linha como tendo um erro.
+     * @param linha Linha a ser marcada.
+     * @param coluna Coluna a ser marcada.
+     */
+    public void marcarErroLinha(int linha, int coluna) {
+        String text = pane.getText();
+        int[] lineStarts = computeLineStarts(text);
+        Highlighter hl = pane.getHighlighter();
+        Highlighter.HighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(paleta.fundoErro);
+        int off = offsetDe(linha, coluna, lineStarts);
+        int lineEnd = text.indexOf('\n', off);
+        if (lineEnd == -1) lineEnd = text.length();
+        int end = Math.min(lineEnd, off + 140);
+        if (end <= off) end = Math.min(text.length(), off + 1);
+        try {
+            errorTags.add(hl.addHighlight(off, end, painter));
+        } catch (BadLocationException ignore) {}
+    }
+
+    /**
+     * Vai para uma linha e coluna específicas.
+     * @param linha Linha desejada.
+     * @param coluna Coluna desejada.
+     */
+    public void irParaLinhaColuna(int linha, int coluna) {
+        String text = pane.getText();
+        int[] lineStarts = computeLineStarts(text);
+        int off = offsetDe(linha, coluna, lineStarts);
+        pane.setCaretPosition(Math.min(off, text.length()));
+        pane.requestFocusInWindow();
+    }
+    
+    /**
+     * Marca erros no editor.
+     * @param erros Lista de diagnósticos de erro.
+     */
     public void marcarErros(List<DiagnosticoEntrada> erros) {
         limparMarcacoesErro();
         if (erros == null || erros.isEmpty()) return;

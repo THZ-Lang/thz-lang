@@ -4,7 +4,6 @@ import thz.lang.ast.*;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**

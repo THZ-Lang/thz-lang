@@ -393,7 +393,7 @@ public class ThzParser {
 
             case USAR_BLOCO_MEMORIA: {
                 advance();
-                String nome = consumeIdentificador("Esperado nome do bloco de memória (arena).").value();
+                String nome = consumeIdentificador("Esperado nome do bloco de memória temporária.").value();
                 List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_BLOCO_MEMORIA);
                 consume(TokenType.FIM_BLOCO_MEMORIA, "Esperado 'FIM_BLOCO_MEMORIA' encerrando o escopo de memória.");
                 return new ComandoAst.BlocoMemoria(nome, corpo, token.line(), token.column());

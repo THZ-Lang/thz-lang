@@ -28,7 +28,7 @@ public final class Repl {
             String trim = linha.trim();
             if (buffer.isEmpty() && trim.startsWith(".")) {
                 switch (trim) {
-                    case ".sair", ".quit" -> { System.out.println("\n[SESSAO] Encerrada. Arena liberada."); return; }
+                    case ".sair", ".quit" -> { System.out.println("\n[SESSAO] Encerrada. Memória temporária liberada."); return; }
                     case ".limpar" -> { declaracoesTopo.clear(); corpo.clear(); System.out.println("[SESSAO] Sessão reiniciada."); }
                     case ".codigo" -> System.out.println(montarPrograma(declaracoesTopo, corpo));
                     case ".ajuda" -> System.out.println("Bloco de comandos + <enter> em linha vazia avalia o bloco.\n.ajuda  esta ajuda\n.limpar reinicia a sessão\n.codigo exibe o programa acumulado\n.sair   encerra o REPL");

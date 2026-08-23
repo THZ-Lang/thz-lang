@@ -3,7 +3,6 @@ package thz.lang.docgen;
 import thz.lang.ast.*;
 import thz.lang.sintatico.ThzParser;
 
-import java.util.List;
 
 /**
  * Gerador de Documentação Técnica e Arquitetural (DocGen) a partir da AST do THZ-LANG.

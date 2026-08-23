@@ -18,6 +18,7 @@ import java.awt.geom.Rectangle2D;
  * Gutter lateral com numeração de linhas ancorada no layout real do documento (View/modelToView2D).
  * Decomposto de EditorThz para responsabilidade única (SRP).
  */
+
 public final class Gutter extends JPanel {
     private final JTextPane paneRef;
     private PaletaThz paleta;

@@ -1,5 +1,6 @@
 package thz.lang.lexico;
 
+
 public class ErroLexico extends RuntimeException {
     private final int linha;
     private final int coluna;

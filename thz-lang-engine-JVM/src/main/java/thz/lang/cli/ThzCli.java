@@ -12,7 +12,7 @@ import thz.lang.diagnosticos.Diagnosticos;
 import thz.lang.formato.Formatador;
 import thz.lang.formato.JsonEscritor;
 import thz.lang.interpretador.*;
-import thz.lang.runtime.ArenaMemoria;
+import thz.lang.runtime.BlocoMemoria;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -167,7 +167,7 @@ public class ThzCli {
                     System.out.println("================================================================================");
                     System.out.println("   EXECUTANDO MOTOR NATIVO THZ-LANG: " + ast.nome());
                     System.out.println("================================================================================\n");
-                    ArenaMemoria arena = new ArenaMemoria(64); arena.alocar(2048);
+                    BlocoMemoria blocoMemoria = new BlocoMemoria(64); blocoMemoria.alocar(2048);
                     String dom = ast.metadados()!=null?ast.metadados().dominio():"N/A";
                     String slo = ast.metadados()!=null?ast.metadados().sloLatencia():"N/A";
                     String conf = ast.metadados()!=null && ast.metadados().conformidade()!=null?String.join(", ", ast.metadados().conformidade()):"N/A";
@@ -185,7 +185,7 @@ public class ThzCli {
                             System.out.println("[PROCEDIMENTO] " + proc.nome() + "()\n");
                             Map<String, ValorThz> a = InjetorLoteDemo.construirArgsProc(proc, p -> mapaArgs.get(p.nome()));
                             interp.executarProcedimento(proc.nome(), a);
-                            arena.liberarTudo(); System.out.println("\n[RUNTIME] Bloco de memória efêmera (Arena) liberado instantaneamente em O(1). Execução finalizada sem erros."); return;
+                            blocoMemoria.liberarTudo(); System.out.println("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso."); return;
                         }
 
                         var ops = interp.listarOperacoesExecutaveis().stream().filter(o->o.operacao().nome().equals(nomePrincipal)).findFirst().orElse(null);
@@ -195,16 +195,18 @@ public class ThzCli {
                             ValorThz res = interp.executarOperacao(ops.operacao().nome(), a);
                             System.out.println("--------------------------------------------------------------");
                             if(res!=null) System.out.println("[RESULTADO] " + interp.formatar(res));
-                            arena.liberarTudo(); System.out.println("\n[RUNTIME] Bloco de memória efêmera (Arena) liberado instantaneamente em O(1). Execução finalizada sem erros."); return;
+                            blocoMemoria.liberarTudo(); System.out.println("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso."); return;
                         }
                         System.err.println("[ERRO] Entrada '--principal "+nomePrincipal+"' não encontrada como PROCEDIMENTO nem OPERACAO."); System.exit(1);
                     }
-                    ProcedimentoAst procPrincipal = ast.procedimentos()!=null?ast.procedimentos().stream().filter(p->p.nome().equals("Principal")).findFirst().orElse(null):null;
-                    if(procPrincipal!=null){
-                        System.out.println("[PROCEDIMENTO] Principal()\n");
-                        Map<String,ValorThz> a = procPrincipal.parametros().isEmpty()?Map.of():InjetorLoteDemo.construirArgsProc(procPrincipal, p -> mapaArgs.get(p.nome()));
-                        interp.executarProcedimento("Principal", a);
-                        arena.liberarTudo(); System.out.println("\n[RUNTIME] Bloco de memória efêmera (Arena) liberado instantaneamente em O(1). Execução finalizada sem erros."); return;
+                    var procs = interp.listarProcedimentos();
+                    if (!procs.isEmpty()) {
+                        var proc = procs.stream().filter(p -> p.nome().equalsIgnoreCase("Principal")).findFirst().orElse(procs.get(0));
+                        System.out.println("[PROCEDIMENTO] " + proc.nome() + "()\n");
+                        Map<String, ValorThz> a = proc.parametros().isEmpty() ? Map.of() : InjetorLoteDemo.construirArgsProc(proc, p -> mapaArgs.get(p.nome()));
+                        interp.executarProcedimento(proc.nome(), a);
+                        blocoMemoria.liberarTudo(); System.out.println("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
+                        return;
                     }
                     var execs = interp.listarOperacoesExecutaveis();
                     if(execs.isEmpty()){ System.err.println("[ERRO] Nenhuma operação com corpo executável declarada. Adicione um bloco INICIO ... FIM a uma OPERACAO ou declare PROCEDIMENTO Principal."); System.exit(1); }
@@ -214,7 +216,7 @@ public class ThzCli {
                     ValorThz res = interp.executarOperacao(prim.operacao().nome(), a);
                     System.out.println("--------------------------------------------------------------");
                     if(res!=null) System.out.println("[RESULTADO] " + interp.formatar(res));
-                    arena.liberarTudo(); System.out.println("\n[RUNTIME] Bloco de memória efêmera (Arena) liberado instantaneamente em O(1). Execução finalizada sem erros.");
+                    blocoMemoria.liberarTudo(); System.out.println("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
                     return;
                 }
             } catch (Exception ex) {

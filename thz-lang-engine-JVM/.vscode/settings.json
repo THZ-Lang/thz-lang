@@ -1,0 +1,14 @@
+{
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-25",
+            "path": "C:\\Users\\lucas\\scoop\\apps\\openjdk25\\current",
+            "default": true
+        }
+    ],
+    "java.jdt.ls.java.home": "C:\\Users\\lucas\\scoop\\apps\\openjdk25\\current",
+    "java.import.gradle.java.home": "C:\\Users\\lucas\\scoop\\apps\\openjdk25\\current",
+    "java.import.gradle.enabled": true,
+    "java.import.gradle.offline.enabled": false,
+    "java.import.gradle.wrapper.enabled": true
+}
