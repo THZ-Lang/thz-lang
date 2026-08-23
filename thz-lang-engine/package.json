@@ -1,0 +1,43 @@
+{
+  "name": "thz-lang-engine",
+  "version": "2.3.0",
+  "description": "Enterprise Systems Language & Architecture Engine",
+  "type": "module",
+  "main": "src/cli.ts",
+  "scripts": {
+    "thz": "tsx src/cli.ts",
+    "thz:run": "tsx src/cli.ts run exemplos/faturamento.thz",
+    "thz:repl": "tsx src/cli.ts repl",
+    "thz:doc": "tsx src/cli.ts doc exemplos/faturamento.thz",
+    "thz:check": "tsx src/cli.ts check exemplos/faturamento.thz",
+    "thz:audit": "tsx src/cli.ts audit exemplos/faturamento.thz",
+    "thz:audit:json": "tsx src/cli.ts audit exemplos/faturamento.thz --json",
+    "thz:ir": "tsx src/cli.ts ir exemplos/faturamento.thz",
+    "thz:ir:llvm": "tsx src/cli.ts ir exemplos/faturamento.thz --llvm",
+    "test": "tsx --test test/keywords.test.ts test/lexer.test.ts test/parser.test.ts test/expressoes.test.ts test/interpretador.test.ts test/decimal.test.ts test/analisador.test.ts test/ddd.test.ts test/golden.test.ts test/language-service.test.ts test/governanca.test.ts test/ir.test.ts test/simd.test.ts test/fmt.test.ts test/generalista.test.ts",
+    "bench": "tsx bench/run.ts",
+    "bench:decimal": "tsx bench/decimal.bench.ts",
+    "bench:fatia": "tsx bench/fatia.bench.ts",
+    "bench:simd": "tsx bench/simd.bench.ts",
+    "fmt": "tsx src/cli.ts fmt",
+    "fmt:check": "tsx src/cli.ts fmt --check",
+    "playground": "vite --config vite.config.ts",
+    "playground:build": "vite build --config vite.config.ts",
+    "playground:preview": "vite preview --config vite.config.ts",
+    "lsp": "node dist/lsp/server.js --stdio",
+    "lsp:build": "tsc",
+    "extension:compile": "tsc -p extension/tsconfig.json",
+    "extension:package": "npx @vscode/vsce package --out thz-lang.vsix --baseContentUrl https://github.com/thz-lang/thz-lang --baseImagesUrl https://github.com/thz-lang/thz-lang"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.134.0",
+    "monaco-editor": "^0.56.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vite": "^8.2.2",
+    "vscode-languageclient": "^10.1.0",
+    "vscode-languageserver": "^10.1.0",
+    "vscode-languageserver-textdocument": "^1.0.12"
+  }
+}

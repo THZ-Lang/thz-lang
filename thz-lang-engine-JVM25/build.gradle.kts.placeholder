@@ -1,0 +1,9 @@
+// PLACEHOLDER — Gradle como alternativa futura marcada (não ativo).
+// Para ativar: renomear para build.gradle.kts e executar com Gradle 8.10+ / JDK 25.
+// Equivalente ao pom.xml:
+// plugins { java; application { mainClass = "thz.lang.cli.ThzCli" } id("com.github.johnrengelman.shadow") version "8.1.1" }
+// java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
+// dependencies { testImplementation("org.junit.jupiter:junit-jupiter:5.11.3") }
+// tasks.test { useJUnitPlatform() }
+// tasks.withType<JavaCompile> { options.compilerArgs.add("--enable-preview") }
+// Nota: código é desacoplado do Maven — nenhuma mudança em src é necessária para migrar.

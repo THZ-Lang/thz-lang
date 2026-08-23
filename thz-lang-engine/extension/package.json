@@ -1,0 +1,95 @@
+{
+  "name": "thz-lang",
+  "displayName": "THZ-LANG",
+  "description": "Language support for THZ-LANG (.thz) — LSP powered by Language Service Core (G1)",
+  "version": "0.3.0",
+  "publisher": "thz-lang",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "thz",
+    "dsl",
+    "ddd"
+  ],
+  "activationEvents": [
+    "onLanguage:thz"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "thz",
+        "aliases": [
+          "THZ",
+          "thz"
+        ],
+        "extensions": [
+          ".thz"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "thz",
+        "scopeName": "source.thz",
+        "path": "./syntaxes/thz.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "thz.showAudit",
+        "title": "THZ: Mostrar Auditoria de Governança",
+        "category": "THZ-LANG"
+      },
+      {
+        "command": "thz.showIr",
+        "title": "THZ: Mostrar IR (thz-ir/1)",
+        "category": "THZ-LANG"
+      },
+      {
+        "command": "thz.showLlvm",
+        "title": "THZ: Mostrar LLVM IR",
+        "category": "THZ-LANG"
+      }
+    ],
+    "configuration": {
+      "title": "THZ-LANG",
+      "properties": {
+        "thz-lang.lintEstrito": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ativa lint --estrito (pragma, rastreabilidade, SLO e contratos obrigatórios)."
+        },
+        "thz-lang.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Nível de trace do servidor LSP."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./tsconfig.json",
+    "watch": "tsc -p ./tsconfig.json --watch",
+    "package": "vsce package",
+    "lint": "echo \"no lint\""
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}

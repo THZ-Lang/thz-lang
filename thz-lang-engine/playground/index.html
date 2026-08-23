@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>THZ-LANG — Studio IDE & Playground v2.3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo-icon">⚡</div>
+      <h1>THZ-LANG <span>Studio</span></h1>
+      <span class="badge">v2.3 • G1–G6</span>
+    </div>
+    
+    <div class="toolbar">
+      <div class="select-wrapper">
+        <select id="exemploSelect" title="Carregar exemplo na aba ativa">
+          <option value="">📂 Exemplos...</option>
+          <option value="faturamento">faturamento.thz (SoA / SIMD)</option>
+          <option value="pedidos">pedidos.thz (DDD / Contratos)</option>
+          <option value="agenda">agenda.thz (Data / Stdlib)</option>
+          <option value="minimo">minimo.thz</option>
+        </select>
+      </div>
+
+      <button id="btnCheck" class="tool-btn" title="Verificar Léxico, Sintaxe e Semântica">✔ Check</button>
+      <button id="btnCheckEstrito" class="tool-btn" title="Lint Estrito (Pragma, SLO, Rastreabilidade, Contratos)">✔ Estrito</button>
+      <button id="btnRun" class="tool-btn primary" title="Executar programa (Ctrl+Enter)">▶ Executar</button>
+      <button id="btnFmt" class="tool-btn" title="Formatar Canônico (Ctrl+S)">✨ Fmt</button>
+      
+      <div class="tool-separator"></div>
+
+      <button id="btnDoc" class="tool-btn" title="Gerar Documentação Viva (Markdown + Mermaid)">📄 Doc</button>
+      <button id="btnAudit" class="tool-btn" title="Auditar Governança e Rastreabilidade">🛡️ Audit</button>
+      <button id="btnIr" class="tool-btn" title="Exibir THZ-IR (thz-ir/1)">🧩 IR</button>
+      <button id="btnLlvm" class="tool-btn" title="Emitir LLVM IR">⚡ LLVM</button>
+      <button id="btnLimpar" class="tool-btn ghost" title="Limpar painel ativo">Limpar</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Painel Esquerdo: Editor com Abas Multi-Arquivo -->
+    <div class="editor-section">
+      <div class="editor-tabs-bar">
+        <div id="editorTabs" class="editor-tabs">
+          <!-- Abas geradas dinamicamente via main.ts -->
+        </div>
+        <button id="btnNovaAba" class="btn-nova-aba" title="Abrir nova aba de arquivo">+</button>
+      </div>
+
+      <div class="editor-subbar">
+        <span id="statusLine">Pronto</span>
+        <span id="simbolosInfo" class="simbolos-info"></span>
+      </div>
+
+      <div id="editor" class="monaco-container"></div>
+    </div>
+
+    <!-- Painel Direito: Saída com Abas Especializadas -->
+    <div class="output-section">
+      <div class="output-tabs-bar">
+        <button class="output-tab active" data-tab="saida">Console <span id="statusDot" class="status-dot"></span></button>
+        <button class="output-tab" data-tab="diagnosticos">Diagnósticos <span id="diagBadge" class="badge-count">0</span></button>
+        <button class="output-tab" data-tab="hoverBox">Hover & Tipos</button>
+        <button class="output-tab" data-tab="audit">🛡️ Auditoria</button>
+        <button class="output-tab" data-tab="ir">🧩 IR / LLVM</button>
+        <button class="output-tab" data-tab="doc">📄 Doc Viva</button>
+      </div>
+
+      <div class="output-content">
+        <!-- Tab: Console / Execução -->
+        <div id="tab-saida" class="tab-pane active">
+          <div id="saida" class="code-output">Clique em “▶ Executar” para rodar a operação ou procedimento ativo.</div>
+        </div>
+
+        <!-- Tab: Diagnósticos -->
+        <div id="tab-diagnosticos" class="tab-pane">
+          <div id="diagnosticos" class="diag-list"></div>
+        </div>
+
+        <!-- Tab: Hover -->
+        <div id="tab-hoverBox" class="tab-pane">
+          <div id="hoverBox" class="hover-content">— Posicione o cursor sobre um símbolo no editor para inspecionar seu tipo e assinatura —</div>
+        </div>
+
+        <!-- Tab: Auditoria -->
+        <div id="tab-audit" class="tab-pane">
+          <div id="auditOutput" class="code-output">— Clique em "🛡️ Audit" para inspecionar a matriz de rastreabilidade e governança —</div>
+        </div>
+
+        <!-- Tab: IR / LLVM -->
+        <div id="tab-ir" class="tab-pane">
+          <div id="irOutput" class="code-output">— Clique em "🧩 IR" ou "⚡ LLVM" para inspecionar a representação intermediária —</div>
+        </div>
+
+        <!-- Tab: Doc Viva -->
+        <div id="tab-doc" class="tab-pane">
+          <div id="docOutput" class="code-output">— Clique em "📄 Doc" para gerar a documentação viva da arquitetura —</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <span class="indicator-ready"><span class="dot-ready"></span> Language Service Core (G1)</span>
+      <span>•</span>
+      <span id="cursorPos">Ln 1, Col 1</span>
+      <span>•</span>
+      <span id="arenaInfo">Arena: 64MB pronta</span>
+    </div>
+    <div class="footer-right">
+      <span>THZ-LANG Engine • Node 20+ · TS 5+ · JDK 25</span>
+    </div>
+  </footer>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

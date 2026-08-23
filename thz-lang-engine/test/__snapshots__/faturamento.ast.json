@@ -1,0 +1,482 @@
+{
+  "estruturas": [
+    {
+      "nome": "ItemFatura",
+      "layoutColunar": true,
+      "campos": [
+        {
+          "nome": "id_transacao",
+          "tipo": "UUID"
+        },
+        {
+          "nome": "codigo_produto",
+          "tipo": "TEXTO"
+        },
+        {
+          "nome": "quantidade",
+          "tipo": "NATURAL32"
+        },
+        {
+          "nome": "valor_unitario",
+          "tipo": "DECIMAL(12,4)"
+        },
+        {
+          "nome": "aliquota_imposto",
+          "tipo": "DECIMAL(5,2)"
+        },
+        {
+          "nome": "valor_total_liquido",
+          "tipo": "DECIMAL(14,4)"
+        }
+      ],
+      "invariantes": [
+        {
+          "expressao": {
+            "tipo": "OP_BINARIA",
+            "operador": ">=",
+            "esquerda": {
+              "tipo": "ACESSO",
+              "caminho": [
+                "valor_total_liquido"
+              ],
+              "linha": 26,
+              "coluna": 16
+            },
+            "direita": {
+              "tipo": "LITERAL_DECIMAL",
+              "escalado": "0",
+              "escala": 4,
+              "linha": 26,
+              "coluna": 39
+            },
+            "linha": 26,
+            "coluna": 36
+          },
+          "textoCanonico": "valor_total_liquido >= 0.0000",
+          "linha": 26,
+          "coluna": 5
+        }
+      ]
+    }
+  ],
+  "enumeracoes": [],
+  "regras": [
+    {
+      "nome": "CalculoTributarioLote",
+      "clausulasEntrada": [
+        {
+          "tipoClausula": "EXIGE",
+          "expressao": {
+            "tipo": "OP_BINARIA",
+            "operador": ">",
+            "esquerda": {
+              "tipo": "ACESSO",
+              "caminho": [
+                "itens",
+                "quantidade"
+              ],
+              "linha": 36,
+              "coluna": 15
+            },
+            "direita": {
+              "tipo": "LITERAL_INTEIRO",
+              "valor": "0",
+              "linha": 36,
+              "coluna": 34
+            },
+            "linha": 36,
+            "coluna": 32
+          },
+          "textoCanonico": "itens.quantidade > 0",
+          "linha": 36,
+          "coluna": 9
+        },
+        {
+          "tipoClausula": "EXIGE",
+          "expressao": {
+            "tipo": "OP_BINARIA",
+            "operador": ">=",
+            "esquerda": {
+              "tipo": "ACESSO",
+              "caminho": [
+                "itens",
+                "valor_unitario"
+              ],
+              "linha": 37,
+              "coluna": 15
+            },
+            "direita": {
+              "tipo": "LITERAL_DECIMAL",
+              "escalado": "0",
+              "escala": 4,
+              "linha": 37,
+              "coluna": 39
+            },
+            "linha": 37,
+            "coluna": 36
+          },
+          "textoCanonico": "itens.valor_unitario >= 0.0000",
+          "linha": 37,
+          "coluna": 9
+        }
+      ],
+      "clausulasSaida": [
+        {
+          "tipoClausula": "GARANTE",
+          "expressao": {
+            "tipo": "OP_BINARIA",
+            "operador": ">=",
+            "esquerda": {
+              "tipo": "ACESSO",
+              "caminho": [
+                "itens",
+                "valor_total_liquido"
+              ],
+              "linha": 41,
+              "coluna": 17
+            },
+            "direita": {
+              "tipo": "LITERAL_DECIMAL",
+              "escalado": "0",
+              "escala": 4,
+              "linha": 41,
+              "coluna": 46
+            },
+            "linha": 41,
+            "coluna": 43
+          },
+          "textoCanonico": "itens.valor_total_liquido >= 0.0000",
+          "linha": 41,
+          "coluna": 9
+        }
+      ],
+      "operacoes": [
+        {
+          "nome": "ProcessarVetorizado",
+          "parametros": [
+            {
+              "nome": "itens",
+              "tipo": "FATIA[ItemFatura]"
+            }
+          ],
+          "tipoRetorno": "DECIMAL(18,4)",
+          "corpo": [
+            {
+              "tipoComando": "DECL_VARIAVEL",
+              "nome": "acumulador_tributos",
+              "tipoDado": "DECIMAL(18,4)",
+              "inicializacao": {
+                "tipo": "LITERAL_DECIMAL",
+                "escalado": "0",
+                "escala": 4,
+                "linha": 46,
+                "coluna": 58
+              },
+              "linha": 46,
+              "coluna": 9
+            },
+            {
+              "tipoComando": "VETORIZAR_PARA",
+              "variavel": "item",
+              "fonte": [
+                "itens"
+              ],
+              "passoSimd": 8,
+              "corpo": [
+                {
+                  "tipoComando": "DECL_VARIAVEL",
+                  "nome": "bruto",
+                  "tipoDado": "DECIMAL(18,4)",
+                  "inicializacao": {
+                    "tipo": "OP_BINARIA",
+                    "operador": "*",
+                    "esquerda": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "item",
+                        "quantidade"
+                      ],
+                      "linha": 48,
+                      "coluna": 57
+                    },
+                    "direita": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "item",
+                        "valor_unitario"
+                      ],
+                      "linha": 48,
+                      "coluna": 75
+                    },
+                    "linha": 48,
+                    "coluna": 73
+                  },
+                  "linha": 48,
+                  "coluna": 13
+                },
+                {
+                  "tipoComando": "DECL_VARIAVEL",
+                  "nome": "fator_aliquota",
+                  "tipoDado": "DECIMAL(18,4)",
+                  "inicializacao": {
+                    "tipo": "OP_BINARIA",
+                    "operador": "/",
+                    "esquerda": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "item",
+                        "aliquota_imposto"
+                      ],
+                      "linha": 49,
+                      "coluna": 57
+                    },
+                    "direita": {
+                      "tipo": "LITERAL_INTEIRO",
+                      "valor": "100",
+                      "linha": 49,
+                      "coluna": 81
+                    },
+                    "linha": 49,
+                    "coluna": 79
+                  },
+                  "linha": 49,
+                  "coluna": 13
+                },
+                {
+                  "tipoComando": "DECL_VARIAVEL",
+                  "nome": "imposto_item",
+                  "tipoDado": "DECIMAL(18,4)",
+                  "inicializacao": {
+                    "tipo": "OP_BINARIA",
+                    "operador": "*",
+                    "esquerda": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "bruto"
+                      ],
+                      "linha": 50,
+                      "coluna": 57
+                    },
+                    "direita": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "fator_aliquota"
+                      ],
+                      "linha": 50,
+                      "coluna": 65
+                    },
+                    "linha": 50,
+                    "coluna": 63
+                  },
+                  "linha": 50,
+                  "coluna": 13
+                },
+                {
+                  "tipoComando": "ATRIBUICAO",
+                  "alvo": [
+                    "item",
+                    "valor_total_liquido"
+                  ],
+                  "expressao": {
+                    "tipo": "OP_BINARIA",
+                    "operador": "+",
+                    "esquerda": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "bruto"
+                      ],
+                      "linha": 51,
+                      "coluna": 41
+                    },
+                    "direita": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "imposto_item"
+                      ],
+                      "linha": 51,
+                      "coluna": 49
+                    },
+                    "linha": 51,
+                    "coluna": 47
+                  },
+                  "linha": 51,
+                  "coluna": 13
+                },
+                {
+                  "tipoComando": "ATRIBUICAO",
+                  "alvo": [
+                    "acumulador_tributos"
+                  ],
+                  "expressao": {
+                    "tipo": "OP_BINARIA",
+                    "operador": "+",
+                    "esquerda": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "acumulador_tributos"
+                      ],
+                      "linha": 52,
+                      "coluna": 36
+                    },
+                    "direita": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "imposto_item"
+                      ],
+                      "linha": 52,
+                      "coluna": 58
+                    },
+                    "linha": 52,
+                    "coluna": 56
+                  },
+                  "linha": 52,
+                  "coluna": 13
+                },
+                {
+                  "tipoComando": "EXIBA",
+                  "expressao": {
+                    "tipo": "OP_BINARIA",
+                    "operador": "+",
+                    "esquerda": {
+                      "tipo": "OP_BINARIA",
+                      "operador": "+",
+                      "esquerda": {
+                        "tipo": "OP_BINARIA",
+                        "operador": "+",
+                        "esquerda": {
+                          "tipo": "OP_BINARIA",
+                          "operador": "+",
+                          "esquerda": {
+                            "tipo": "OP_BINARIA",
+                            "operador": "+",
+                            "esquerda": {
+                              "tipo": "OP_BINARIA",
+                              "operador": "+",
+                              "esquerda": {
+                                "tipo": "OP_BINARIA",
+                                "operador": "+",
+                                "esquerda": {
+                                  "tipo": "LITERAL_TEXTO",
+                                  "valor": "[ITEM ",
+                                  "linha": 53,
+                                  "coluna": 19
+                                },
+                                "direita": {
+                                  "tipo": "ACESSO",
+                                  "caminho": [
+                                    "item",
+                                    "codigo_produto"
+                                  ],
+                                  "linha": 53,
+                                  "coluna": 30
+                                },
+                                "linha": 53,
+                                "coluna": 28
+                              },
+                              "direita": {
+                                "tipo": "LITERAL_TEXTO",
+                                "valor": "] Qtd: ",
+                                "linha": 53,
+                                "coluna": 52
+                              },
+                              "linha": 53,
+                              "coluna": 50
+                            },
+                            "direita": {
+                              "tipo": "ACESSO",
+                              "caminho": [
+                                "item",
+                                "quantidade"
+                              ],
+                              "linha": 53,
+                              "coluna": 64
+                            },
+                            "linha": 53,
+                            "coluna": 62
+                          },
+                          "direita": {
+                            "tipo": "LITERAL_TEXTO",
+                            "valor": " | Unit: R$ ",
+                            "linha": 53,
+                            "coluna": 82
+                          },
+                          "linha": 53,
+                          "coluna": 80
+                        },
+                        "direita": {
+                          "tipo": "ACESSO",
+                          "caminho": [
+                            "item",
+                            "valor_unitario"
+                          ],
+                          "linha": 53,
+                          "coluna": 99
+                        },
+                        "linha": 53,
+                        "coluna": 97
+                      },
+                      "direita": {
+                        "tipo": "LITERAL_TEXTO",
+                        "valor": " | Total Liq: R$ ",
+                        "linha": 53,
+                        "coluna": 121
+                      },
+                      "linha": 53,
+                      "coluna": 119
+                    },
+                    "direita": {
+                      "tipo": "ACESSO",
+                      "caminho": [
+                        "item",
+                        "valor_total_liquido"
+                      ],
+                      "linha": 53,
+                      "coluna": 143
+                    },
+                    "linha": 53,
+                    "coluna": 141
+                  },
+                  "linha": 53,
+                  "coluna": 13
+                }
+              ],
+              "linha": 47,
+              "coluna": 9
+            },
+            {
+              "tipoComando": "RETORNE",
+              "expressao": {
+                "tipo": "ACESSO",
+                "caminho": [
+                  "acumulador_tributos"
+                ],
+                "linha": 55,
+                "coluna": 17
+              },
+              "linha": 55,
+              "coluna": 9
+            }
+          ]
+        }
+      ],
+      "identificador": "BR-FISCAL-2026-08",
+      "rastreioRequisito": "REQ-FISCAL-9102",
+      "descricao": "Aplica isenção para insumos essenciais e calcula ICMS/PIS/COFINS em lote vetorizado."
+    }
+  ],
+  "procedimentos": [],
+  "versaoLinguagem": "2.2",
+  "nome": "ProcessamentoFaturamentoLote",
+  "metadados": {
+    "conformidade": [
+      "SOX-404",
+      "LGPD-Art7"
+    ],
+    "dominio": "LogisticaEFaturamento",
+    "subdominio": "FaturamentoLote",
+    "camada": "Dominio",
+    "versao": "2.2.0",
+    "autor": "Lucas Thomaz",
+    "sloLatencia": "15ms"
+  }
+}
