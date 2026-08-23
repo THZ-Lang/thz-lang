@@ -15,7 +15,7 @@ Este guia define as instruções, padrões de asserção e procedimentos para ad
 | Motor | Localização | Framework | Comando de Execução |
 | :--- | :--- | :--- | :--- |
 | **Node / TypeScript** | `thz-lang-engine/test/` | Node Test Runner (`tsx --test`) | `npm test` (dentro de `thz-lang-engine`) |
-| **Java 25 / JVM** | `thz-lang-engine-JVM25/src/test/java/` | JUnit 5 (`org.junit.jupiter`) | `mvn test` (dentro de `thz-lang-engine-JVM25`) |
+| **Java 25 / JVM** | `thz-lang-engine-JVM/src/test/java/` | JUnit 5 (`org.junit.jupiter`) | `mvn test` (dentro de `thz-lang-engine-JVM`) |
 
 ---
 
@@ -93,7 +93,7 @@ FIM_PROGRAMA
 
 ---
 
-## 4. Escrevendo Testes no Motor Java 25 (`thz-lang-engine-JVM25`)
+## 4. Escrevendo Testes no Motor Java 25 (`thz-lang-engine-JVM`)
 
 ### Localização dos Arquivos
 Os testes ficam em `src/test/java/thz/lang/`:
@@ -152,6 +152,6 @@ cd thz-lang-engine
 npm test
 
 # 2. Executar testes do motor Java 25:
-cd ../thz-lang-engine-JVM25
+cd ../thz-lang-engine-JVM
 mvn clean test
 ```

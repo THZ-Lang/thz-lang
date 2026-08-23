@@ -4,10 +4,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>thz.lang</groupId>
-  <artifactId>thz-lang-engine-jvm25</artifactId>
+  <artifactId>thz-lang-engine-jvm</artifactId>
   <version>2.3.0</version>
   <packaging>jar</packaging>
-  <name>THZ-LANG Engine — JVM25</name>
+  <name>THZ-LANG Engine — JVM</name>
   <description>Porto Java 25 do motor THZ-LANG v2.3 (interpretador tree-walking, paridade com o motor Node/TS)</description>
 
   <properties>
@@ -78,7 +78,7 @@
                 </manifestEntries>
               </transformer>
               </transformers>
-              <finalName>thz-jvm25-${project.version}</finalName>
+              <finalName>thz-jvm-${project.version}</finalName>
             </configuration>
           </execution>
         </executions>

@@ -41,7 +41,7 @@ jobs:
         working-directory: thz-lang-engine
         run: npm run extension:compile
 
-  engine-jvm25:
+  engine-jvm:
     name: Java 25 Engine
     runs-on: ubuntu-latest
     steps:
@@ -55,5 +55,5 @@ jobs:
           distribution: 'oracle'
 
       - name: Run Maven Tests (JUnit 5)
-        working-directory: thz-lang-engine-JVM25
+        working-directory: thz-lang-engine-JVM
         run: mvn --batch-mode clean test

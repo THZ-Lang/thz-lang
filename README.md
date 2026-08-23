@@ -114,7 +114,7 @@ thz-lang/
 │   ├── exemplos/               # Programas canônicos (faturamento, pedidos, agenda)
 │   └── test/                   # 159 testes unitários e golden snapshots
 │
-└── thz-lang-engine-JVM25/      # Motor Java 25 / JVM
+└── thz-lang-engine-JVM/        # Motor Java 25 / JVM
     ├── pom.xml                 # Build canônico Maven
     ├── src/main/java/thz/lang/ # Implementação Java 25 (AST, Lexer, Parser, Runtime, GUI)
     ├── src/test/java/thz/lang/ # Testes JUnit 5 (paridade comportamental com TypeScript)
@@ -164,12 +164,12 @@ npm run bench
 
 ---
 
-### 2. Motor Java 25 (`thz-lang-engine-JVM25`)
+### 2. Motor Java 25 (`thz-lang-engine-JVM`)
 
 **Requisitos:** OpenJDK 25 e Maven 3.9+.
 
 ```bash
-cd thz-lang-engine-JVM25
+cd thz-lang-engine-JVM
 
 # Compilar e executar testes JUnit 5
 mvn clean test
@@ -178,14 +178,14 @@ mvn clean test
 mvn package
 
 # Executar verificação ou rodar arquivo
-java -jar target/thz-jvm25-2.3.0.jar check exemplos/agenda.thz
-java -jar target/thz-jvm25-2.3.0.jar run   exemplos/agenda.thz
+java -jar target/thz-jvm-2.3.0.jar check exemplos/agenda.thz
+java -jar target/thz-jvm-2.3.0.jar run   exemplos/agenda.thz
 
 # Iniciar IDE Gráfica Swing (com galeria de exemplos)
-java -jar target/thz-jvm25-2.3.0.jar gui
+java -jar target/thz-jvm-2.3.0.jar gui
 
 # Iniciar REPL
-java -jar target/thz-jvm25-2.3.0.jar repl
+java -jar target/thz-jvm-2.3.0.jar repl
 ```
 
 ---
@@ -194,7 +194,7 @@ java -jar target/thz-jvm25-2.3.0.jar repl
 
 - **Gramática EBNF:** [`thz-lang-engine/docs/GRAMATICA.md`](thz-lang-engine/docs/GRAMATICA.md)
 - **Documentação do Motor Node/TS:** [`thz-lang-engine/README.md`](thz-lang-engine/README.md)
-- **Documentação do Motor JVM 25:** [`thz-lang-engine-JVM25/README.md`](thz-lang-engine-JVM25/README.md)
+- **Documentação do Motor JVM:** [`thz-lang-engine-JVM/README.md`](thz-lang-engine-JVM/README.md)
 - **Visão Arquitetural e Roadmap:** [`PROJECT.md`](PROJECT.md)
 - **Diretrizes para Agentes de IA:** [`AGENTS.md`](AGENTS.md)
 - **Extensão VS Code:** [`thz-lang-engine/extension/README.md`](thz-lang-engine/extension/README.md)

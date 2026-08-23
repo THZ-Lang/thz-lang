@@ -7,12 +7,12 @@ Todos passam em `thz check` **e** executam com `thz run` sem argumentos extras
 ## Como executar
 
 ```bat
-:: a partir da raiz thz-lang-engine-JVM25
-java --enable-preview -jar target\thz-jvm25-2.3.0.jar run  exemplos\colecao\01-ola-mundo.thz
-java --enable-preview -jar target\thz-jvm25-2.3.0.jar check exemplos\colecao\05-decimal-financeiro.thz
+:: a partir da raiz thz-lang-engine-JVM
+java -jar target\thz-jvm-2.3.0.jar run  exemplos\colecao\01-ola-mundo.thz
+java -jar target\thz-jvm-2.3.0.jar check exemplos\colecao\05-decimal-financeiro.thz
 
 :: GUI com galeria de exemplos no menu "Exemplos"
-java --enable-preview -jar target\thz-jvm25-2.3.0.jar gui
+java -jar target\thz-jvm-2.3.0.jar gui
 ```
 
 Na IDE Swing, os arquivos desta pasta aparecem no menu **Exemplos** — clique para

@@ -1,4 +1,4 @@
-# THZ-LANG Engine — JVM25
+# THZ-LANG Engine — JVM
 
 Porto **Java 25 + Maven** do motor THZ-LANG v2.3 (interpretador tree-walking), com paridade comportamental com o motor original em Node/TypeScript.
 
@@ -21,18 +21,18 @@ O projeto utiliza **Maven** como sistema de build canônico. O suporte ao Gradle
 ```bash
 mvn clean compile      # Compila o projeto
 mvn test               # Executa testes (JUnit 5)
-mvn package            # Gera o jar em target\thz-jvm25-2.3.0.jar
+mvn package            # Gera o jar em target\thz-jvm-2.3.0.jar
 mvn verify             # Build completo + testes
 ```
 
 ### Comandos de Execução
 ```bash
 # Sem flags especiais (nenhum recurso preview é usado)
-java -jar target\thz-jvm25-2.3.0.jar check exemplos\agenda.thz
-java -jar target\thz-jvm25-2.3.0.jar run   exemplos\agenda.thz
-java -jar target\thz-jvm25-2.3.0.jar fmt   exemplos\agenda.thz
-java -jar target\thz-jvm25-2.3.0.jar repl
-java -jar target\thz-jvm25-2.3.0.jar gui    # IDE Swing (galeria de exemplos no menu)
+java -jar target\thz-jvm-2.3.0.jar check exemplos\agenda.thz
+java -jar target\thz-jvm-2.3.0.jar run   exemplos\agenda.thz
+java -jar target\thz-jvm-2.3.0.jar fmt   exemplos\agenda.thz
+java -jar target\thz-jvm-2.3.0.jar repl
+java -jar target\thz-jvm-2.3.0.jar gui    # IDE Swing (galeria de exemplos no menu)
 ```
 
 ### Importar na IDE (IntelliJ)

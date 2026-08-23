@@ -1,7 +1,7 @@
-# PROJECT.md — THZ-LANG Engine JVM25
+# PROJECT.md — THZ-LANG Engine JVM
 
 ## Identidade
-- **Nome:** thz-lang-engine-jvm25
+- **Nome:** thz-lang-engine-jvm
 - **Versão:** 2.3.0 (paridade com THZ-LANG Engine TS)
 - **Stack:** Java 25 (records, sealed interfaces, pattern matching), Maven 3.9, JUnit 5
 - **Build alternativo marcado:** Gradle (wrapper + build.gradle.kts com `java`/`application`/`shadow`) — migração drop-in, sem tocar src.

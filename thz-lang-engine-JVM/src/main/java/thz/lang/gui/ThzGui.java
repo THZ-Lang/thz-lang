@@ -71,7 +71,7 @@ public final class ThzGui extends JFrame {
     private File arquivoSelecionado;
 
     public ThzGui() {
-        super("THZ-LANG Desktop — thz-lang-engine-JVM25");
+        super("THZ-LANG Desktop — thz-lang-engine-JVM");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(900, 620));
         setSize(1180, 780);

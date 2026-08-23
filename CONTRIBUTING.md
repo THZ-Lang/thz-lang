@@ -9,7 +9,7 @@ Este projeto implementa uma linguagem de programação corporativa estruturada e
 ## 1. Estrutura do Repositório
 
 - `thz-lang-engine/`: Motor canônico em Node.js (v20+) + TypeScript (v5+), com Language Service, Playground Web (Monaco), Servidor LSP, Extensão VS Code, IR e vetorização SIMD.
-- `thz-lang-engine-JVM25/`: Porto do motor em Java 25 + Maven, com interpretador tree-walking, REPL, paridade semântica e interface gráfica Swing.
+- `thz-lang-engine-JVM/`: Porto do motor em Java 25 + Maven, com interpretador tree-walking, REPL, paridade semântica e interface gráfica Swing.
 - `docs/`: EBNF da gramática (`docs/GRAMATICA.md`) e documentações arquiteturais.
 - `PROJECT.md` & `AGENTS.md`: Diretrizes formais de arquitetura, invariantes e mapa do ecossistema.
 
@@ -49,7 +49,7 @@ npm run playground           # Inicia o Playground Web localmente
 ### Motor JVM 25 / Java
 
 ```bash
-cd thz-lang-engine-JVM25
+cd thz-lang-engine-JVM
 mvn clean test               # Executa suíte JUnit 5 com JDK 25
 mvn package                  # Gera o jar executável
 ```

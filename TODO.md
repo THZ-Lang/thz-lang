@@ -10,6 +10,6 @@ Deve sempre estar atualizado.
 - [x] **G5 — THZ-IR + SIMD Formal** — `src/ir.ts` (`thz-ir/1`) + `src/simd.ts` (R1-R5) + `thz ir --llvm`
 - [x] **G6 — Bench + fmt** — `src/fmt.ts` (`thz fmt`) + `bench/` (decimal/fatia/SIMD, `npm run bench`) — 149 testes verdes
 - [ ] **Fase 7 — Fatias Zero-Copy (Arrow IPC) + Rust/Inkwell/LLVM 17+**
-- [x] **IDE própria** — Playground web (Monaco + Language Service + runtime browser + abas multi-arquivo + preview) e Desktop Swing IDE (`thz-lang-engine-JVM25`)
+- [x] **IDE própria** — Playground web (Monaco + Language Service + runtime browser + abas multi-arquivo + preview) e Desktop Swing IDE (`thz-lang-engine-JVM`)
 - [x] **Colorização multi-IDE** — Gramática TextMate v2.3 unificada (VS Code, Antigravity, IntelliJ IDEA bundle)
-- [x] **Port THZ-LANG JVM25** — Motor completo em Java 25 (Léxico, Parser, Runtime, Semântico, Interpretador, CLI, Formato e Desktop Swing IDE com 29 testes JUnit 5 verdes)
+- [x] **Port THZ-LANG JVM** — Motor completo em Java 25 (Léxico, Parser, Runtime, Semântico, Interpretador, CLI, Formato e Desktop Swing IDE com 29 testes JUnit 5 verdes)
