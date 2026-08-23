@@ -24,8 +24,9 @@
 - [ ] G4 Governança — `auditar()` + matriz RASTREIO→Regra→Contrato (`thz audit`)
 - [ ] G5 IR — `baixarParaIr()` (`thz-ir/1`) + SIMD R1–R5 (`verificarVetorizado`)
 - [ ] docgen Markdown+Mermaid (`thz doc`) + botão "📘 Doc" na IDE
-- [ ] IDE: formulário de args para OPERACAO parametrizada; preferências de tema persistidas
+- [x] IDE: ações Novo/Salvar Como, execução de OPERACAO parametrizada (lote demo / diálogo interativo) e polimento de temas
 - [ ] Empacotamento nativo via `jpackage` (Windows/Linux)
+
 
 ## Fase futura (fora do núcleo v2.3)
 

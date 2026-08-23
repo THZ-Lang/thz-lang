@@ -1,6 +1,5 @@
 package thz.lang.repl;
 
-import thz.lang.ast.ProgramaAst;
 import thz.lang.diagnosticos.DiagnosticoEntrada;
 import thz.lang.diagnosticos.Diagnosticos;
 import thz.lang.interpretador.InterpretadorThz;

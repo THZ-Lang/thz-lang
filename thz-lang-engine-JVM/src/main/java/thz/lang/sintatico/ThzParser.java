@@ -700,35 +700,24 @@ public class ThzParser {
         return advance();
     }
 
-    /** Renderização textual canônica de uma expressão (para docgen e auditoria). */
+    /** Renderização textual canônica de uma expressão (para docgen e auditoria) com checagem exaustiva de tipos. */
     public static String textoCanonicoDe(ExprAst expr) {
-        if (expr instanceof ExprAst.LiteralInteiro li) {
-            return li.valor().toString();
-        } else if (expr instanceof ExprAst.LiteralDecimal ld) {
-            return formatarEscalado(ld.escalado(), ld.escala());
-        } else if (expr instanceof ExprAst.LiteralTexto lt) {
-            return "\"" + lt.valor().replace("\n", "\\n") + "\"";
-        } else if (expr instanceof ExprAst.LiteralLogico ll) {
-            return ll.valor() ? "VERDADEIRO" : "FALSO";
-        } else if (expr instanceof ExprAst.Nulo) {
-            return "NULO";
-        } else if (expr instanceof ExprAst.AcessoCampo ac) {
-            return String.join(".", ac.caminho());
-        } else if (expr instanceof ExprAst.Chamada ch) {
-            return String.join(".", ch.caminho()) + "(" + ch.argumentos().stream().map(ThzParser::textoCanonicoDe).collect(Collectors.joining(", ")) + ")";
-        } else if (expr instanceof ExprAst.Indexacao idx) {
-            return textoCanonicoDe(idx.alvo()) + "[" + textoCanonicoDe(idx.indice()) + "]";
-        } else if (expr instanceof ExprAst.FatiaLiteral fl) {
-            return "[" + fl.elementos().stream().map(ThzParser::textoCanonicoDe).collect(Collectors.joining(", ")) + "]";
-        } else if (expr instanceof ExprAst.CriarRegistro cr) {
-            return "CRIAR " + cr.nomeEstrutura() + "(" + cr.campos().stream().map(c -> c.nome() + ": " + textoCanonicoDe(c.valor())).collect(Collectors.joining(", ")) + ")";
-        } else if (expr instanceof ExprAst.OpUnaria ou) {
-            return ("-".equals(ou.operador()) ? "-" : "NAO ") + textoCanonicoDe(ou.operando());
-        } else if (expr instanceof ExprAst.OpBinaria ob) {
-            return textoCanonicoDe(ob.esquerda()) + " " + ob.operador() + " " + textoCanonicoDe(ob.direita());
-        }
-        throw new IllegalArgumentException("ExprAst desconhecido: " + expr);
+        return switch (expr) {
+            case ExprAst.LiteralInteiro li -> li.valor().toString();
+            case ExprAst.LiteralDecimal ld -> formatarEscalado(ld.escalado(), ld.escala());
+            case ExprAst.LiteralTexto lt -> "\"" + lt.valor().replace("\n", "\\n") + "\"";
+            case ExprAst.LiteralLogico ll -> ll.valor() ? "VERDADEIRO" : "FALSO";
+            case ExprAst.Nulo _ -> "NULO";
+            case ExprAst.AcessoCampo ac -> String.join(".", ac.caminho());
+            case ExprAst.Chamada ch -> String.join(".", ch.caminho()) + "(" + ch.argumentos().stream().map(ThzParser::textoCanonicoDe).collect(Collectors.joining(", ")) + ")";
+            case ExprAst.Indexacao idx -> textoCanonicoDe(idx.alvo()) + "[" + textoCanonicoDe(idx.indice()) + "]";
+            case ExprAst.FatiaLiteral fl -> "[" + fl.elementos().stream().map(ThzParser::textoCanonicoDe).collect(Collectors.joining(", ")) + "]";
+            case ExprAst.CriarRegistro cr -> "CRIAR " + cr.nomeEstrutura() + "(" + cr.campos().stream().map(c -> c.nome() + ": " + textoCanonicoDe(c.valor())).collect(Collectors.joining(", ")) + ")";
+            case ExprAst.OpUnaria ou -> ("-".equals(ou.operador()) ? "-" : "NAO ") + textoCanonicoDe(ou.operando());
+            case ExprAst.OpBinaria ob -> textoCanonicoDe(ob.esquerda()) + " " + ob.operador() + " " + textoCanonicoDe(ob.direita());
+        };
     }
+
 
     private static String formatarEscalado(BigInteger escalado, int escala) {
         boolean negativo = escalado.compareTo(BigInteger.ZERO) < 0;

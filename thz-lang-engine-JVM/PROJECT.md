@@ -17,6 +17,8 @@
 - `diagnosticos` — `Diagnosticos`
 - `cli` — `ThzCli`
 - `repl` — `Repl`
+- `gui` — `ThzGui`, `EditorThz`, `PaletaThz` (IDE Swing FlatLaf)
+
 
 ## Invariantes (mesmos do TS)
 1. Decimal em BigInteger escalado (proibido double para dinheiro).

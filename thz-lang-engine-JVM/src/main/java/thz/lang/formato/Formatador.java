@@ -17,50 +17,57 @@ public final class Formatador {
     private static List<String> formatarComandos(List<ComandoAst> comandos, int nivel) {
         java.util.ArrayList<String> out = new java.util.ArrayList<>();
         for (ComandoAst c : comandos) {
-            if (c instanceof ComandoAst.DeclVariavel d) {
-                out.add(linha("VARIAVEL " + d.nome() + " : " + tipoCanonico(d.tipoDado()) + " <- " + formatarExpr(d.inicializacao()), nivel));
-            } else if (c instanceof ComandoAst.Atribuicao a) {
-                out.add(linha(String.join(".", a.alvo()) + " <- " + formatarExpr(a.expressao()), nivel));
-            } else if (c instanceof ComandoAst.Se s) {
-                out.add(linha("SE " + formatarExpr(s.condicao()), nivel));
-                out.addAll(formatarComandos(s.entao(), nivel + 1));
-                if (!s.senao().isEmpty()) {
-                    out.add(linha("SENAO", nivel));
-                    out.addAll(formatarComandos(s.senao(), nivel + 1));
+            switch (c) {
+                case ComandoAst.DeclVariavel d ->
+                    out.add(linha("VARIAVEL " + d.nome() + " : " + tipoCanonico(d.tipoDado()) + " <- " + formatarExpr(d.inicializacao()), nivel));
+                case ComandoAst.Atribuicao a ->
+                    out.add(linha(String.join(".", a.alvo()) + " <- " + formatarExpr(a.expressao()), nivel));
+                case ComandoAst.Se s -> {
+                    out.add(linha("SE " + formatarExpr(s.condicao()), nivel));
+                    out.addAll(formatarComandos(s.entao(), nivel + 1));
+                    if (!s.senao().isEmpty()) {
+                        out.add(linha("SENAO", nivel));
+                        out.addAll(formatarComandos(s.senao(), nivel + 1));
+                    }
+                    out.add(linha("FIM_SE", nivel));
                 }
-                out.add(linha("FIM_SE", nivel));
-            } else if (c instanceof ComandoAst.Enquanto e) {
-                out.add(linha("ENQUANTO " + formatarExpr(e.condicao()), nivel));
-                out.addAll(formatarComandos(e.corpo(), nivel + 1));
-                out.add(linha("FIM_ENQUANTO", nivel));
-            } else if (c instanceof ComandoAst.VetorizarPara v) {
-                String passo = v.passoSimd() != null ? " PASSO_SIMD " + v.passoSimd() : "";
-                out.add(linha("VETORIZAR_PARA " + v.variavel() + " EM " + String.join(".", v.fonte()) + passo, nivel));
-                out.addAll(formatarComandos(v.corpo(), nivel + 1));
-                out.add(linha("FIM_PARA", nivel));
-            } else if (c instanceof ComandoAst.Para p) {
-                String passo = p.passo() != null ? " PASSO " + formatarExpr(p.passo()) : "";
-                out.add(linha("PARA " + p.variavel() + " DE " + formatarExpr(p.inicio()) + " ATE " + formatarExpr(p.fim()) + passo, nivel));
-                out.addAll(formatarComandos(p.corpo(), nivel + 1));
-                out.add(linha("FIM_PARA", nivel));
-            } else if (c instanceof ComandoAst.BlocoMemoria b) {
-                out.add(linha("USAR_BLOCO_MEMORIA " + b.nome(), nivel));
-                out.addAll(formatarComandos(b.corpo(), nivel + 1));
-                out.add(linha("FIM_BLOCO_MEMORIA", nivel));
-            } else if (c instanceof ComandoAst.Exiba e) {
-                out.add(linha("EXIBA " + formatarExpr(e.expressao()), nivel));
-            } else if (c instanceof ComandoAst.Ler l) {
-                out.add(linha("LER " + String.join(".", l.alvo()), nivel));
-            } else if (c instanceof ComandoAst.Chamada ch) {
-                out.add(linha(formatarExpr(ch.expressao()), nivel));
-            } else if (c instanceof ComandoAst.Retorne r) {
-                out.add(linha(r.expressao() != null ? "RETORNE " + formatarExpr(r.expressao()) : "RETORNE", nivel));
-            } else if (c instanceof ComandoAst.FalharCom f) {
-                out.add(linha("FALHAR_COM " + formatarExpr(f.expressao()), nivel));
+                case ComandoAst.Enquanto e -> {
+                    out.add(linha("ENQUANTO " + formatarExpr(e.condicao()), nivel));
+                    out.addAll(formatarComandos(e.corpo(), nivel + 1));
+                    out.add(linha("FIM_ENQUANTO", nivel));
+                }
+                case ComandoAst.VetorizarPara v -> {
+                    String passo = v.passoSimd() != null ? " PASSO_SIMD " + v.passoSimd() : "";
+                    out.add(linha("VETORIZAR_PARA " + v.variavel() + " EM " + String.join(".", v.fonte()) + passo, nivel));
+                    out.addAll(formatarComandos(v.corpo(), nivel + 1));
+                    out.add(linha("FIM_PARA", nivel));
+                }
+                case ComandoAst.Para p -> {
+                    String passo = p.passo() != null ? " PASSO " + formatarExpr(p.passo()) : "";
+                    out.add(linha("PARA " + p.variavel() + " DE " + formatarExpr(p.inicio()) + " ATE " + formatarExpr(p.fim()) + passo, nivel));
+                    out.addAll(formatarComandos(p.corpo(), nivel + 1));
+                    out.add(linha("FIM_PARA", nivel));
+                }
+                case ComandoAst.BlocoMemoria b -> {
+                    out.add(linha("USAR_BLOCO_MEMORIA " + b.nome(), nivel));
+                    out.addAll(formatarComandos(b.corpo(), nivel + 1));
+                    out.add(linha("FIM_BLOCO_MEMORIA", nivel));
+                }
+                case ComandoAst.Exiba e ->
+                    out.add(linha("EXIBA " + formatarExpr(e.expressao()), nivel));
+                case ComandoAst.Ler l ->
+                    out.add(linha("LER " + String.join(".", l.alvo()), nivel));
+                case ComandoAst.Chamada ch ->
+                    out.add(linha(formatarExpr(ch.expressao()), nivel));
+                case ComandoAst.Retorne r ->
+                    out.add(linha(r.expressao() != null ? "RETORNE " + formatarExpr(r.expressao()) : "RETORNE", nivel));
+                case ComandoAst.FalharCom f ->
+                    out.add(linha("FALHAR_COM " + formatarExpr(f.expressao()), nivel));
             }
         }
         return out;
     }
+
 
     public static String formatar(ProgramaAst ast) {
         java.util.ArrayList<String> out = new java.util.ArrayList<>();

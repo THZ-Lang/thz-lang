@@ -1,4 +1,4 @@
-# AGENTS.md — THZ-LANG JVM25
+# AGENTS.md — THZ-LANG JVM
 
 Diretrizes para agentes operando neste repositório (espelha `thz-lang-engine/AGENTS.md`).
 

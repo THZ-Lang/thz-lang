@@ -25,34 +25,6 @@ public final class AnalisadorSemantico {
     private static final TipoThz TIPO_DATA = Tipos.TIPOS_PRIMITIVOS.get("DATA");
     private static final TipoThz TIPO_DATA_HORA = Tipos.TIPOS_PRIMITIVOS.get("DATA_HORA");
 
-    // ---------------------------------------------------------------- Escopo
-
-    private static final class EscopoTipos {
-        private final Map<String, TipoThz> simbolos = new LinkedHashMap<>();
-        private final EscopoTipos pai;
-
-        EscopoTipos() { this.pai = null; }
-        EscopoTipos(EscopoTipos pai) { this.pai = pai; }
-
-        void definir(String nome, TipoThz tipo, int linha, int coluna, List<ErroSemantico> erros) {
-            if (simbolos.containsKey(nome)) {
-                erros.add(new ErroSemantico(linha, coluna, "Redeclaração de '" + nome + "' no mesmo escopo."));
-                return;
-            }
-            simbolos.put(nome, tipo);
-        }
-
-        TipoThz resolver(String nome) {
-            EscopoTipos atual = this;
-            while (atual != null) {
-                TipoThz t = atual.simbolos.get(nome);
-                if (t != null) return t;
-                atual = atual.pai;
-            }
-            return null;
-        }
-    }
-
     // ---------------------------------------------------------------- Contexto
 
     private sealed interface ContextoExec permits ContextoOperacao, ContextoProcedimento {}
@@ -63,61 +35,8 @@ public final class AnalisadorSemantico {
         return c instanceof ContextoOperacao;
     }
 
-    // ---------------------------------------------------------------- SIG_STDLIB
-
-    private static final class SigStdlib {
-        final int paramMin;
-        final int paramMax;
-        final Function<List<TipoThz>, TipoThz> retornoFn;
-
-        SigStdlib(int paramMin, int paramMax, TipoThz retorno) {
-            this.paramMin = paramMin;
-            this.paramMax = paramMax;
-            this.retornoFn = args -> retorno;
-        }
-        SigStdlib(int paramMin, int paramMax, Function<List<TipoThz>, TipoThz> fn) {
-            this.paramMin = paramMin;
-            this.paramMax = paramMax;
-            this.retornoFn = fn;
-        }
-    }
-
-    private static final Map<String, SigStdlib> SIG_STDLIB;
-
-    static {
-        Map<String, SigStdlib> m = new LinkedHashMap<>();
-        m.put("TEXTO.comprimento", new SigStdlib(1, 1, TIPO_INTEIRO_GENERICO));
-        m.put("TEXTO.maiusculas", new SigStdlib(1, 1, TIPO_TEXTO));
-        m.put("TEXTO.minusculas", new SigStdlib(1, 1, TIPO_TEXTO));
-        m.put("TEXTO.aparar", new SigStdlib(1, 1, TIPO_TEXTO));
-        m.put("TEXTO.contem", new SigStdlib(2, 2, TIPO_LOGICO));
-        m.put("TEXTO.subtexto", new SigStdlib(2, 3, TIPO_TEXTO));
-        m.put("TEXTO.substituir", new SigStdlib(3, 3, TIPO_TEXTO));
-        m.put("TEXTO.dividir", new SigStdlib(2, 2, new TipoThz("FATIA[TEXTO]", CategoriaTipo.FATIA, null, null, "TEXTO", null)));
-        m.put("TEXTO.juntar", new SigStdlib(2, 2, TIPO_TEXTO));
-        m.put("MATEMATICA.abs", new SigStdlib(1, 1, (Function<List<TipoThz>, TipoThz>) args -> Tipos.ehInteiro(args.get(0)) ? TIPO_INTEIRO_GENERICO : args.get(0)));
-        m.put("MATEMATICA.min", new SigStdlib(2, 2, TIPO_INTEIRO_GENERICO));
-        m.put("MATEMATICA.max", new SigStdlib(2, 2, TIPO_INTEIRO_GENERICO));
-        m.put("MATEMATICA.potencia", new SigStdlib(2, 2, TIPO_INTEIRO_GENERICO));
-        m.put("MATEMATICA.raiz", new SigStdlib(1, 1, TIPO_INTEIRO_GENERICO));
-        m.put("MATEMATICA.arredondar", new SigStdlib(2, 2, (Function<List<TipoThz>, TipoThz>) args -> args.get(0)));
-        m.put("MATEMATICA.aleatorio", new SigStdlib(1, 1, TIPO_INTEIRO_GENERICO));
-        m.put("DATA.hoje", new SigStdlib(0, 0, TIPO_DATA));
-        m.put("DATA.agora", new SigStdlib(0, 0, TIPO_DATA_HORA));
-        m.put("DATA.criar", new SigStdlib(3, 3, TIPO_DATA));
-        m.put("DATA.criarDataHora", new SigStdlib(5, 6, TIPO_DATA_HORA));
-        m.put("DATA.adicionarDias", new SigStdlib(2, 2, TIPO_DATA));
-        m.put("DATA.adicionarHoras", new SigStdlib(2, 2, TIPO_DATA_HORA));
-        m.put("DATA.diferencaDias", new SigStdlib(2, 2, TIPO_INTEIRO_GENERICO));
-        m.put("DATA.ano", new SigStdlib(1, 1, TIPO_INTEIRO_GENERICO));
-        m.put("DATA.mes", new SigStdlib(1, 1, TIPO_INTEIRO_GENERICO));
-        m.put("DATA.dia", new SigStdlib(1, 1, TIPO_INTEIRO_GENERICO));
-        m.put("DATA.diaDaSemana", new SigStdlib(1, 1, TIPO_INTEIRO_GENERICO));
-        m.put("DATA.texto", new SigStdlib(1, 1, TIPO_TEXTO));
-        SIG_STDLIB = Collections.unmodifiableMap(m);
-    }
-
     // ---------------------------------------------------------------- Ctor
+
 
     public AnalisadorSemantico(ProgramaAst ast) {
         this.ast = ast;
@@ -314,139 +233,124 @@ public final class AnalisadorSemantico {
     }
 
     private void validarComando(ComandoAst cmd, EscopoTipos escopo, ContextoExec contexto) {
-        if (cmd instanceof ComandoAst.DeclVariavel d) {
-            TipoThz declarado = tipoValido(d.tipoDado(), d.linha(), d.coluna());
-            TipoThz init = inferir(d.inicializacao(), escopo);
-            if (declarado != null && init != null && !Tipos.saoCompativeis(init, declarado)) {
-                erros.add(new ErroSemantico(d.linha(), d.coluna(),
-                        "Inicialização de '" + d.nome() + "' incompatível: " + Tipos.descrever(init) + " → " + Tipos.descrever(declarado) + "."));
+        switch (cmd) {
+            case ComandoAst.DeclVariavel d -> {
+                TipoThz declarado = tipoValido(d.tipoDado(), d.linha(), d.coluna());
+                TipoThz init = inferir(d.inicializacao(), escopo);
+                if (declarado != null && init != null && !Tipos.saoCompativeis(init, declarado)) {
+                    erros.add(new ErroSemantico(d.linha(), d.coluna(),
+                            "Inicialização de '" + d.nome() + "' incompatível: " + Tipos.descrever(init) + " → " + Tipos.descrever(declarado) + "."));
+                }
+                escopo.definir(d.nome(), declarado != null ? declarado : TIPO_NULO, d.linha(), d.coluna(), erros);
             }
-            escopo.definir(d.nome(), declarado != null ? declarado : TIPO_NULO, d.linha(), d.coluna(), erros);
-            return;
-        }
-        if (cmd instanceof ComandoAst.Atribuicao a) {
-            TipoThz alvo = resolverCaminho(a.alvo(), escopo, a.linha(), a.coluna());
-            TipoThz valor = inferir(a.expressao(), escopo);
-            if (alvo != null && valor != null && !Tipos.saoCompativeis(valor, alvo)) {
-                erros.add(new ErroSemantico(a.linha(), a.coluna(),
-                        "Atribuição incompatível: " + Tipos.descrever(valor) + " → " + Tipos.descrever(alvo) + " em '" + String.join(".", a.alvo()) + "'."));
+            case ComandoAst.Atribuicao a -> {
+                TipoThz alvo = resolverCaminho(a.alvo(), escopo, a.linha(), a.coluna());
+                TipoThz valor = inferir(a.expressao(), escopo);
+                if (alvo != null && valor != null && !Tipos.saoCompativeis(valor, alvo)) {
+                    erros.add(new ErroSemantico(a.linha(), a.coluna(),
+                            "Atribuição incompatível: " + Tipos.descrever(valor) + " → " + Tipos.descrever(alvo) + " em '" + String.join(".", a.alvo()) + "'."));
+                }
             }
-            return;
-        }
-        if (cmd instanceof ComandoAst.Se s) {
-            exigirLogico(inferir(s.condicao(), escopo), "condição do 'SE'", s.linha(), s.coluna());
-            validarBlocoFilho(s.entao(), escopo, contexto);
-            validarBlocoFilho(s.senao(), escopo, contexto);
-            return;
-        }
-        if (cmd instanceof ComandoAst.Enquanto e) {
-            exigirLogico(inferir(e.condicao(), escopo), "condição do 'ENQUANTO'", e.linha(), e.coluna());
-            validarBlocoFilho(e.corpo(), escopo, contexto);
-            return;
-        }
-        if (cmd instanceof ComandoAst.Para p) {
-            TipoThz iniTipo = inferir(p.inicio(), escopo);
-            TipoThz fimTipo = inferir(p.fim(), escopo);
-            if (iniTipo != null && !Tipos.ehInteiro(iniTipo))
-                erros.add(new ErroSemantico(p.linha(), p.coluna(), "'PARA' exige início inteiro; obtido " + Tipos.descrever(iniTipo) + "."));
-            if (fimTipo != null && !Tipos.ehInteiro(fimTipo))
-                erros.add(new ErroSemantico(p.linha(), p.coluna(), "'PARA' exige fim inteiro; obtido " + Tipos.descrever(fimTipo) + "."));
-            if (p.passo() != null) {
-                TipoThz pp = inferir(p.passo(), escopo);
-                if (pp != null && !Tipos.ehInteiro(pp))
-                    erros.add(new ErroSemantico(p.linha(), p.coluna(), "'PASSO' exige inteiro; obtido " + Tipos.descrever(pp) + "."));
+            case ComandoAst.Se s -> {
+                exigirLogico(inferir(s.condicao(), escopo), "condição do 'SE'", s.linha(), s.coluna());
+                validarBlocoFilho(s.entao(), escopo, contexto);
+                validarBlocoFilho(s.senao(), escopo, contexto);
             }
-            EscopoTipos escopoIter = new EscopoTipos(escopo);
-            escopoIter.definir(p.variavel(), TIPO_INTEIRO_GENERICO, p.linha(), p.coluna(), erros);
-            validarBlocoFilho(p.corpo(), escopoIter, contexto);
-            return;
-        }
-        if (cmd instanceof ComandoAst.VetorizarPara vp) {
-            TipoThz fonte = escopo.resolver(vp.fonte().get(0));
-            if (fonte == null) {
-                erros.add(new ErroSemantico(vp.linha(), vp.coluna(), "Fonte não declarada: '" + vp.fonte().get(0) + "'."));
-                return;
+            case ComandoAst.Enquanto e -> {
+                exigirLogico(inferir(e.condicao(), escopo), "condição do 'ENQUANTO'", e.linha(), e.coluna());
+                validarBlocoFilho(e.corpo(), escopo, contexto);
             }
-            if (fonte.categoria() != CategoriaTipo.FATIA || fonte.interno() == null) {
-                erros.add(new ErroSemantico(vp.linha(), vp.coluna(), "Fonte do 'VETORIZAR_PARA' deve ser FATIA[T]; obtido " + Tipos.descrever(fonte) + "."));
-                return;
+            case ComandoAst.Para p -> {
+                TipoThz iniTipo = inferir(p.inicio(), escopo);
+                TipoThz fimTipo = inferir(p.fim(), escopo);
+                if (iniTipo != null && !Tipos.ehInteiro(iniTipo))
+                    erros.add(new ErroSemantico(p.linha(), p.coluna(), "'PARA' exige início inteiro; obtido " + Tipos.descrever(iniTipo) + "."));
+                if (fimTipo != null && !Tipos.ehInteiro(fimTipo))
+                    erros.add(new ErroSemantico(p.linha(), p.coluna(), "'PARA' exige fim inteiro; obtido " + Tipos.descrever(fimTipo) + "."));
+                if (p.passo() != null) {
+                    TipoThz pp = inferir(p.passo(), escopo);
+                    if (pp != null && !Tipos.ehInteiro(pp))
+                        erros.add(new ErroSemantico(p.linha(), p.coluna(), "'PASSO' exige inteiro; obtido " + Tipos.descrever(pp) + "."));
+                }
+                EscopoTipos escopoIter = new EscopoTipos(escopo);
+                escopoIter.definir(p.variavel(), TIPO_INTEIRO_GENERICO, p.linha(), p.coluna(), erros);
+                validarBlocoFilho(p.corpo(), escopoIter, contexto);
             }
-            EscopoTipos escopoIteracao = new EscopoTipos(escopo);
-            TipoThz interno;
-            if (Tipos.TIPOS_PRIMITIVOS.containsKey(fonte.interno())) {
-                interno = new TipoThz(fonte.interno(), CategoriaTipo.PRIMITIVO);
-            } else {
-                interno = new TipoThz(fonte.interno(), CategoriaTipo.REGISTRO, null, null, fonte.interno(), null);
+            case ComandoAst.VetorizarPara vp -> {
+                TipoThz fonte = escopo.resolver(vp.fonte().get(0));
+                if (fonte == null) {
+                    erros.add(new ErroSemantico(vp.linha(), vp.coluna(), "Fonte não declarada: '" + vp.fonte().get(0) + "'."));
+                    return;
+                }
+                if (fonte.categoria() != CategoriaTipo.FATIA || fonte.interno() == null) {
+                    erros.add(new ErroSemantico(vp.linha(), vp.coluna(), "Fonte do 'VETORIZAR_PARA' deve ser FATIA[T]; obtido " + Tipos.descrever(fonte) + "."));
+                    return;
+                }
+                EscopoTipos escopoIteracao = new EscopoTipos(escopo);
+                TipoThz interno;
+                if (Tipos.TIPOS_PRIMITIVOS.containsKey(fonte.interno())) {
+                    interno = new TipoThz(fonte.interno(), CategoriaTipo.PRIMITIVO);
+                } else {
+                    interno = new TipoThz(fonte.interno(), CategoriaTipo.REGISTRO, null, null, fonte.interno(), null);
+                }
+                escopoIteracao.definir(vp.variavel(), interno, vp.linha(), vp.coluna(), erros);
+                validarBlocoFilho(vp.corpo(), escopoIteracao, contexto);
             }
-            escopoIteracao.definir(vp.variavel(), interno, vp.linha(), vp.coluna(), erros);
-            validarBlocoFilho(vp.corpo(), escopoIteracao, contexto);
-            return;
-        }
-        if (cmd instanceof ComandoAst.BlocoMemoria bm) {
-            validarBlocoFilho(bm.corpo(), escopo, contexto);
-            return;
-        }
-        if (cmd instanceof ComandoAst.Exiba ex) {
-            inferir(ex.expressao(), escopo);
-            return;
-        }
-        if (cmd instanceof ComandoAst.Ler ler) {
-            TipoThz alvo = resolverCaminho(ler.alvo(), escopo, ler.linha(), ler.coluna());
-            if (alvo != null) {
-                boolean legivel = List.of(CategoriaTipo.PRIMITIVO, CategoriaTipo.INTEIRO, CategoriaTipo.DECIMAL).contains(alvo.categoria())
-                        || "DATA".equals(alvo.nome()) || "DATA_HORA".equals(alvo.nome());
-                if (!legivel && alvo.categoria() != CategoriaTipo.PRIMITIVO) {
-                    if (!alvo.nome().equals("DATA") && !alvo.nome().equals("DATA_HORA") && !alvo.nome().equals("TEXTO") && !alvo.nome().equals("LOGICO")) {
-                        erros.add(new ErroSemantico(ler.linha(), ler.coluna(), "LER exige alvo TEXTO/numérico/DATA; obtido " + Tipos.descrever(alvo) + "."));
+            case ComandoAst.BlocoMemoria bm -> validarBlocoFilho(bm.corpo(), escopo, contexto);
+            case ComandoAst.Exiba ex -> inferir(ex.expressao(), escopo);
+            case ComandoAst.Ler ler -> {
+                TipoThz alvo = resolverCaminho(ler.alvo(), escopo, ler.linha(), ler.coluna());
+                if (alvo != null) {
+                    boolean legivel = List.of(CategoriaTipo.PRIMITIVO, CategoriaTipo.INTEIRO, CategoriaTipo.DECIMAL).contains(alvo.categoria())
+                            || "DATA".equals(alvo.nome()) || "DATA_HORA".equals(alvo.nome());
+                    if (!legivel && alvo.categoria() != CategoriaTipo.PRIMITIVO) {
+                        if (!alvo.nome().equals("DATA") && !alvo.nome().equals("DATA_HORA") && !alvo.nome().equals("TEXTO") && !alvo.nome().equals("LOGICO")) {
+                            erros.add(new ErroSemantico(ler.linha(), ler.coluna(), "LER exige alvo TEXTO/numérico/DATA; obtido " + Tipos.descrever(alvo) + "."));
+                        }
                     }
                 }
             }
-            return;
-        }
-        if (cmd instanceof ComandoAst.Chamada ch) {
-            inferir(ch.expressao(), escopo);
-            return;
-        }
-        if (cmd instanceof ComandoAst.Retorne ret) {
-            if (!ehContextoOperacao(contexto)) {
-                if (ret.expressao() != null) {
-                    erros.add(new ErroSemantico(ret.linha(), ret.coluna(), "RETORNE com valor não permitido dentro de PROCEDIMENTO."));
+            case ComandoAst.Chamada ch -> inferir(ch.expressao(), escopo);
+            case ComandoAst.Retorne ret -> {
+                if (!ehContextoOperacao(contexto)) {
+                    if (ret.expressao() != null) {
+                        erros.add(new ErroSemantico(ret.linha(), ret.coluna(), "RETORNE com valor não permitido dentro de PROCEDIMENTO."));
+                    }
+                    return;
                 }
-                return;
+                if (ret.expressao() == null) return;
+                ContextoOperacao ctxOp = (ContextoOperacao) contexto;
+                TipoThz retornoDeclarado = tipoValido(ctxOp.operacao().tipoRetorno(), 1, 1);
+                TipoThz retornado = inferir(ret.expressao(), escopo);
+                TipoThz canalSucesso = null;
+                if (retornoDeclarado != null && retornoDeclarado.categoria() == CategoriaTipo.RESULTADO) {
+                    canalSucesso = tipoValido(retornoDeclarado.interno() != null ? retornoDeclarado.interno() : "NULO", 1, 1);
+                } else {
+                    canalSucesso = retornoDeclarado;
+                }
+                if (canalSucesso != null && retornado != null && !Tipos.saoCompativeis(retornado, canalSucesso)) {
+                    erros.add(new ErroSemantico(ret.linha(), ret.coluna(),
+                            "RETORNE incompatível: " + Tipos.descrever(retornado) + " → " + Tipos.descrever(canalSucesso) + "."));
+                }
             }
-            if (ret.expressao() == null) return;
-            ContextoOperacao ctxOp = (ContextoOperacao) contexto;
-            TipoThz retornoDeclarado = tipoValido(ctxOp.operacao().tipoRetorno(), 1, 1);
-            TipoThz retornado = inferir(ret.expressao(), escopo);
-            TipoThz canalSucesso = null;
-            if (retornoDeclarado != null && retornoDeclarado.categoria() == CategoriaTipo.RESULTADO) {
-                canalSucesso = tipoValido(retornoDeclarado.interno() != null ? retornoDeclarado.interno() : "NULO", 1, 1);
-            } else {
-                canalSucesso = retornoDeclarado;
-            }
-            if (canalSucesso != null && retornado != null && !Tipos.saoCompativeis(retornado, canalSucesso)) {
-                erros.add(new ErroSemantico(ret.linha(), ret.coluna(),
-                        "RETORNE incompatível: " + Tipos.descrever(retornado) + " → " + Tipos.descrever(canalSucesso) + "."));
-            }
-            return;
-        }
-        if (cmd instanceof ComandoAst.FalharCom fc) {
-            if (!ehContextoOperacao(contexto)) {
-                erros.add(new ErroSemantico(fc.linha(), fc.coluna(), "FALHAR_COM não permitido dentro de PROCEDIMENTO (exige RESULTADO)."));
-                return;
-            }
-            ContextoOperacao ctxOp = (ContextoOperacao) contexto;
-            TipoThz retornoDeclarado = tipoValido(ctxOp.operacao().tipoRetorno(), fc.linha(), fc.coluna());
-            if (retornoDeclarado == null || retornoDeclarado.categoria() != CategoriaTipo.RESULTADO) {
-                erros.add(new ErroSemantico(fc.linha(), fc.coluna(),
-                        "FALHAR_COM exige operação com retorno 'RESULTADO[T,E]'; declarado " + Tipos.descrever(retornoDeclarado) + "."));
-                return;
-            }
-            TipoThz canalErro = tipoValido(retornoDeclarado.internoErro() != null ? retornoDeclarado.internoErro() : "TEXTO", 1, 1);
-            TipoThz valorErro = inferir(fc.expressao(), escopo);
-            if (canalErro != null && valorErro != null && !Tipos.saoCompativeis(valorErro, canalErro)) {
-                erros.add(new ErroSemantico(fc.linha(), fc.coluna(),
-                        "FALHAR_COM incompatível com o canal de erro: " + Tipos.descrever(valorErro) + " → " + Tipos.descrever(canalErro) + "."));
+            case ComandoAst.FalharCom fc -> {
+                if (!ehContextoOperacao(contexto)) {
+                    erros.add(new ErroSemantico(fc.linha(), fc.coluna(), "FALHAR_COM não permitido dentro de PROCEDIMENTO (exige RESULTADO)."));
+                    return;
+                }
+                ContextoOperacao ctxOp = (ContextoOperacao) contexto;
+                TipoThz retornoDeclarado = tipoValido(ctxOp.operacao().tipoRetorno(), fc.linha(), fc.coluna());
+                if (retornoDeclarado == null || retornoDeclarado.categoria() != CategoriaTipo.RESULTADO) {
+                    erros.add(new ErroSemantico(fc.linha(), fc.coluna(),
+                            "FALHAR_COM exige operação com retorno 'RESULTADO[T,E]'; declarado " + Tipos.descrever(retornoDeclarado) + "."));
+                    return;
+                }
+                TipoThz canalErro = tipoValido(retornoDeclarado.internoErro() != null ? retornoDeclarado.internoErro() : "TEXTO", 1, 1);
+                TipoThz valorErro = inferir(fc.expressao(), escopo);
+                if (canalErro != null && valorErro != null && !Tipos.saoCompativeis(valorErro, canalErro)) {
+                    erros.add(new ErroSemantico(fc.linha(), fc.coluna(),
+                            "FALHAR_COM incompatível: " + Tipos.descrever(valorErro) + " → " + Tipos.descrever(canalErro) + "."));
+                }
             }
         }
     }
@@ -501,132 +405,129 @@ public final class AnalisadorSemantico {
     }
 
     private TipoThz inferir(ExprAst expr, EscopoTipos escopo) {
-        if (expr instanceof ExprAst.LiteralInteiro) {
-            return Tipos.TIPO_LITERAL_INTEIRO;
-        }
-        if (expr instanceof ExprAst.LiteralDecimal ld) {
-            return new TipoThz("DECIMAL(*," + ld.escala() + ")", CategoriaTipo.DECIMAL, ld.escala(), null, null, null);
-        }
-        if (expr instanceof ExprAst.LiteralTexto) {
-            return TIPO_TEXTO;
-        }
-        if (expr instanceof ExprAst.LiteralLogico) {
-            return TIPO_LOGICO;
-        }
-        if (expr instanceof ExprAst.Nulo) {
-            return TIPO_NULO;
-        }
-        if (expr instanceof ExprAst.AcessoCampo ac) {
-            if (ac.caminho().size() == 1) {
-                String membro = ac.caminho().get(0);
-                if (escopo.resolver(membro) == null) {
-                    String dono = donoDoMembro(membro);
-                    if (dono != null) return new TipoThz(dono, CategoriaTipo.ENUMERACAO);
+        return switch (expr) {
+            case ExprAst.LiteralInteiro _ -> Tipos.TIPO_LITERAL_INTEIRO;
+            case ExprAst.LiteralDecimal ld -> new TipoThz("DECIMAL(*," + ld.escala() + ")", CategoriaTipo.DECIMAL, ld.escala(), null, null, null);
+            case ExprAst.LiteralTexto _ -> TIPO_TEXTO;
+            case ExprAst.LiteralLogico _ -> TIPO_LOGICO;
+            case ExprAst.Nulo _ -> TIPO_NULO;
+            case ExprAst.AcessoCampo ac -> {
+                if (ac.caminho().size() == 1) {
+                    String membro = ac.caminho().get(0);
+                    if (escopo.resolver(membro) == null) {
+                        String dono = donoDoMembro(membro);
+                        if (dono != null) yield new TipoThz(dono, CategoriaTipo.ENUMERACAO);
+                    }
                 }
+                yield resolverCaminho(ac.caminho(), escopo, ac.linha(), ac.coluna());
             }
-            return resolverCaminho(ac.caminho(), escopo, ac.linha(), ac.coluna());
+            case ExprAst.Chamada ch -> inferirChamada(ch, escopo);
+            case ExprAst.Indexacao idx -> inferirIndexacao(idx, escopo);
+            case ExprAst.FatiaLiteral fl -> inferirFatiaLiteral(fl, escopo);
+            case ExprAst.CriarRegistro cr -> inferirCriarRegistro(cr, escopo);
+            case ExprAst.OpUnaria ou -> inferirOpUnaria(ou, escopo);
+            case ExprAst.OpBinaria ob -> inferirBinaria(ob, escopo);
+        };
+    }
+
+    private TipoThz inferirIndexacao(ExprAst.Indexacao idx, EscopoTipos escopo) {
+        TipoThz alvo = inferir(idx.alvo(), escopo);
+        TipoThz indice = inferir(idx.indice(), escopo);
+        if (indice != null && !Tipos.ehInteiro(indice))
+            erros.add(new ErroSemantico(idx.linha(), idx.coluna(), "Índice deve ser inteiro; obtido " + Tipos.descrever(indice) + "."));
+        if (alvo == null) return null;
+        if (alvo.categoria() == CategoriaTipo.FATIA) {
+            String interno = alvo.interno();
+            if (interno == null) return null;
+            if (Tipos.TIPOS_PRIMITIVOS.containsKey(interno)) return Tipos.TIPOS_PRIMITIVOS.get(interno);
+            if (interno.equals("DATA")) return TIPO_DATA;
+            if (interno.equals("DATA_HORA")) return TIPO_DATA_HORA;
+            if (estruturas.containsKey(interno)) return new TipoThz(interno, CategoriaTipo.REGISTRO, null, null, interno, null);
+            return new TipoThz(interno, CategoriaTipo.PRIMITIVO);
         }
-        if (expr instanceof ExprAst.Chamada ch) {
-            return inferirChamada(ch, escopo);
-        }
-        if (expr instanceof ExprAst.Indexacao idx) {
-            TipoThz alvo = inferir(idx.alvo(), escopo);
-            TipoThz indice = inferir(idx.indice(), escopo);
-            if (indice != null && !Tipos.ehInteiro(indice))
-                erros.add(new ErroSemantico(idx.linha(), idx.coluna(), "Índice deve ser inteiro; obtido " + Tipos.descrever(indice) + "."));
-            if (alvo == null) return null;
-            if (alvo.categoria() == CategoriaTipo.FATIA) {
-                String interno = alvo.interno();
-                if (interno == null) return null;
-                if (Tipos.TIPOS_PRIMITIVOS.containsKey(interno)) return Tipos.TIPOS_PRIMITIVOS.get(interno);
-                if (interno.equals("DATA")) return TIPO_DATA;
-                if (interno.equals("DATA_HORA")) return TIPO_DATA_HORA;
-                if (estruturas.containsKey(interno)) return new TipoThz(interno, CategoriaTipo.REGISTRO, null, null, interno, null);
-                return new TipoThz(interno, CategoriaTipo.PRIMITIVO);
-            }
-            if (alvo.nome().equals("TEXTO")) return TIPO_TEXTO;
-            erros.add(new ErroSemantico(idx.linha(), idx.coluna(), "Indexação exige FATIA ou TEXTO; obtido " + Tipos.descrever(alvo) + "."));
-            return null;
-        }
-        if (expr instanceof ExprAst.FatiaLiteral fl) {
-            if (fl.elementos().isEmpty()) return new TipoThz("FATIA[TEXTO]", CategoriaTipo.FATIA, null, null, "TEXTO", null);
-            List<TipoThz> tipos = new ArrayList<>();
-            for (ExprAst e : fl.elementos()) tipos.add(inferir(e, escopo));
-            TipoThz primeiro = tipos.get(0);
-            if (primeiro == null) return new TipoThz("FATIA[TEXTO]", CategoriaTipo.FATIA, null, null, "TEXTO", null);
-            for (int i = 1; i < tipos.size(); i++) {
-                TipoThz ti = tipos.get(i);
-                if (ti != null && !Tipos.saoCompativeis(ti, primeiro) && !Tipos.saoCompativeis(primeiro, ti)) {
-                    erros.add(new ErroSemantico(fl.linha(), fl.coluna(), "Elementos de fatia heterogêneos: " + Tipos.descrever(primeiro) + " vs " + Tipos.descrever(ti) + "."));
-                }
-            }
-            String internoNome;
-            if (primeiro.categoria() == CategoriaTipo.REGISTRO) {
-                internoNome = primeiro.interno() != null ? primeiro.interno() : primeiro.nome();
-            } else if (primeiro.nome().equals("<literal-inteiro>")) {
-                internoNome = "INTEIRO64";
-            } else {
-                internoNome = primeiro.nome();
-            }
-            String internoCan = internoNome.startsWith("DECIMAL") ? "DECIMAL" : internoNome;
-            return new TipoThz("FATIA[" + internoCan + "]", CategoriaTipo.FATIA, null, null, internoCan, null);
-        }
-        if (expr instanceof ExprAst.CriarRegistro cr) {
-            EstruturaAst estrutura = estruturas.get(cr.nomeEstrutura());
-            if (estrutura == null) {
-                erros.add(new ErroSemantico(cr.linha(), cr.coluna(), "Estrutura '" + cr.nomeEstrutura() + "' não declarada."));
-                return null;
-            }
-            if (cr.campos().size() != estrutura.campos().size()) {
-                erros.add(new ErroSemantico(cr.linha(), cr.coluna(),
-                        "CRIAR '" + cr.nomeEstrutura() + "' exige " + estrutura.campos().size() + " campos, recebidos " + cr.campos().size() + "."));
-            }
-            for (CampoEstruturaAst campo : estrutura.campos()) {
-                Optional<ExprAst.CampoValor> fornecido = cr.campos().stream().filter(c -> c.nome().equals(campo.nome())).findFirst();
-                if (fornecido.isEmpty()) {
-                    erros.add(new ErroSemantico(cr.linha(), cr.coluna(), "Campo '" + campo.nome() + "' não fornecido em CRIAR '" + cr.nomeEstrutura() + "'."));
-                    continue;
-                }
-                TipoThz esperado = tipoValido(campo.tipo(), cr.linha(), cr.coluna());
-                TipoThz obtido = inferir(fornecido.get().valor(), escopo);
-                if (esperado != null && obtido != null && !Tipos.saoCompativeis(obtido, esperado)) {
-                    erros.add(new ErroSemantico(cr.linha(), cr.coluna(), "Campo '" + campo.nome() + "' incompatível: " + Tipos.descrever(obtido) + " → " + Tipos.descrever(esperado) + "."));
-                }
-            }
-            return new TipoThz(cr.nomeEstrutura(), CategoriaTipo.REGISTRO, null, null, cr.nomeEstrutura(), null);
-        }
-        if (expr instanceof ExprAst.OpUnaria ou) {
-            TipoThz operando = inferir(ou.operando(), escopo);
-            if (ou.operador().equals("NAO")) {
-                exigirLogico(operando, "operando do 'NAO'", ou.linha(), ou.coluna());
-                return TIPO_LOGICO;
-            }
-            if (!Tipos.ehNumerico(operando)) {
-                erros.add(new ErroSemantico(ou.linha(), ou.coluna(), "Negação aritmética exige numérico."));
-            }
-            return Tipos.ehInteiro(operando) ? TIPO_INTEIRO_GENERICO : operando;
-        }
-        if (expr instanceof ExprAst.OpBinaria ob) {
-            return inferirBinaria(ob, escopo);
-        }
+        if (alvo.nome().equals("TEXTO")) return TIPO_TEXTO;
+        erros.add(new ErroSemantico(idx.linha(), idx.coluna(), "Indexação exige FATIA ou TEXTO; obtido " + Tipos.descrever(alvo) + "."));
         return null;
     }
 
+    private TipoThz inferirFatiaLiteral(ExprAst.FatiaLiteral fl, EscopoTipos escopo) {
+        if (fl.elementos().isEmpty()) return new TipoThz("FATIA[TEXTO]", CategoriaTipo.FATIA, null, null, "TEXTO", null);
+        List<TipoThz> tipos = new ArrayList<>();
+        for (ExprAst e : fl.elementos()) tipos.add(inferir(e, escopo));
+        TipoThz primeiro = tipos.get(0);
+        if (primeiro == null) return new TipoThz("FATIA[TEXTO]", CategoriaTipo.FATIA, null, null, "TEXTO", null);
+        for (int i = 1; i < tipos.size(); i++) {
+            TipoThz ti = tipos.get(i);
+            if (ti != null && !Tipos.saoCompativeis(ti, primeiro) && !Tipos.saoCompativeis(primeiro, ti)) {
+                erros.add(new ErroSemantico(fl.linha(), fl.coluna(), "Elementos de fatia heterogêneos: " + Tipos.descrever(primeiro) + " vs " + Tipos.descrever(ti) + "."));
+            }
+        }
+        String internoNome;
+        if (primeiro.categoria() == CategoriaTipo.REGISTRO) {
+            internoNome = primeiro.interno() != null ? primeiro.interno() : primeiro.nome();
+        } else if (primeiro.nome().equals("<literal-inteiro>")) {
+            internoNome = "INTEIRO64";
+        } else {
+            internoNome = primeiro.nome();
+        }
+        String internoCan = internoNome.startsWith("DECIMAL") ? "DECIMAL" : internoNome;
+        return new TipoThz("FATIA[" + internoCan + "]", CategoriaTipo.FATIA, null, null, internoCan, null);
+    }
+
+    private TipoThz inferirCriarRegistro(ExprAst.CriarRegistro cr, EscopoTipos escopo) {
+        EstruturaAst estrutura = estruturas.get(cr.nomeEstrutura());
+        if (estrutura == null) {
+            erros.add(new ErroSemantico(cr.linha(), cr.coluna(), "Estrutura '" + cr.nomeEstrutura() + "' não declarada."));
+            return null;
+        }
+        if (cr.campos().size() != estrutura.campos().size()) {
+            erros.add(new ErroSemantico(cr.linha(), cr.coluna(),
+                    "CRIAR '" + cr.nomeEstrutura() + "' exige " + estrutura.campos().size() + " campos, recebidos " + cr.campos().size() + "."));
+        }
+        for (CampoEstruturaAst campo : estrutura.campos()) {
+            Optional<ExprAst.CampoValor> fornecido = cr.campos().stream().filter(c -> c.nome().equals(campo.nome())).findFirst();
+            if (fornecido.isEmpty()) {
+                erros.add(new ErroSemantico(cr.linha(), cr.coluna(), "Campo '" + campo.nome() + "' não fornecido em CRIAR '" + cr.nomeEstrutura() + "'."));
+                continue;
+            }
+            TipoThz esperado = tipoValido(campo.tipo(), cr.linha(), cr.coluna());
+            TipoThz obtido = inferir(fornecido.get().valor(), escopo);
+            if (esperado != null && obtido != null && !Tipos.saoCompativeis(obtido, esperado)) {
+                erros.add(new ErroSemantico(cr.linha(), cr.coluna(), "Campo '" + campo.nome() + "' incompatível: " + Tipos.descrever(obtido) + " → " + Tipos.descrever(esperado) + "."));
+            }
+        }
+        return new TipoThz(cr.nomeEstrutura(), CategoriaTipo.REGISTRO, null, null, cr.nomeEstrutura(), null);
+    }
+
+    private TipoThz inferirOpUnaria(ExprAst.OpUnaria ou, EscopoTipos escopo) {
+        TipoThz operando = inferir(ou.operando(), escopo);
+        if (ou.operador().equals("NAO")) {
+            exigirLogico(operando, "operando do 'NAO'", ou.linha(), ou.coluna());
+            return TIPO_LOGICO;
+        }
+        if (!Tipos.ehNumerico(operando)) {
+            erros.add(new ErroSemantico(ou.linha(), ou.coluna(), "Negação aritmética exige numérico."));
+        }
+        return Tipos.ehInteiro(operando) ? TIPO_INTEIRO_GENERICO : operando;
+    }
+
+
     private TipoThz inferirChamada(ExprAst.Chamada expr, EscopoTipos escopo) {
         String nomeQ = String.join(".", expr.caminho());
-        SigStdlib sig = SIG_STDLIB.get(nomeQ);
+        AssinaturasStdlib.Assinatura sig = AssinaturasStdlib.obter(nomeQ);
         if (sig != null) {
-            if (expr.argumentos().size() < sig.paramMin || expr.argumentos().size() > sig.paramMax) {
+            if (expr.argumentos().size() < sig.paramMin() || expr.argumentos().size() > sig.paramMax()) {
                 erros.add(new ErroSemantico(expr.linha(), expr.coluna(),
-                        "Função '" + nomeQ + "' exige " + sig.paramMin + (sig.paramMax != sig.paramMin ? " a " + sig.paramMax : "") + " arg(s), recebidos " + expr.argumentos().size() + "."));
+                        "Função '" + nomeQ + "' exige " + sig.paramMin() + (sig.paramMax() != sig.paramMin() ? " a " + sig.paramMax() : "") + " arg(s), recebidos " + expr.argumentos().size() + "."));
             }
             List<TipoThz> tiposArgs = new ArrayList<>();
             for (ExprAst a : expr.argumentos()) {
                 TipoThz ta = inferir(a, escopo);
                 tiposArgs.add(ta != null ? ta : TIPO_NULO);
             }
-            return sig.retornoFn.apply(tiposArgs);
+            return sig.retornoFn().apply(tiposArgs);
         }
+
         if (expr.caminho().size() == 1) {
             String simples = expr.caminho().get(0);
             List<ProcedimentoAst> procs = ast.procedimentos() != null ? ast.procedimentos() : List.of();

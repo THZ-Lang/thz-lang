@@ -11,7 +11,8 @@
 |---|---|
 | Artefato | `target/thz-jvm25-2.3.0.jar` (shaded, ~1.1 MB, FlatLaf embutido) |
 | Plataforma | Java 25 (sem flags — nenhum recurso preview em uso), Maven canônico |
-| Testes | `mvn verify` — **11/11 verde** (ParidadeTest 8 + GuiPaletaTest 3) |
+| Testes | `mvn verify` — **30/30 verde** (ParidadeTest, GuiPaletaTest, InterpretadorTest, DecimalMonetarioTest, ContratosInvariantesTest) |
+
 | Pacotes | `thz.lang.{lexico, sintatico, ast, semantico, runtime, interpretador, diagnostico*, formato, cli, repl, gui}` |
 | Entradas | CLI `ThzCli` (`check/ast/fmt/run/repl/gui`) · GUI `ThzGui` · REPL multi-linha |
 
@@ -107,9 +108,15 @@ Números de linha agora ancorados no documento: `StyledDocument.getDefaultRootEl
 baseline centralizada, largura dinâmica por nº de dígitos, repaint sincronizado
 a caret/documento. Antes havia desalinhamento acumulado (fonte/métrica própria ≠ View).
 
-Testes GUI: `GuiPaletaTest` — cobertura completa de TokenType nas duas paletas.
+### Onda 5 — Ações de arquivo, execução parametrizada e consistência de tema
+* **Ações completas de arquivo:** Novo Arquivo (`📄 Novo`, Ctrl+N) resetando estado e template; Salvar Como... (Ctrl+Shift+S); Salvar (Ctrl+S); Abrir (Ctrl+O).
+* **Execução parametrizada e paridade com CLI:** injeção do lote demo (`LOTE`) com validação de invariantes para operações que recebem `FATIA[Estrutura]` (como `faturamento.thz` com `ProcessarVetorizado`); diálogo interativo via `JOptionPane` para parâmetros primitivos em `Principal` e operações.
+* **Ciclo completo de temas (Escuro ⇄ Claro):** re-estilização em tempo real de `pillArquivo`, bordas dos cards, cabeçalhos, toolbar, status bar, toggles e botões secundários/primários sem reter resíduos visuais do tema anterior.
+
+Testes GUI: `GuiPaletaTest` — cobertura completa de TokenType nas duas paletas + teste de ciclo de inicialização.
 
 ---
+
 
 ## 4. Coleção de exemplos + galeria na IDE
 

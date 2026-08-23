@@ -38,4 +38,13 @@ public class GuiPaletaTest {
         assertNotNull(PaletaThz.ESCURO.attrString);
         assertNotNull(PaletaThz.CLARO.attrString);
     }
+
+    @Test public void inicializacaoGuiNaoQuebra() {
+        if (!java.awt.GraphicsEnvironment.isHeadless()) {
+            thz.lang.gui.ThzGui gui = new thz.lang.gui.ThzGui();
+            assertNotNull(gui);
+            gui.dispose();
+        }
+    }
 }
+

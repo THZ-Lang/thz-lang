@@ -46,9 +46,10 @@ public final class EditorThz extends JPanel {
         pane.getDocument().addUndoableEditListener(undo);
         bindUndoRedo();
 
-        gutter = new Gutter(pane);
+        gutter = new Gutter(pane, paleta);
         scroll = new JScrollPane(pane);
         scroll.setRowHeaderView(gutter);
+
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(paleta.fundoEditor);
@@ -238,12 +239,11 @@ public final class EditorThz extends JPanel {
         this.paleta = nova;
         pane.setFont(escolherFonteMono());
         refreshChrome();
-        gutter.setBackground(nova.fundoGutter);
-        gutter.setForeground(nova.frenteGutter);
-        gutter.repaint();
+        gutter.aplicarTema(nova);
         atualizarLinhaAtual();
         realcar();
     }
+
 
     public JTextPane getPane() {
         return pane;
@@ -397,77 +397,5 @@ public final class EditorThz extends JPanel {
             pane.setCaretPosition(Math.min(off, text.length()));
         }
     }
-
-    private class Gutter extends JPanel {
-        private final JTextPane paneRef;
-
-        Gutter(JTextPane p) {
-            paneRef = p;
-            setPreferredSize(new Dimension(56, 0));
-            setBackground(paleta.fundoGutter);
-            setForeground(paleta.frenteGutter);
-            setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
-            setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, paleta.corBordaSuave));
-        }
-
-        void atualizarLargura(int linhas) {
-            int digitos = String.valueOf(Math.max(linhas, 1)).length();
-            FontMetrics fm = getFontMetrics(getFont().deriveFont(Font.BOLD, 12f));
-            int w = fm.stringWidth("9".repeat(digitos)) + 24;
-            w = Math.max(44, Math.min(72, w));
-            setPreferredSize(new Dimension(w, 0));
-            revalidate();
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            StyledDocument doc = (StyledDocument) paneRef.getDocument();
-            javax.swing.text.Element root = doc.getDefaultRootElement();
-            int linhas = root.getElementCount();
-            atualizarLargura(linhas);
-            int caretLine = root.getElementIndex(paneRef.getCaretPosition()) + 1;
-            FontMetrics fmGutter = g.getFontMetrics(getFont());
-            // fallback line height caso modelToView ainda não esteja pronto
-            int fallbackH = paneRef.getFontMetrics(paneRef.getFont()).getHeight();
-            for (int i = 0; i < linhas; i++) {
-                javax.swing.text.Element elem = root.getElement(i);
-                int startOff = elem.getStartOffset();
-                // o último elemento pode ser o sentinel após o texto; ignora se beyond doc length sem conteúdo
-                if (startOff >= doc.getLength() && i == linhas - 1 && doc.getLength() > 0) {
-                    // se última linha vazia após \n final, ainda pinta número usando y do anterior + fallback
-                    // evita pular número
-                }
-                int y;
-                try {
-                    java.awt.geom.Rectangle2D r = paneRef.modelToView2D(startOff);
-                    if (r == null) {
-                        y = 10 + i * fallbackH + fmGutter.getAscent();
-                    } else {
-                        double rh = r.getHeight();
-                        if (rh <= 1) rh = fallbackH;
-                        y = (int) (r.getY() + fmGutter.getAscent() + (rh - fmGutter.getHeight()) / 2.0);
-                    }
-                } catch (javax.swing.text.BadLocationException ex) {
-                    y = 10 + i * fallbackH + fmGutter.getAscent();
-                }
-                // só pinta se dentro do clip
-                if (y < -fallbackH || y > getHeight() + fallbackH * 2) {
-                    // mas como o gutter é viewport sincronizado, y absoluto já considera scroll;
-                    // deixa o Swing clipar naturalmente — não pula para manter alinhamento com scroll
-                }
-                boolean ativo = (i + 1) == caretLine;
-                g2.setColor(ativo ? paleta.frenteGutterAtiva : getForeground());
-                g2.setFont(getFont().deriveFont(ativo ? Font.BOLD : Font.PLAIN, ativo ? 12f : 11f));
-                String s = String.valueOf(i + 1);
-                FontMetrics fmAtivo = g2.getFontMetrics();
-                int w = fmAtivo.stringWidth(s);
-                g2.drawString(s, getWidth() - w - 10, y);
-            }
-            g2.setColor(paleta.corBordaSuave);
-            g2.drawLine(getWidth() - 1, 0, getWidth() - 1, getHeight());
-        }
-    }
 }
+

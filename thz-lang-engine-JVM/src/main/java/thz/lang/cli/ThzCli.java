@@ -108,22 +108,15 @@ public class ThzCli {
                         ProcedimentoAst proc = ast.procedimentos()!=null?ast.procedimentos().stream().filter(p->p.nome().equals(nomePrincipal)).findFirst().orElse(null):null;
                         if (proc != null) {
                             System.out.println("[PROCEDIMENTO] " + proc.nome() + "()\n");
-                            Map<String, ValorThz> a = construirArgsProc(proc, mapaArgs);
+                            Map<String, ValorThz> a = InjetorLoteDemo.construirArgsProc(proc, p -> mapaArgs.get(p.nome()));
                             interp.executarProcedimento(proc.nome(), a);
                             arena.liberarTudo(); System.out.println("\n[RUNTIME] Arena de memória liberada em O(1). Execução finalizada sem erros."); return;
                         }
+
                         var ops = interp.listarOperacoesExecutaveis().stream().filter(o->o.operacao().nome().equals(nomePrincipal)).findFirst().orElse(null);
                         if (ops != null) {
                             System.out.println("[REGRA] " + ops.regra().nome() + (ops.regra().identificador()!=null?" ("+ops.regra().identificador()+")":"")+" :: "+ops.operacao().nome()+"()\n");
-                            Map<String,ValorThz> a = new HashMap<>();
-                            for (ParametroOperacaoAst p: ops.operacao().parametros()) {
-                                String bruto = mapaArgs.get(p.nome());
-                                if (bruto!=null) a.put(p.nome(), InterpretadorThz.valorThzDe(p.tipo(), bruto));
-                                else {
-                                    var m = java.util.regex.Pattern.compile("^FATIA\\[(\\w+)\\]$").matcher(p.tipo());
-                                    if(m.matches()){ EstruturaAst est = ast.estruturas().stream().filter(e2->e2.nome().equals(m.group(1))).findFirst().orElse(null); if(est==null) throw new RuntimeException("Estrutura '"+m.group(1)+"' não declarada."); List<ValorThz> elems = new ArrayList<>(); for(Object[] linha: LOTE) elems.add(registroDe(est, linha, v->interp.validarInvariantes(v))); a.put(p.nome(), new ValorThz.Fatia(m.group(1), elems)); } else a.put(p.nome(), InterpretadorThz.valorThzDe(p.tipo(), bruto!=null?bruto:0));
-                                }
-                            }
+                            Map<String, ValorThz> a = InjetorLoteDemo.construirArgsOperacao(ops.operacao(), ast, interp::validarInvariantes, p -> mapaArgs.get(p.nome()));
                             ValorThz res = interp.executarOperacao(ops.operacao().nome(), a);
                             System.out.println("--------------------------------------------------------------");
                             if(res!=null) System.out.println("[RESULTADO] " + interp.formatar(res));
@@ -134,7 +127,7 @@ public class ThzCli {
                     ProcedimentoAst procPrincipal = ast.procedimentos()!=null?ast.procedimentos().stream().filter(p->p.nome().equals("Principal")).findFirst().orElse(null):null;
                     if(procPrincipal!=null){
                         System.out.println("[PROCEDIMENTO] Principal()\n");
-                        Map<String,ValorThz> a = procPrincipal.parametros().isEmpty()?Map.of():construirArgsProc(procPrincipal, mapaArgs);
+                        Map<String,ValorThz> a = procPrincipal.parametros().isEmpty()?Map.of():InjetorLoteDemo.construirArgsProc(procPrincipal, p -> mapaArgs.get(p.nome()));
                         interp.executarProcedimento("Principal", a);
                         arena.liberarTudo(); System.out.println("\n[RUNTIME] Arena de memória liberada em O(1). Execução finalizada sem erros."); return;
                     }
@@ -142,7 +135,7 @@ public class ThzCli {
                     if(execs.isEmpty()){ System.err.println("[ERRO] Nenhuma operação com corpo executável declarada. Adicione um bloco INICIO ... FIM a uma OPERACAO ou declare PROCEDIMENTO Principal."); System.exit(1); }
                     var prim = execs.get(0);
                     System.out.println("[REGRA] " + prim.regra().nome() + (prim.regra().identificador()!=null?" ("+prim.regra().identificador()+")":"") + " :: " + prim.operacao().nome() + "()\n");
-                    Map<String,ValorThz> a = construirArgsOperacao(prim.operacao(), ast, v->interp.validarInvariantes(v));
+                    Map<String,ValorThz> a = InjetorLoteDemo.construirArgsOperacao(prim.operacao(), ast, interp::validarInvariantes, p -> mapaArgs.get(p.nome()));
                     ValorThz res = interp.executarOperacao(prim.operacao().nome(), a);
                     System.out.println("--------------------------------------------------------------");
                     if(res!=null) System.out.println("[RESULTADO] " + interp.formatar(res));
@@ -163,46 +156,6 @@ public class ThzCli {
         }
     }
 
-    private static final Object[][] LOTE = {
-        new Object[]{"a1b2c3d4-0000-0000-0000-000000000001","PROD-SKU-901",10,"150.5000","18.00","0"},
-        new Object[]{"a1b2c3d4-0000-0000-0000-000000000002","PROD-SKU-902",5,"320.0000","12.00","0"}
-    };
-    private static ValorThz registroDe(EstruturaAst est, Object[] vals, java.util.function.Consumer<ValorThz> validar){
-        Map<String,ValorThz> campos=new HashMap<>();
-        for(int i=0;i<est.campos().size();i++){
-            var campo=est.campos().get(i);
-            Object bruto=i<vals.length?vals[i]:null;
-            if(bruto!=null) campos.put(campo.nome(), InterpretadorThz.valorThzDe(campo.tipo(), bruto));
-            else if(campo.tipo().startsWith("NATURAL")||campo.tipo().startsWith("INTEIRO")) campos.put(campo.nome(), ValorThz.INTEIRO(java.math.BigInteger.ZERO));
-            else if(campo.tipo().startsWith("DECIMAL")||campo.tipo().startsWith("MONETARIO")) campos.put(campo.nome(), InterpretadorThz.valorThzDe(campo.tipo(),"0"));
-            else campos.put(campo.nome(), InterpretadorThz.valorThzDe(campo.tipo(),""));
-        }
-        ValorThz reg=new ValorThz.Registro(est.nome(), campos);
-        if(validar!=null) validar.accept(reg);
-        return reg;
-    }
-    private static Map<String,ValorThz> construirArgsOperacao(OperacaoAst op, ProgramaAst ast, java.util.function.Consumer<ValorThz> validar){
-        Map<String,ValorThz> out=new HashMap<>();
-        for(ParametroOperacaoAst p: op.parametros()){
-            var m=java.util.regex.Pattern.compile("^FATIA\\[(\\w+)\\]$").matcher(p.tipo());
-            if(m.matches()){
-                EstruturaAst est=ast.estruturas().stream().filter(e->e.nome().equals(m.group(1))).findFirst().orElse(null);
-                if(est==null) throw new RuntimeException("Estrutura '"+m.group(1)+"' referenciada por '"+p.tipo()+"' não declarada.");
-                List<ValorThz> elems=new ArrayList<>(); for(Object[] linha: LOTE) elems.add(registroDe(est, linha, validar));
-                out.put(p.nome(), new ValorThz.Fatia(m.group(1), elems));
-            } else out.put(p.nome(), InterpretadorThz.valorThzDe(p.tipo(), 0));
-        }
-        return out;
-    }
-    private static Map<String,ValorThz> construirArgsProc(ProcedimentoAst proc, Map<String,String> mapa){
-        Map<String,ValorThz> out=new HashMap<>();
-        for(ParametroOperacaoAst p: proc.parametros()){
-            String bruto=mapa.get(p.nome());
-            if(bruto==null) throw new RuntimeException("[Erro de Execução] Parâmetro '"+p.nome()+"' não fornecido. Use --arg "+p.nome()+"=valor");
-            out.put(p.nome(), InterpretadorThz.valorThzDe(p.tipo(), bruto));
-        }
-        return out;
-    }
     private static Map<String,String> parseArgsMapa(List<String> args){
         Map<String,String> mapa=new HashMap<>();
         for(int i=0;i<args.size();i++){

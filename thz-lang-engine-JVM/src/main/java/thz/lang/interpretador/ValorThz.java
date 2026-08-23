@@ -53,20 +53,22 @@ public sealed interface ValorThz permits
     static Data DATA(DataThz v) { return new Data(v); }
     static DataHora DATA_HORA(DataHoraThz v) { return new DataHora(v); }
 
-    /** Retorna nome da classe THZ para mensagens de erro. */
+    /** Retorna nome da classe THZ para mensagens de erro com verificação exaustiva em tempo de compilação. */
     default String classe() {
-        if (this instanceof Inteiro) return "INTEIRO";
-        if (this instanceof Decimal) return "DECIMAL";
-        if (this instanceof Monetario) return "MONETARIO";
-        if (this instanceof Texto) return "TEXTO";
-        if (this instanceof Logico) return "LOGICO";
-        if (this instanceof Nulo) return "NULO";
-        if (this instanceof Enumerado) return "ENUMERADO";
-        if (this instanceof Resultado) return "RESULTADO";
-        if (this instanceof Registro) return "REGISTRO";
-        if (this instanceof Fatia) return "FATIA";
-        if (this instanceof Data) return "DATA";
-        if (this instanceof DataHora) return "DATA_HORA";
-        return "DESCONHECIDO";
+        return switch (this) {
+            case Inteiro _ -> "INTEIRO";
+            case Decimal _ -> "DECIMAL";
+            case Monetario _ -> "MONETARIO";
+            case Texto _ -> "TEXTO";
+            case Logico _ -> "LOGICO";
+            case Nulo _ -> "NULO";
+            case Enumerado _ -> "ENUMERADO";
+            case Resultado _ -> "RESULTADO";
+            case Registro _ -> "REGISTRO";
+            case Fatia _ -> "FATIA";
+            case Data _ -> "DATA";
+            case DataHora _ -> "DATA_HORA";
+        };
     }
 }
+
