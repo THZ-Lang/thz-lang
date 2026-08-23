@@ -1,0 +1,28 @@
+{
+  "name": "thz-lang-workspace",
+  "version": "2.3.3",
+  "private": true,
+  "description": "Orquestrador do ecossistema THZ-LANG: motor TypeScript (referência/tooling) e motor JVM (thz-core, thz-cli, thz-gui — repos independentes consumidos via composite build).",
+  "scripts": {
+    "// === Setup ===": "",
+    "setup": "npm ci --prefix thz-lang-engine && npm run build:jvm",
+    "build:jvm": "npm run core:publish && npm run cli:jar",
+
+    "// === Testes (tudo) ===": "",
+    "test": "npm run test:ts && npm run test:core && npm run test:gui",
+    "test:ts": "npm test --prefix thz-lang-engine",
+    "test:core": "cd thz-core && gradlew test",
+    "test:gui": "cd thz-gui && gradlew test",
+
+    "// === CLI / REPL / IDE ===": "",
+    "thz": "node scripts/thz.js",
+    "repl": "node scripts/thz.js repl",
+    "ide": "cd thz-gui && gradlew gui",
+
+    "// === Módulos JVM individuais ===": "",
+    "core:publish": "cd thz-core && gradlew publishToMavenLocal",
+    "cli:jar": "cd thz-cli && gradlew shadowJar",
+    "cli:native": "cd thz-cli && powershell -ExecutionPolicy Bypass -File scripts/build-native.ps1",
+    "cli:package": "cd thz-cli && powershell -ExecutionPolicy Bypass -File scripts/build-package.ps1"
+  }
+}

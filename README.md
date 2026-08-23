@@ -121,6 +121,27 @@ thz-lang/
 
 ## 🚀 Quick Start
 
+### 0. Orquestrador da raiz (`package.json`)
+
+A raiz do workspace centraliza as operações mais comuns dos quatro módulos — sem ferramenta extra, apenas npm:
+
+```bash
+npm run setup        # instala deps TS + publica core no Maven Local + gera UberJAR
+npm test             # suítes completas: TypeScript + thz-core + thz-gui
+npm run test:ts      # apenas motor TypeScript (160 testes)
+npm run test:core    # apenas núcleo JVM
+npm run test:gui     # apenas IDE Desktop
+
+npm run thz -- check thz-core/exemplos/faturamento.thz   # CLI com args naturais*
+npm run repl                                             # REPL interativo
+npm run ide                                              # abre a IDE Desktop Swing
+
+npm run core:publish    # publica thz.lang:thz-core no ~/.m2
+npm run cli:jar         # gera thz-cli/target/thz-jvm-2.3.0.jar
+```
+
+> \* O wrapper `scripts/thz.js` gera o UberJAR automaticamente na primeira execução, se ainda não existir.
+
 ### 1. Motor TypeScript / Node.js (`thz-lang-engine`)
 
 **Requisitos:** Node.js 20+ e npm.
