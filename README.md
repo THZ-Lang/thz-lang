@@ -114,11 +114,7 @@ thz-lang/
 │   ├── exemplos/               # Programas canônicos (faturamento, pedidos, agenda)
 │   └── test/                   # 159 testes unitários e golden snapshots
 │
-└── thz-lang-engine-JVM/        # Motor Java 25 / JVM
-    ├── pom.xml                 # Build canônico Maven
-    ├── src/main/java/thz/lang/ # Implementação Java 25 (AST, Lexer, Parser, Runtime, GUI)
-    ├── src/test/java/thz/lang/ # Testes JUnit 5 (paridade comportamental com TypeScript)
-    └── exemplos/               # Galeria de exemplos e coleções de testes
+> **Motor JVM:** o motor Java 25 foi extraído para repositórios independentes — [`thz-core`](./thz-core) (núcleo/stdlib), [`thz-cli`](./thz-cli) (CLI + REPL + UberJAR) e [`thz-gui`](./thz-gui) (IDE Desktop Swing). Consumo via Gradle Composite Build ou artefato `thz.lang:thz-core`.
 ```
 
 ---
@@ -164,28 +160,25 @@ npm run bench
 
 ---
 
-### 2. Motor Java 25 (`thz-lang-engine-JVM`)
+### 2. Motor Java 25 (repos independentes `thz-core` / `thz-cli` / `thz-gui`)
 
-**Requisitos:** OpenJDK 25 e Maven 3.9+.
+O motor JVM vive em três repositórios irmãos deste. Requisitos: OpenJDK 25 e Gradle Wrapper (embutido em cada repo).
 
 ```bash
-cd thz-lang-engine-JVM
+# 1) Publicar o núcleo no Maven Local (uma vez, ou a cada mudança no core)
+cd ./thz-core
+./gradlew test publishToMavenLocal
 
-# Compilar e executar testes JUnit 5
-mvn clean test
-
-# Gerar o JAR executável
-mvn package
-
-# Executar verificação ou rodar arquivo
-java -jar target/thz-jvm-2.3.0.jar check exemplos/agenda.thz
-java -jar target/thz-jvm-2.3.0.jar run   exemplos/agenda.thz
-
-# Iniciar IDE Gráfica Swing (com galeria de exemplos)
-java -jar target/thz-jvm-2.3.0.jar gui
-
-# Iniciar REPL
+# 2) CLI — UberJAR executável
+cd ./thz-cli
+./gradlew shadowJar
+java -jar target/thz-jvm-2.3.0.jar check ./thz-core/exemplos/agenda.thz
+java -jar target/thz-jvm-2.3.0.jar run   ./thz-core/exemplos/agenda.thz
 java -jar target/thz-jvm-2.3.0.jar repl
+
+# 3) IDE Desktop Swing
+cd ./thz-gui
+./gradlew gui
 ```
 
 ---
@@ -194,7 +187,7 @@ java -jar target/thz-jvm-2.3.0.jar repl
 
 - **Gramática EBNF:** [`thz-lang-engine/docs/GRAMATICA.md`](thz-lang-engine/docs/GRAMATICA.md)
 - **Documentação do Motor Node/TS:** [`thz-lang-engine/README.md`](thz-lang-engine/README.md)
-- **Documentação do Motor JVM:** [`thz-lang-engine-JVM/README.md`](thz-lang-engine-JVM/README.md)
+- **Documentação do Motor JVM:** repos independentes [`./thz-core`](./thz-core), [`./thz-cli`](./thz-cli) e [`./thz-gui`](./thz-gui)
 - **Visão Arquitetural e Roadmap:** [`PROJECT.md`](PROJECT.md)
 - **Diretrizes para Agentes de IA:** [`AGENTS.md`](AGENTS.md)
 - **Extensão VS Code:** [`thz-lang-engine/extension/README.md`](thz-lang-engine/extension/README.md)
