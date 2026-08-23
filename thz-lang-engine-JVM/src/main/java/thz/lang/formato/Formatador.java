@@ -105,6 +105,8 @@ public final class Formatador {
             if (regra.identificador() != null) out.add(linha("IDENTIFICADOR_REGRA: \"" + regra.identificador() + "\"", 1));
             if (regra.rastreioRequisito() != null) out.add(linha("RASTREIO_REQUISITO: \"" + regra.rastreioRequisito() + "\"", 1));
             if (regra.descricao() != null) out.add(linha("DESCRICAO: \"" + regra.descricao() + "\"", 1));
+            if (regra.idempotente()) out.add(linha("IDEMPOTENTE: VERDADEIRO", 1));
+            if (regra.chaveIdempotencia() != null) out.add(linha("CHAVE_IDEMPOTENCIA: \"" + regra.chaveIdempotencia() + "\"", 1));
             if (!regra.clausulasEntrada().isEmpty()) {
                 out.add(linha("CONTRATO_ENTRADA", 1));
                 for (ClausulaContratoAst c : regra.clausulasEntrada()) out.add(linha("EXIGE " + c.textoCanonico(), 2));
@@ -117,7 +119,8 @@ public final class Formatador {
             }
             for (OperacaoAst op : regra.operacoes()) {
                 String params = op.parametros().stream().map(p->p.nome()+": "+tipoCanonico(p.tipo())).reduce((a,b)->a+", "+b).orElse("");
-                out.add(linha("OPERACAO " + op.nome() + "(" + params + ") : " + tipoCanonico(op.tipoRetorno()), 1));
+                String idempMod = op.idempotente() ? "IDEMPOTENTE " : "";
+                out.add(linha("OPERACAO " + idempMod + op.nome() + "(" + params + ") : " + tipoCanonico(op.tipoRetorno()), 1));
                 if (!op.corpo().isEmpty()) {
                     out.add(linha("INICIO", 1));
                     out.addAll(formatarComandos(op.corpo(), 2));
@@ -128,7 +131,8 @@ public final class Formatador {
         }
         for (ProcedimentoAst proc : ast.procedimentos() != null ? ast.procedimentos() : List.<ProcedimentoAst>of()) {
             String params = proc.parametros().stream().map(p->p.nome()+": "+tipoCanonico(p.tipo())).reduce((a,b)->a+", "+b).orElse("");
-            out.add("PROCEDIMENTO " + proc.nome() + "(" + params + ")");
+            String idempMod = proc.idempotente() ? "IDEMPOTENTE " : "";
+            out.add("PROCEDIMENTO " + idempMod + proc.nome() + "(" + params + ")");
             if (!proc.corpo().isEmpty()) {
                 out.add(linha("INICIO", 1));
                 out.addAll(formatarComandos(proc.corpo(), 2));
@@ -136,6 +140,7 @@ public final class Formatador {
             }
             out.add("");
         }
+
         out.add("FIM_PROGRAMA"); out.add("");
         return String.join("\n", out);
     }

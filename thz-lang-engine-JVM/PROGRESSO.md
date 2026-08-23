@@ -161,14 +161,28 @@ Descobertas registradas durante a criação (iguais no motor TS):
 
 ## 5. Testes (inventário atual)
 
-`src/test/java/thz/lang/`
-* `ParidadeTest` (8): lexer básico · parser mínimo · decimal bancário half-even ·
-  datas Hinnant · exemplos canônicos validam · fmt idempotente ·
-  **galeriaExemplosValida** · **lexerToleraBomUtf8**.
-* `GuiPaletaTest` (3): paletas cobrem todos os TokenType · tipos primitivos ·
-  atributos comentário/string presentes.
+`src/test/java/thz/lang/` — **58 testes JUnit 5 (100% verdes)**:
+* `ArenaMemoriaTest` (4): alocação linear contígua, descarte instantâneo em tempo constante $O(1)$, validação de limites e representação textual.
+* `ConfiguracaoDesktopTest` (4): serialização e desserialização JSON, persistência atômica, histórico de arquivos recentes e tolerância a dados corrompidos/omitidos.
+* `ContratosInvariantesTest` (4): validação de `EXIGE` (pré-condições), `GARANTE` (pós-condições), `INVARIANTE` em estruturas e invariantes pós-mutação.
+* `DecimalMonetarioTest` (10): aritmética bancária half-even ISO/IEC 10967, precisão decimal sem float, multiplicação de monetário por decimal, conversão e parsing.
+* `DetectorJvmTest` (5): detecção automática de JVMs no sistema (Scoop, SDKMAN, Program Files, JAVA_HOME), validação de executáveis java, inspeção de versão/vendor e persistência de caminho personalizado.
+* `DocGenTest` (2): geração de documentação técnica em Markdown com diagramas de classe e fluxo Mermaid.js.
+* `GovernancaTest` (4): matriz de rastreabilidade, relatórios Markdown e JSON, auditoria de conformidade e detecção de pendências.
+* `GuiPaletaTest` (4): paletas ESCURO e CLARO cobrem todos os 63 `TokenType`, atributos de destaque, cores de fundo e ciclo de vida da interface Swing.
+* `IdempotenciaTest` (5): idempotência de larga escala (Léxico, Sintático, `RegistroIdempotencia` em runtime O(1), Interpretador, Auditoria G4, THZ-IR G5, Formatador canônico e DocGen).
+* `InterpretadorTest` (4): execução de operações com argumentos, controle de fluxo (SE, ENQUANTO, PARA), fatias e chamadas de funções stdlib.
+* `IrSimdTest` (4): representação intermediária `thz-ir/1`, validação de regras SIMD R1 a R5, emissão de LLVM IR textual e detecção de I/O impuro.
+* `ParidadeTest` (8): lexer básico, parser mínimo, datas Hinnant, exemplos canônicos (`faturamento.thz`, `pedidos.thz`), formatador idempotente, validação de todos os ≥11 exemplos da galeria e tolerância a BOM UTF-8.
 
-Comando único: `mvn verify` (sem flags — nenhum recurso preview em uso).
+
+
+
+
+Comando:
+```powershell
+$env:JAVA_HOME="C:\Users\lucas\scoop\apps\openjdk25\current"; mvn test
+```
 
 ---
 
@@ -176,21 +190,23 @@ Comando único: `mvn verify` (sem flags — nenhum recurso preview em uso).
 
 | Item | Situação |
 |---|---|
-| `pedidos.thz` com LOTE genérico da CLI falha ([Erro Decimal] 'PROD-SKU-901') | Paridade: falha igual no motor TS (schema difere do LOTE demo). Uso correto via `--principal Classificar --arg pedido=...` ou GUI com fatia literal |
-| Gradle | Alternativa futura — `build.gradle.kts.placeholder` com receita equivalente (java/application/shadow); código desacoplado do Maven |
-| G4/G5 fora do núcleo | `docgen` (Mermaid), `audit` (matriz RASTREIO→Regra→Contrato), IR `thz-ir/1` + LLVM, SIMD R1-R5 ainda só no motor TS |
-| RESULTADO sem campos acessíveis | Gap de expressividade (TS idem) — candidato a evolução futura da gramática (bump minor) |
-| UUID via CRIAR | Idem acima; hoje só via injeção CLI/GUI |
-
-## 7. Próximos passos sugeridos (ordem proposta)
-
-1. Portar G4 Governança (`auditar` + matriz Markdown) — reaproveita AST/contratos já resolvidos.
-2. Portar G5 IR (`baixarParaIr`, serialização JSON determinística) e regras SIMD R1–R5 (`verificarVetorizado`).
-3. Portar `docgen` (Markdown+Mermaid) e plugar como aba/botão na IDE ("📘 Doc").
-4. Na IDE: seletor de OPERACAO/PROCEDIMENTO com formulário de args (--arg) para rodar operações parametrizadas; persistir preferências de tema.
-5. Empacotar distribuição: `jpackage` (instalador Windows/Linux) consumindo o shaded jar.
-6. Migrar build para Gradle quando houver necessidade de CI multiplataforma (placeholder pronto).
+| `pedidos.thz` com LOTE genérico da CLI falha ([Erro Decimal] 'PROD-SKU-901') | **Paridade:** falha idêntica no motor TS (o schema do LOTE demo é de faturamento). Uso correto: `--principal Classificar --arg pedido=...` ou GUI com entrada interativa / fatia literal |
+| G4 Governança (`audit`) | **Concluído ✅:** Pacote `thz.lang.governanca` com `AuditorGovernanca` (matriz RASTREIO→Regra→Contrato, Markdown e JSON), CLI `thz audit` e botão `🛡️ Auditoria` na IDE Desktop |
+| DocGen (`doc`) | **Concluído ✅:** Pacote `thz.lang.docgen` com `ThzDocGen` (Markdown + diagramas Mermaid de classes e fluxo), CLI `thz doc` e botão `📘 Doc` na IDE Desktop |
+| G5 IR & SIMD (`ir`) | **Concluído ✅:** Pacotes `thz.lang.ir` e `thz.lang.simd` com `thz-ir/1`, validador SIMD regras R1–R5, emissão LLVM IR preliminar, CLI `thz ir` e botão `🧩 IR` na IDE Desktop |
+| Empacotamento Autônomo (`jpackage`) | **Concluído ✅:** Scripts `scripts/build-package.ps1` e `scripts/build-package.cmd` geram a pasta portátil `dist/thz/` com executáveis `thz.exe`, `thz-gui.exe` e JRE 25 embutido |
+| Compilação Nativa AOT (`GraalVM`) | **Configurado ✅:** Perfil `<profile id="native">` no `pom.xml` e scripts `scripts/build-native.ps1` / `scripts/build-native.cmd` para gerar `dist/bin/thz.exe` |
+| Gradle | **Alternativa futura:** `build.gradle.kts.placeholder` pronto (código 100% desacoplado de APIs do Maven) |
+| RESULTADO sem campos acessíveis | **Por Design:** Paridade estrita com o motor TS — candidate a evolução futura da gramática |
+| UUID via CRIAR | **Por Design:** Idem acima; hoje instanciado via injeção CLI/GUI ou stdlib |
 
 ---
-*Gerado durante sessão de desenvolvimento opencode — histórico completo das ondas
-de implementação (motor → realce → visual → gutter/BOM → coleção/galeria).*
+
+## 7. Próximos passos sugeridos (ordem de prioridade)
+
+1. **LSP stdio & Tooling:**
+   - Suporte ao protocolo Language Server Protocol (LSP stdio) para integração com editores modernos.
+
+
+
+

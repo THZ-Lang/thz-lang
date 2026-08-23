@@ -16,11 +16,19 @@ import thz.lang.semantico.ErroSemantico;
 import thz.lang.semantico.OpcoesAnalise;
 import thz.lang.sintatico.ThzParser;
 
+import thz.lang.gui.config.ConfiguracaoDesktop;
+import thz.lang.gui.config.DetectorJvm;
+import thz.lang.gui.config.DialogoConfiguracaoJvm;
+import thz.lang.gui.config.GerenciadorConfiguracao;
+
+
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,7 +40,7 @@ import java.util.regex.Pattern;
 
 /**
  * THZ-LANG Desktop — Interface Swing moderna e modularizada.
- * Decomposto e aderente a SRP, SOLID, DRY e KISS.
+ * Decomposto e aderente a SRP, SOLID, DRY e KISS com persistência de configuração em JSON.
  */
 public final class ThzGui extends JFrame {
     private static final Pattern POSICAO = Pattern.compile("\\[Linha (\\d+):(\\d+)]");
@@ -43,40 +51,56 @@ public final class ThzGui extends JFrame {
 
             METADADOS_ARQUITETURA
                 DOMINIO: "Desktop"
-                SLO_LATENCIA_MAXIMA: "interativo"
+                SUBDOMINIO: "Interface"
+                CAMADA: "Aplicacao"
+                VERSAO: "1.0.0"
+                AUTOR: "THZ-LANG Team"
+                SLO_LATENCIA_MAXIMA: "10ms"
                 CONFORMIDADE: "DEMO"
             FIM_METADADOS
 
-            # Bem-vindo ao THZ Desktop — experimentar colorização, erros e execução
+            ESTRUTURA Usuario
+                id: TEXTO
+                ativo: LOGICO
+                saldo: DECIMAL(12, 2)
+            FIM_ESTRUTURA
 
             PROCEDIMENTO Principal()
-                INICIO
-                    EXIBA "Olá pela interface Swing da THZ-LANG!"
-                FIM
+            INICIO
+                VARIAVEL u : Usuario <- CRIAR Usuario(id: "USR-001", ativo: VERDADEIRO, saldo: 250.00)
+                EXIBA "THZ-LANG Desktop pronto! Usuário: " + u.id + " | Saldo: R$ " + u.saldo
+            FIM
 
             FIM_PROGRAMA
             """;
 
+    // Componentes de topo
+    private final JPanel header = new JPanel(new BorderLayout());
+    private final JLabel logoBrand = new JLabel("⚡");
+    private final JLabel tituloBrand = new JLabel("THZ-LANG");
+    private final JLabel subtBrand = new JLabel("Engine JVM");
+    private final JPanel pillArquivo = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+    private final JLabel infoArquivo = new JLabel("Novo arquivo");
+    private final JToggleButton toggleEstrito = new JToggleButton("Lint Estrito");
+    private final JToggleButton toggleTema = new JToggleButton("☾ Escuro");
+
+    // Editor, Saída e Split
     private final EditorThz editor = new EditorThz();
     private final JTextArea saida = new JTextArea();
-    private final JLabel logoBrand = new JLabel("◆");
-    private final JLabel tituloBrand = new JLabel("THZ-LANG");
-    private final JLabel subtBrand = new JLabel("Desktop  •  thz-lang-engine-JVM25  •  v2.3");
-    private final JLabel infoArquivo = new JLabel("Novo arquivo");
-    private final JLabel infoCursor = new JLabel("Ln 1, Col 1");
-    private final JLabel infoStatus = new JLabel("Pronto");
-    private final JLabel badgeEstrito = new JLabel("Estrito");
-    private final JLabel versaoLabel = new JLabel("thz-ir/1  •  v2.3.0");
-    private final JToggleButton toggleTema = new JToggleButton("☀ Claro");
-    private final JToggleButton toggleEstrito = new JToggleButton("Estrito");
-    private final JPanel pillArquivo = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-    private final JPanel header = new JPanel(new BorderLayout());
-    private final JPanel toolbar = new JPanel();
-    private final JPanel statusBar = new JPanel(new BorderLayout());
     private final JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
+    // Barra de Status
+    private final JPanel statusBar = new JPanel(new BorderLayout());
+    private final JLabel infoStatus = new JLabel("Pronto");
+    private final JLabel badgeEstrito = new JLabel("ESTRITO");
+    private final JLabel infoCursor = new JLabel("Ln 1, Col 1");
+    private final JLabel versaoLabel = new JLabel("v2.3.0 JVM");
+
+    // Toolbar e Coleções de Widgets para reestilização
+    private final JPanel toolbar = new JPanel();
     private final List<JButton> botoesSecundarios = new ArrayList<>();
     private final List<JSeparator> separadores = new ArrayList<>();
+
     private JButton btnExecutar;
     private JButton btnLimpar;
     private JPanel cardEditor;
@@ -84,21 +108,51 @@ public final class ThzGui extends JFrame {
     private JLabel lblCardEditor;
     private JLabel lblCardSaida;
     private JCheckBoxMenuItem miTemaMenu;
+    private JMenu menuRecentes;
 
     private PaletaThz tema = PaletaThz.ESCURO;
     private File arquivoSelecionado;
+    private ConfiguracaoDesktop config;
 
     public ThzGui() {
         super("THZ-LANG Desktop — thz-lang-engine-JVM");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(900, 620));
-        setSize(1180, 780);
-        setLocationRelativeTo(null);
+
+        this.config = GerenciadorConfiguracao.carregar();
+        setSize(config.larguraJanela(), config.alturaJanela());
+        if (config.posicaoX() >= 0 && config.posicaoY() >= 0) {
+            setLocation(config.posicaoX(), config.posicaoY());
+        } else {
+            setLocationRelativeTo(null);
+        }
+        if (config.maximizada()) {
+            setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
+        }
+
         montarInterface();
         montarMenu();
-        aplicarTema(PaletaThz.ESCURO);
-        editor.setText(FONTE_INICIAL);
+
+        if (config.posicaoDivisor() > 50) {
+            split.setDividerLocation(config.posicaoDivisor());
+        }
+
+        toggleEstrito.setSelected(config.modoEstrito());
+        aplicarTema("CLARO".equalsIgnoreCase(config.tema()) ? PaletaThz.CLARO : PaletaThz.ESCURO);
+
+        if (config.ultimoArquivo() != null && !config.ultimoArquivo().isBlank() && new File(config.ultimoArquivo()).exists()) {
+            carregarArquivoDireto(new File(config.ultimoArquivo()));
+        } else {
+            editor.setText(FONTE_INICIAL);
+        }
         atualizarCursorInfo();
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                salvarConfiguracaoAtual();
+            }
+        });
     }
 
     static void main(String[] args) {
@@ -130,6 +184,12 @@ public final class ThzGui extends JFrame {
         } catch (Exception ignore) {
         }
         editor.aplicarTema(nova);
+
+        if (config != null) {
+            config = config.comTema(nova == PaletaThz.CLARO ? "CLARO" : "ESCURO");
+            GerenciadorConfiguracao.salvar(config);
+        }
+
 
         getContentPane().setBackground(nova.fundoJanela);
         header.setBackground(nova.fundoJanela);
@@ -273,9 +333,14 @@ public final class ThzGui extends JFrame {
         toggleEstrito.addActionListener(e -> {
             reestilizarToggle(toggleEstrito, tema);
             atualizarBadgeEstrito();
+            if (config != null) {
+                config = config.comModoEstrito(toggleEstrito.isSelected());
+                GerenciadorConfiguracao.salvar(config);
+            }
         });
         estilizarToggle(toggleTema);
         toggleTema.addActionListener(e -> aplicarTema(toggleTema.isSelected() ? PaletaThz.CLARO : PaletaThz.ESCURO));
+
 
         headerRight.add(pillArquivo);
         headerRight.add(toggleEstrito);
@@ -297,8 +362,13 @@ public final class ThzGui extends JFrame {
         toolbar.add(separadorToolbar());
         toolbar.add(criarBotao("✨ Formatar", "Formata canonicamente", false, this::formatarCodigo));
         toolbar.add(criarBotao("{ } AST", "Mostra AST em JSON", false, this::mostrarAst));
+        toolbar.add(criarBotao("📘 Doc", "Gera documentação técnica com diagramas Mermaid", false, this::mostrarDoc));
+        toolbar.add(criarBotao("🛡️ Auditoria", "Gera relatório de auditoria e governança (G4)", false, this::mostrarAuditoria));
+        toolbar.add(criarBotao("🧩 IR", "Gera Representação Intermediária THZ-IR / SIMD (G5)", false, this::mostrarIr));
 
         btnLimpar = criarBotao("🧹 Limpar", "Limpa saída e marcações", false, () -> {
+
+
             saida.setText("");
             editor.limparMarcacoesErro();
             infoStatus.setText("Pronto");
@@ -524,6 +594,8 @@ public final class ThzGui extends JFrame {
         miNovo.addActionListener(e -> novoArquivo());
         JMenuItem miAbrir = new JMenuItem("Abrir…  Ctrl+O");
         miAbrir.addActionListener(e -> abrirArquivo());
+        menuRecentes = new JMenu("Arquivos Recentes");
+        atualizarMenuRecentes();
         JMenuItem miSalvar = new JMenuItem("Salvar  Ctrl+S");
         miSalvar.addActionListener(e -> salvarArquivo());
         JMenuItem miSalvarComo = new JMenuItem("Salvar Como…  Ctrl+Shift+S");
@@ -532,10 +604,12 @@ public final class ThzGui extends JFrame {
         miSair.addActionListener(e -> dispose());
         arquivo.add(miNovo);
         arquivo.add(miAbrir);
+        arquivo.add(menuRecentes);
         arquivo.add(miSalvar);
         arquivo.add(miSalvarComo);
         arquivo.addSeparator();
         arquivo.add(miSair);
+
 
         JMenu editar = new JMenu("Editar");
         JMenuItem miDesfazer = new JMenuItem("Desfazer  Ctrl+Z");
@@ -562,18 +636,95 @@ public final class ThzGui extends JFrame {
         miFormatar.addActionListener(e -> formatarCodigo());
         JMenuItem miAst = new JMenuItem("AST (JSON)");
         miAst.addActionListener(e -> mostrarAst());
+        JMenuItem miDoc = new JMenuItem("Gerar Documentação (DocGen)");
+        miDoc.addActionListener(e -> mostrarDoc());
+        JMenuItem miAudit = new JMenuItem("Auditoria de Governança (G4)");
+        miAudit.addActionListener(e -> mostrarAuditoria());
+        JMenuItem miIr = new JMenuItem("Gerar THZ-IR / SIMD (G5)");
+        miIr.addActionListener(e -> mostrarIr());
         acoes.add(miVerificar);
         acoes.add(miExecutar);
         acoes.add(miFormatar);
         acoes.add(miAst);
+        acoes.add(miDoc);
+        acoes.add(miAudit);
+        acoes.add(miIr);
+
+
+
 
         bar.add(arquivo);
         bar.add(GaleriaExemplos.criarMenuExemplos(this::carregarExemplo));
         bar.add(editar);
         bar.add(ver);
         bar.add(acoes);
+
+        JMenu configMenu = new JMenu("Configurações");
+        JMenuItem miJvm = new JMenuItem("⚙ Configurar JVM / Java Runtime…");
+        miJvm.addActionListener(e -> abrirConfiguracaoJvm());
+
+        JMenuItem miInfoJvm = new JMenuItem("ℹ Informações do Ambiente JVM");
+        miInfoJvm.addActionListener(e -> mostrarInfoJvm());
+
+        configMenu.add(miJvm);
+        configMenu.add(miInfoJvm);
+        configMenu.addSeparator();
+
+        JCheckBoxMenuItem miEstritoMenu = new JCheckBoxMenuItem("Lint Estrito (--estrito)");
+        miEstritoMenu.setSelected(toggleEstrito.isSelected());
+        miEstritoMenu.addActionListener(e -> {
+            toggleEstrito.setSelected(miEstritoMenu.isSelected());
+            reestilizarToggle(toggleEstrito, tema);
+            atualizarBadgeEstrito();
+            if (config != null) {
+                config = config.comModoEstrito(toggleEstrito.isSelected());
+                GerenciadorConfiguracao.salvar(config);
+            }
+        });
+        configMenu.add(miEstritoMenu);
+
+        bar.add(configMenu);
         setJMenuBar(bar);
     }
+
+    private void abrirConfiguracaoJvm() {
+        String escolhida = DialogoConfiguracaoJvm.exibir(this, config);
+        if (escolhida != null) {
+            config = config.comJvm(escolhida);
+            GerenciadorConfiguracao.salvar(config);
+            DetectorJvm.InfoJvm info = DetectorJvm.inspecionarJvm("Configurada", escolhida);
+            escreverSaida("\n[CONFIG] JVM configurada para execução: " + (escolhida.isBlank() ? "Padrão do Sistema / Embutida" : escolhida + " (" + info.versao() + ")"));
+            infoStatus.setText("JVM configurada — " + (escolhida.isBlank() ? "Padrão" : info.versao()));
+        }
+    }
+
+    private void mostrarInfoJvm() {
+        DetectorJvm.InfoJvm atual = DetectorJvm.obterJvmAtual();
+        String jvmConfig = (config != null && config.caminhoJvm() != null && !config.caminhoJvm().isBlank())
+                ? config.caminhoJvm() : "(Padrão do Sistema / Embutida)";
+
+        String msg = String.format("""
+                Informações do Java Runtime Environment (JVM):
+
+                • JVM em Execução: %s
+                • Versão da JVM: %s
+                • Fornecedor: %s
+                • Diretório java.home: %s
+                • JVM Selecionada para Programas: %s
+                • Sistema Operacional: %s (%s)
+                """,
+                atual.rotulo(),
+                atual.versao(),
+                atual.fornecedor(),
+                atual.caminho(),
+                jvmConfig,
+                System.getProperty("os.name"),
+                System.getProperty("os.arch")
+        );
+
+        JOptionPane.showMessageDialog(this, msg, "Informações do Ambiente JVM", JOptionPane.INFORMATION_MESSAGE);
+    }
+
 
     // ---- Ações de Arquivo ----
 
@@ -603,21 +754,90 @@ public final class ThzGui extends JFrame {
         }
     }
 
+    public void carregarArquivoDireto(File f) {
+        if (f == null || !f.exists()) return;
+        try {
+            arquivoSelecionado = f;
+            editor.setText(Files.readString(f.toPath(), StandardCharsets.UTF_8));
+            editor.limparMarcacoesErro();
+            infoArquivo.setText(f.getName());
+            infoArquivo.setToolTipText(f.getAbsolutePath());
+            infoStatus.setText("Arquivo aberto — " + f.getName());
+            if (config != null) {
+                config = config.comArquivoRecente(f.getAbsolutePath());
+                GerenciadorConfiguracao.salvar(config);
+                atualizarMenuRecentes();
+            }
+            escreverSaida("[GUI] Arquivo carregado: " + f.getAbsolutePath());
+        } catch (Exception ex) {
+            mostrarErro("Erro ao abrir arquivo", ex);
+        }
+    }
+
+    private void atualizarMenuRecentes() {
+        if (menuRecentes == null) return;
+        menuRecentes.removeAll();
+        if (config == null || config.arquivosRecentes() == null || config.arquivosRecentes().isEmpty()) {
+            JMenuItem miVazio = new JMenuItem("(Nenhum arquivo recente)");
+            miVazio.setEnabled(false);
+            menuRecentes.add(miVazio);
+        } else {
+            for (String caminho : config.arquivosRecentes()) {
+                File f = new File(caminho);
+                JMenuItem item = new JMenuItem(f.getName() + "  (" + (f.getParent() != null ? f.getParent() : ".") + ")");
+                item.setToolTipText(caminho);
+                item.addActionListener(e -> carregarArquivoDireto(f));
+                menuRecentes.add(item);
+            }
+            menuRecentes.addSeparator();
+            JMenuItem miLimpar = new JMenuItem("Limpar Histórico Recente");
+            miLimpar.addActionListener(e -> {
+                if (config != null) {
+                    config = new ConfiguracaoDesktop(config.tema(), config.modoEstrito(), config.ultimoArquivo(),
+                            config.larguraJanela(), config.alturaJanela(), config.posicaoX(), config.posicaoY(),
+                            config.maximizada(), config.posicaoDivisor(), config.tamanhoFonte(), config.caminhoJvm(), List.of());
+                    GerenciadorConfiguracao.salvar(config);
+                    atualizarMenuRecentes();
+                }
+            });
+            menuRecentes.add(miLimpar);
+        }
+    }
+
+    private void salvarConfiguracaoAtual() {
+        if (config == null) return;
+        int estado = getExtendedState();
+        boolean max = (estado & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
+        Point loc = getLocation();
+        Dimension dim = getSize();
+        int div = split.getDividerLocation();
+        String t = (tema == PaletaThz.CLARO) ? "CLARO" : "ESCURO";
+        boolean est = toggleEstrito.isSelected();
+        String arq = arquivoSelecionado != null ? arquivoSelecionado.getAbsolutePath() : config.ultimoArquivo();
+
+        config = new ConfiguracaoDesktop(
+                t,
+                est,
+                arq != null ? arq : "",
+                dim.width,
+                dim.height,
+                loc.x,
+                loc.y,
+                max,
+                div,
+                config.tamanhoFonte(),
+                config.caminhoJvm(),
+                config.arquivosRecentes()
+        );
+        GerenciadorConfiguracao.salvar(config);
+    }
+
+
     private void abrirArquivo() {
         JFileChooser sel = novoSeletor("Abrir arquivo THZ");
         if (sel.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
             return;
-        try {
-            arquivoSelecionado = sel.getSelectedFile();
-            editor.setText(Files.readString(arquivoSelecionado.toPath(), StandardCharsets.UTF_8));
-            editor.limparMarcacoesErro();
-            infoArquivo.setText(arquivoSelecionado.getName());
-            infoArquivo.setToolTipText(arquivoSelecionado.getAbsolutePath());
-            infoStatus.setText("Arquivo aberto — " + arquivoSelecionado.getName());
-            escreverSaida("[GUI] Arquivo aberto: " + arquivoSelecionado.getAbsolutePath());
-        } catch (Exception ex) {
-            mostrarErro("Erro ao abrir arquivo", ex);
-        }
+        carregarArquivoDireto(sel.getSelectedFile());
     }
 
     private void salvarArquivo() {
@@ -630,6 +850,11 @@ public final class ThzGui extends JFrame {
             infoArquivo.setText(arquivoSelecionado.getName());
             infoArquivo.setToolTipText(arquivoSelecionado.getAbsolutePath());
             infoStatus.setText("Salvo — " + arquivoSelecionado.getName());
+            if (config != null) {
+                config = config.comArquivoRecente(arquivoSelecionado.getAbsolutePath());
+                GerenciadorConfiguracao.salvar(config);
+                atualizarMenuRecentes();
+            }
             escreverSaida("[GUI] Arquivo salvo: " + arquivoSelecionado.getAbsolutePath());
         } catch (Exception ex) {
             mostrarErro("Erro ao salvar arquivo", ex);
@@ -647,11 +872,17 @@ public final class ThzGui extends JFrame {
             infoArquivo.setText(arquivoSelecionado.getName());
             infoArquivo.setToolTipText(arquivoSelecionado.getAbsolutePath());
             infoStatus.setText("Salvo — " + arquivoSelecionado.getName());
+            if (config != null) {
+                config = config.comArquivoRecente(arquivoSelecionado.getAbsolutePath());
+                GerenciadorConfiguracao.salvar(config);
+                atualizarMenuRecentes();
+            }
             escreverSaida("[GUI] Arquivo salvo: " + arquivoSelecionado.getAbsolutePath());
         } catch (Exception ex) {
             mostrarErro("Erro ao salvar arquivo", ex);
         }
     }
+
 
     // ---- Ações do Motor (Verificar, Executar, Formatar, AST) ----
 
@@ -786,7 +1017,57 @@ public final class ThzGui extends JFrame {
         }
     }
 
+    private void mostrarAuditoria() {
+        saida.setText("");
+        editor.limparMarcacoesErro();
+        try {
+            ProgramaAst ast = analisarFonte(editor.getText());
+            thz.lang.governanca.RelatorioAuditoria rel = thz.lang.governanca.AuditorGovernanca.auditar(ast);
+            String md = thz.lang.governanca.AuditorGovernanca.gerarMarkdownGovernanca(rel);
+            escreverSaida(md);
+            saida.setCaretPosition(0);
+            infoStatus.setText("Auditoria — Score: " + rel.metricas().percentualConformidade() + "% ("
+                    + (rel.metricas().aprovado() ? "Aprovado" : "Pendências") + ")");
+        } catch (Exception ex) {
+            imprimirExcecaoComoDiagnostico(editor.getText(), ex);
+            infoStatus.setText("✗ Falha ao gerar auditoria");
+        }
+    }
+
+    private void mostrarDoc() {
+        saida.setText("");
+        editor.limparMarcacoesErro();
+        try {
+            ProgramaAst ast = analisarFonte(editor.getText());
+            String doc = thz.lang.docgen.ThzDocGen.gerarDocumentacao(ast);
+            escreverSaida(doc);
+            saida.setCaretPosition(0);
+            infoStatus.setText("Documentação DocGen (Markdown + Mermaid) gerada com sucesso");
+        } catch (Exception ex) {
+            imprimirExcecaoComoDiagnostico(editor.getText(), ex);
+            infoStatus.setText("✗ Falha ao gerar documentação");
+        }
+    }
+
+    private void mostrarIr() {
+        saida.setText("");
+        editor.limparMarcacoesErro();
+        try {
+            ProgramaAst ast = analisarFonte(editor.getText());
+            var ir = thz.lang.ir.GeradorIr.baixarParaIr(ast);
+            String json = thz.lang.ir.GeradorIr.serializarIrJson(ir);
+            escreverSaida(json);
+            saida.setCaretPosition(0);
+            infoStatus.setText("THZ-IR/1 gerado — Funções: " + ir.funcoes().size() + " | Loops SIMD: " + ir.loopsSimd().size());
+        } catch (Exception ex) {
+            imprimirExcecaoComoDiagnostico(editor.getText(), ex);
+            infoStatus.setText("✗ Falha ao gerar THZ-IR");
+        }
+    }
+
     private ProgramaAst analisarFonte(String f) {
+
+
         List<Token> t = new ThzLexer(f).tokenize();
         return new ThzParser(t).parse();
     }

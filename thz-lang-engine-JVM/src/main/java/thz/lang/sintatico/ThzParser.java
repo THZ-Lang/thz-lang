@@ -192,6 +192,8 @@ public class ThzParser {
         String identificador = null;
         String rastreioRequisito = null;
         String descricao = null;
+        boolean idempotente = false;
+        String chaveIdempotencia = null;
         List<ClausulaContratoAst> clausulasEntrada = new ArrayList<>();
         List<ClausulaContratoAst> clausulasSaida = new ArrayList<>();
         List<OperacaoAst> operacoes = new ArrayList<>();
@@ -210,6 +212,19 @@ public class ThzParser {
                 advance();
                 consume(TokenType.DOIS_PONTOS, "Esperado ':' após 'DESCRICAO'.");
                 descricao = consume(TokenType.STRING_LITERAL, "Esperada descrição.").value();
+            } else if (match(TokenType.IDEMPOTENTE)) {
+                idempotente = true;
+                if (match(TokenType.DOIS_PONTOS)) {
+                    if (match(TokenType.VERDADEIRO) || match(TokenType.STRING_LITERAL)) {
+                        idempotente = true;
+                    } else if (match(TokenType.FALSO)) {
+                        idempotente = false;
+                    }
+                }
+            } else if ("CHAVE_IDEMPOTENCIA".equals(p.value()) || p.type() == TokenType.CHAVE_IDEMPOTENCIA) {
+                advance();
+                consume(TokenType.DOIS_PONTOS, "Esperado ':' após 'CHAVE_IDEMPOTENCIA'.");
+                chaveIdempotencia = consume(TokenType.STRING_LITERAL, "Esperada chave de idempotência.").value();
             } else if (match(TokenType.CONTRATO_ENTRADA)) {
                 while (!check(TokenType.FIM_CONTRATO_ENTRADA) && !isAtEnd()) {
                     clausulasEntrada.add(parseClausulaContrato(TokenType.EXIGE));
@@ -224,12 +239,12 @@ public class ThzParser {
                 operacoes.add(parseOperacao());
             } else {
                 Token token = peek();
-                throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Elemento não reconhecido dentro de 'REGRA_NEGOCIO'. Esperados 'IDENTIFICADOR_REGRA', 'RASTREIO_REQUISITO', 'DESCRICAO', 'CONTRATO_ENTRADA', 'CONTRATO_SAIDA', 'OPERACAO' ou 'FIM_REGRA_NEGOCIO'. (Encontrado: '" + token.value() + "')");
+                throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Elemento não reconhecido dentro de 'REGRA_NEGOCIO'. Esperados 'IDENTIFICADOR_REGRA', 'RASTREIO_REQUISITO', 'DESCRICAO', 'IDEMPOTENTE', 'CHAVE_IDEMPOTENCIA', 'CONTRATO_ENTRADA', 'CONTRATO_SAIDA', 'OPERACAO' ou 'FIM_REGRA_NEGOCIO'. (Encontrado: '" + token.value() + "')");
             }
         }
 
         consume(TokenType.FIM_REGRA_NEGOCIO, "Esperado 'FIM_REGRA_NEGOCIO'.");
-        return new RegraNegocioAst(nome, identificador, rastreioRequisito, descricao, clausulasEntrada, clausulasSaida, operacoes);
+        return new RegraNegocioAst(nome, identificador, rastreioRequisito, descricao, clausulasEntrada, clausulasSaida, operacoes, idempotente, chaveIdempotencia);
     }
 
     private ClausulaContratoAst parseClausulaContrato(TokenType tipo) {
@@ -239,6 +254,12 @@ public class ThzParser {
     }
 
     private OperacaoAst parseOperacao() {
+        boolean idempotente = false;
+        String chaveIdempotencia = null;
+        if (match(TokenType.IDEMPOTENTE)) {
+            idempotente = true;
+        }
+
         String nome = consumeIdentificador("Esperado nome da operação.").value();
         List<ParametroOperacaoAst> parametros = new ArrayList<>();
         String tipoRetorno;
@@ -262,10 +283,16 @@ public class ThzParser {
             consume(TokenType.FIM, "Esperado 'FIM' encerrando o corpo da operação.");
         }
 
-        return new OperacaoAst(nome, parametros, tipoRetorno, corpo);
+        return new OperacaoAst(nome, parametros, tipoRetorno, corpo, idempotente, chaveIdempotencia);
     }
 
     private ProcedimentoAst parseProcedimento() {
+        boolean idempotente = false;
+        String chaveIdempotencia = null;
+        if (match(TokenType.IDEMPOTENTE)) {
+            idempotente = true;
+        }
+
         String nome = consumeIdentificador("Esperado nome do procedimento.").value();
         List<ParametroOperacaoAst> parametros = new ArrayList<>();
         consume(TokenType.ABRE_PARENTESE, "Esperado '(' na assinatura do procedimento.");
@@ -284,8 +311,9 @@ public class ThzParser {
             corpo = parseBlocoComandos(TokenType.FIM);
             consume(TokenType.FIM, "Esperado 'FIM' encerrando o corpo do procedimento.");
         }
-        return new ProcedimentoAst(nome, parametros, corpo);
+        return new ProcedimentoAst(nome, parametros, corpo, idempotente, chaveIdempotencia);
     }
+
 
     /* ============================================================
      * COMANDOS

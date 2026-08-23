@@ -23,9 +23,15 @@ public class ThzCli {
     public static void main(String[] args) throws Exception {
         System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
         System.setErr(new PrintStream(System.err, true, StandardCharsets.UTF_8));
-        String comando = args.length > 0 ? args[0] : "run";
+
+        if (args.length == 0 || args[0].equals("--ajuda") || args[0].equals("-h") || args[0].equals("ajuda") || args[0].equals("help")) {
+            exibirAjuda();
+            return;
+        }
+
+        String comando = args[0];
         List<String> argumentos = new ArrayList<>(Arrays.asList(args));
-        if (!argumentos.isEmpty()) argumentos.remove(0);
+        argumentos.remove(0);
         boolean estrito = argumentos.contains("--estrito");
         if (comando.equals("repl")) {
             thz.lang.repl.Repl.executar();
@@ -36,12 +42,80 @@ public class ThzCli {
             return;
         }
         String arquivo = resolverArquivo(argumentos);
-        if (comando.equals("check") || comando.equals("ast") || comando.equals("fmt") || comando.equals("run")) {
+        if (arquivo == null || arquivo.isBlank()) {
+            System.err.println("[ERRO] Nenhum arquivo .thz especificado. Use: thz " + comando + " <caminho.thz>");
+            System.exit(1);
+        }
+        if (comando.equals("check") || comando.equals("ast") || comando.equals("fmt") || comando.equals("run") || comando.equals("audit") || comando.equals("doc") || comando.equals("ir")) {
             if (!Files.exists(Path.of(arquivo))) { System.err.println("[ERRO] Arquivo não encontrado: " + arquivo); System.exit(1); }
             String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
+
             try {
                 List<Token> tokens = new ThzLexer(fonte).tokenize();
                 ProgramaAst ast = new ThzParser(tokens).parse();
+                if (comando.equals("doc")) {
+                    String idxSaida = null;
+                    int idx = argumentos.indexOf("--saida");
+                    if (idx >= 0 && idx + 1 < argumentos.size()) idxSaida = argumentos.get(idx + 1);
+
+                    String doc = thz.lang.docgen.ThzDocGen.gerarDocumentacao(ast);
+                    if (idxSaida != null) {
+                        Path alvo = idxSaida.contains(".") ? Path.of(idxSaida) : Path.of(idxSaida, ast.nome() + "_documentacao.md");
+                        Files.createDirectories(alvo.getParent() != null ? alvo.getParent() : Path.of("."));
+                        Files.writeString(alvo, doc, StandardCharsets.UTF_8);
+                        System.out.println("[THZ DOC] Documentação gerada em: " + alvo);
+                    } else {
+                        System.out.println(doc);
+                    }
+                    return;
+                }
+                if (comando.equals("ir")) {
+                    boolean llvm = argumentos.contains("--llvm");
+                    String idxSaida = null;
+                    int idx = argumentos.indexOf("--saida");
+                    if (idx >= 0 && idx + 1 < argumentos.size()) idxSaida = argumentos.get(idx + 1);
+
+                    String resultado = llvm
+                            ? thz.lang.ir.GeradorIr.emitirLlvm(ast)
+                            : thz.lang.ir.GeradorIr.serializarIrJson(thz.lang.ir.GeradorIr.baixarParaIr(ast));
+
+                    if (idxSaida != null) {
+                        Path alvo = idxSaida.contains(".") ? Path.of(idxSaida) : Path.of(idxSaida, ast.nome() + (llvm ? ".ll" : "_ir.json"));
+                        Files.createDirectories(alvo.getParent() != null ? alvo.getParent() : Path.of("."));
+                        Files.writeString(alvo, resultado, StandardCharsets.UTF_8);
+                        System.out.println("[THZ IR] Saída (" + (llvm ? "LLVM IR" : "THZ-IR/1") + ") gravada em: " + alvo);
+                    } else {
+                        System.out.println(resultado);
+                    }
+                    return;
+                }
+                if (comando.equals("audit")) {
+                    boolean emJson = argumentos.contains("--json");
+                    String idxSaida = null;
+                    int idx = argumentos.indexOf("--saida");
+                    if (idx >= 0 && idx + 1 < argumentos.size()) idxSaida = argumentos.get(idx + 1);
+
+                    thz.lang.governanca.RelatorioAuditoria rel = thz.lang.governanca.AuditorGovernanca.auditar(ast);
+                    String resultado = emJson
+                            ? thz.lang.governanca.AuditorGovernanca.gerarJsonGovernanca(rel)
+                            : thz.lang.governanca.AuditorGovernanca.gerarMarkdownGovernanca(rel);
+
+                    if (idxSaida != null) {
+                        Path alvo = idxSaida.contains(".") ? Path.of(idxSaida) : Path.of(idxSaida, ast.nome() + "_auditoria." + (emJson ? "json" : "md"));
+                        Files.createDirectories(alvo.getParent() != null ? alvo.getParent() : Path.of("."));
+                        Files.writeString(alvo, resultado, StandardCharsets.UTF_8);
+                        System.out.println("[THZ AUDIT] Relatório de governança gravado em: " + alvo);
+                    } else {
+                        System.out.println(resultado);
+                    }
+
+                    if (estrito && !rel.metricas().aprovado()) {
+                        System.err.println("\n[THZ AUDIT] Falha de conformidade estrita: o programa possui pendências críticas de governança.");
+                        System.exit(1);
+                    }
+                    return;
+                }
+
                 if (comando.equals("check")) {
                     List<ErroSemantico> erros = new AnalisadorSemantico(ast).analisar(new OpcoesAnalise(estrito));
                     if (!erros.isEmpty()) {
@@ -58,6 +132,7 @@ public class ThzCli {
                     System.out.println(JsonEscritor.paraJson(ast));
                     return;
                 }
+
                 if (comando.equals("fmt")) {
                     boolean check = argumentos.contains("--check");
                     boolean escrever = argumentos.contains("--escrever") || argumentos.contains("-w");
@@ -110,7 +185,7 @@ public class ThzCli {
                             System.out.println("[PROCEDIMENTO] " + proc.nome() + "()\n");
                             Map<String, ValorThz> a = InjetorLoteDemo.construirArgsProc(proc, p -> mapaArgs.get(p.nome()));
                             interp.executarProcedimento(proc.nome(), a);
-                            arena.liberarTudo(); System.out.println("\n[RUNTIME] Arena de memória liberada em O(1). Execução finalizada sem erros."); return;
+                            arena.liberarTudo(); System.out.println("\n[RUNTIME] Bloco de memória efêmera (Arena) liberado instantaneamente em O(1). Execução finalizada sem erros."); return;
                         }
 
                         var ops = interp.listarOperacoesExecutaveis().stream().filter(o->o.operacao().nome().equals(nomePrincipal)).findFirst().orElse(null);
@@ -120,7 +195,7 @@ public class ThzCli {
                             ValorThz res = interp.executarOperacao(ops.operacao().nome(), a);
                             System.out.println("--------------------------------------------------------------");
                             if(res!=null) System.out.println("[RESULTADO] " + interp.formatar(res));
-                            arena.liberarTudo(); System.out.println("\n[RUNTIME] Arena de memória liberada em O(1). Execução finalizada sem erros."); return;
+                            arena.liberarTudo(); System.out.println("\n[RUNTIME] Bloco de memória efêmera (Arena) liberado instantaneamente em O(1). Execução finalizada sem erros."); return;
                         }
                         System.err.println("[ERRO] Entrada '--principal "+nomePrincipal+"' não encontrada como PROCEDIMENTO nem OPERACAO."); System.exit(1);
                     }
@@ -129,7 +204,7 @@ public class ThzCli {
                         System.out.println("[PROCEDIMENTO] Principal()\n");
                         Map<String,ValorThz> a = procPrincipal.parametros().isEmpty()?Map.of():InjetorLoteDemo.construirArgsProc(procPrincipal, p -> mapaArgs.get(p.nome()));
                         interp.executarProcedimento("Principal", a);
-                        arena.liberarTudo(); System.out.println("\n[RUNTIME] Arena de memória liberada em O(1). Execução finalizada sem erros."); return;
+                        arena.liberarTudo(); System.out.println("\n[RUNTIME] Bloco de memória efêmera (Arena) liberado instantaneamente em O(1). Execução finalizada sem erros."); return;
                     }
                     var execs = interp.listarOperacoesExecutaveis();
                     if(execs.isEmpty()){ System.err.println("[ERRO] Nenhuma operação com corpo executável declarada. Adicione um bloco INICIO ... FIM a uma OPERACAO ou declare PROCEDIMENTO Principal."); System.exit(1); }
@@ -139,7 +214,7 @@ public class ThzCli {
                     ValorThz res = interp.executarOperacao(prim.operacao().nome(), a);
                     System.out.println("--------------------------------------------------------------");
                     if(res!=null) System.out.println("[RESULTADO] " + interp.formatar(res));
-                    arena.liberarTudo(); System.out.println("\n[RUNTIME] Arena de memória liberada em O(1). Execução finalizada sem erros.");
+                    arena.liberarTudo(); System.out.println("\n[RUNTIME] Bloco de memória efêmera (Arena) liberado instantaneamente em O(1). Execução finalizada sem erros.");
                     return;
                 }
             } catch (Exception ex) {
@@ -152,9 +227,36 @@ public class ThzCli {
                 System.exit(1);
             }
         } else {
-            System.err.println("Comando desconhecido: "+comando+" (use check|ast|fmt|run|repl|gui)"); System.exit(1);
+            System.err.println("Comando desconhecido: " + comando + " (use: check | run | fmt | ast | audit | doc | ir | repl | gui | --ajuda)");
+            System.exit(1);
         }
     }
+
+    private static void exibirAjuda() {
+        System.out.println("================================================================================");
+        System.out.println("   THZ-LANG Engine — JVM (v2.3.0)");
+        System.out.println("   Linguagem Corporativa de Sistemas, Governança e Alta Performance");
+        System.out.println("================================================================================\n");
+        System.out.println("Uso:");
+        System.out.println("  thz <comando> [arquivo.thz] [opções]\n");
+        System.out.println("Comandos Disponíveis:");
+        System.out.println("  check <arquivo> [--estrito]               Verifica a integridade sintática e semântica");
+        System.out.println("  run <arquivo> [--principal <Nome>]        Executa o programa via interpretador com arena O(1)");
+        System.out.println("  fmt <arquivo> [--check|--escrever|--saida] Formata o código canonicamente");
+        System.out.println("  ast <arquivo>                             Exibe a AST (Abstract Syntax Tree) em JSON");
+        System.out.println("  audit <arquivo> [--json] [--estrito]      Gera relatório de auditoria e governança (G4)");
+        System.out.println("  doc <arquivo> [--saida <caminho.md>]      Gera documentação técnica com diagramas Mermaid");
+        System.out.println("  ir <arquivo> [--llvm] [--saida <caminho>] Gera a Representação Intermediária (THZ-IR/1)");
+        System.out.println("  repl                                      Inicia o shell interativo multi-linha");
+        System.out.println("  gui                                       Abre a IDE Desktop Swing com realce e exemplos\n");
+        System.out.println("Exemplos:");
+        System.out.println("  thz check exemplos/faturamento.thz --estrito");
+        System.out.println("  thz run exemplos/faturamento.thz");
+        System.out.println("  thz audit exemplos/faturamento.thz");
+        System.out.println("  thz doc exemplos/faturamento.thz --saida docs/faturamento.md");
+        System.out.println("  thz gui");
+    }
+
 
     private static Map<String,String> parseArgsMapa(List<String> args){
         Map<String,String> mapa=new HashMap<>();

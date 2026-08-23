@@ -1,22 +1,27 @@
 # Exemplos THZ-LANG — coleção de partida
 
-Programas autossuficientes que exercitam a gramática canônica (v2.3) no motor JVM25.
+Programas autossuficientes que exercitam a gramática canônica (v2.3) no motor JVM.
 Todos passam em `thz check` **e** executam com `thz run` sem argumentos extras
 (exceto o nº 10, que lê da entrada padrão).
 
 ## Como executar
 
 ```bat
-:: a partir da raiz thz-lang-engine-JVM
-java -jar target\thz-jvm-2.3.0.jar run  exemplos\colecao\01-ola-mundo.thz
-java -jar target\thz-jvm-2.3.0.jar check exemplos\colecao\05-decimal-financeiro.thz
+:: Via distribuição autônoma (Windows)
+dist\thz\thz.exe run   exemplos\colecao\01-ola-mundo.thz
+dist\thz\thz.exe check exemplos\colecao\05-decimal-financeiro.thz
+dist\thz\thz.exe audit exemplos\faturamento.thz
+dist\thz\thz.exe doc   exemplos\faturamento.thz
+dist\thz\thz.exe gui
 
-:: GUI com galeria de exemplos no menu "Exemplos"
+:: Ou via JAR com Java 25
+java -jar target\thz-jvm-2.3.0.jar run   exemplos\colecao\01-ola-mundo.thz
+java -jar target\thz-jvm-2.3.0.jar check exemplos\colecao\05-decimal-financeiro.thz
 java -jar target\thz-jvm-2.3.0.jar gui
 ```
 
-Na IDE Swing, os arquivos desta pasta aparecem no menu **Exemplos** — clique para
-carregar no editor (realce, verificar ▸ executar ▸ formatar).
+Na IDE Swing (`thz gui`), os arquivos desta pasta aparecem no menu **Exemplos** — clique para
+carregar no editor (realce, verificar ▸ executar ▸ formatar ▸ auditoria ▸ doc ▸ IR).
 
 ## Índice
 
@@ -30,8 +35,11 @@ carregar no editor (realce, verificar ▸ executar ▸ formatar).
 | 06 | `06-texto-datas.thz` | Stdlib TEXTO/DATA | `comprimento/aparar/contem/subtexto/substituir/dividir/juntar`, `DATA.hoje/agora/adicionarDias/diferencaDias/diaDaSemana`, indexação `dividir(...)[i]` |
 | 07 | `07-resultado-ddd.thz` | DDD + contratos | `RESULTADO[T,E]`, `FALHAR_COM`, `EXIGE/GARANTE` quantificados sobre FATIA (∀) |
 | 08 | `08-vetorizado-simd.thz` | Lote vetorizado | `LAYOUT_COLUNAR` (SoA), `VETORIZAR_PARA..PASSO_SIMD`, UUID, acumulador DECIMAL |
-| 09 | `09-bloco-memoria.thz` | Arena O(1) | `USAR_BLOCO_MEMORIA..FIM_BLOCO_MEMORIA`, escopo de vida curto, indexação + campo via temporária |
+| 09 | `09-bloco-memoria.thz` | Memória Efêmera (Arena O(1)) | `USAR_BLOCO_MEMORIA..FIM_BLOCO_MEMORIA`, alocação linear contígua, descarte instantâneo O(1) |
 | 10 | `10-entrada-interativa.thz` | Entrada de dados | `LER destino`, fallback com `SE`, conversão para `NATURAL32` |
+| 11 | `11-idempotencia-larga-escala.thz` | Idempotência Larga Escala | `IDEMPOTENTE`, `CHAVE_IDEMPOTENCIA`, memoização transacional O(1), supressão de re-execução redundante |
+
+
 
 ## Canônicos (paridade TS ⇄ JVM)
 

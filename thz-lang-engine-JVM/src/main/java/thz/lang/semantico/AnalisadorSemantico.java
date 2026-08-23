@@ -186,12 +186,18 @@ public final class AnalisadorSemantico {
                 if (t == null) t = TIPO_NULO;
                 escopoRaiz.definir(parametro.nome(), t, 1, 1, erros);
             }
-            tipoValido(operacao.tipoRetorno(), 1, 1);
+            TipoThz retornoTipo = tipoValido(operacao.tipoRetorno(), 1, 1);
 
             for (ClausulaContratoAst clausula : regra.clausulasEntrada()) validarClausula(clausula, escopoRaiz);
-            for (ClausulaContratoAst clausula : regra.clausulasSaida()) validarClausula(clausula, escopoRaiz);
+
+            EscopoTipos escopoSaida = new EscopoTipos(escopoRaiz);
+            if (retornoTipo != null) {
+                escopoSaida.definir("RESULTADO", retornoTipo, 1, 1, erros);
+            }
+            for (ClausulaContratoAst clausula : regra.clausulasSaida()) validarClausula(clausula, escopoSaida);
 
             validarBlocoFilho(operacao.corpo(), escopoRaiz, contexto);
+
         }
     }
 
@@ -528,6 +534,33 @@ public final class AnalisadorSemantico {
             return sig.retornoFn().apply(tiposArgs);
         }
 
+        if (expr.caminho().size() == 2) {
+            String nomeRegra = expr.caminho().get(0);
+            String nomeOp = expr.caminho().get(1);
+            for (RegraNegocioAst regra : ast.regras()) {
+                if (regra.nome().equals(nomeRegra)) {
+                    Optional<OperacaoAst> opOpt = regra.operacoes().stream().filter(o -> o.nome().equals(nomeOp)).findFirst();
+                    if (opOpt.isPresent()) {
+                        OperacaoAst op = opOpt.get();
+                        if (expr.argumentos().size() != op.parametros().size()) {
+                            erros.add(new ErroSemantico(expr.linha(), expr.coluna(),
+                                    "Operação '" + op.nome() + "' exige " + op.parametros().size() + " arg(s), recebidos " + expr.argumentos().size() + "."));
+                        } else {
+                            for (int i = 0; i < op.parametros().size(); i++) {
+                                ParametroOperacaoAst p = op.parametros().get(i);
+                                TipoThz esperado = tipoValido(p.tipo(), expr.linha(), expr.coluna());
+                                TipoThz obtido = inferir(expr.argumentos().get(i), escopo);
+                                if (esperado != null && obtido != null && !Tipos.saoCompativeis(obtido, esperado))
+                                    erros.add(new ErroSemantico(expr.linha(), expr.coluna(), "Arg " + (i + 1) + " de '" + op.nome() + "' incompatível: " + Tipos.descrever(obtido) + " → " + Tipos.descrever(esperado) + "."));
+                            }
+                        }
+                        TipoThz ret = tipoValido(op.tipoRetorno(), expr.linha(), expr.coluna());
+                        return ret != null ? ret : TIPO_NULO;
+                    }
+                }
+            }
+        }
+
         if (expr.caminho().size() == 1) {
             String simples = expr.caminho().get(0);
             List<ProcedimentoAst> procs = ast.procedimentos() != null ? ast.procedimentos() : List.of();
@@ -573,6 +606,7 @@ public final class AnalisadorSemantico {
         for (ExprAst a : expr.argumentos()) inferir(a, escopo);
         return null;
     }
+
 
     private TipoThz inferirBinaria(ExprAst.OpBinaria expr, EscopoTipos escopo) {
         TipoThz esq = inferir(expr.esquerda(), escopo);

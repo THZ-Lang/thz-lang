@@ -21,8 +21,10 @@ public class InterpretadorThz {
     private final Consumer<String> emitir;
     private final int maxIteracoes;
     private final Supplier<String> lerEntrada;
+    private final RegistroIdempotencia registroIdempotencia = new RegistroIdempotencia();
 
     private static final int LIMITE_PADRAO_ITERACOES = 10_000_000;
+
 
     // ---- Opções ----
 
@@ -114,7 +116,14 @@ public class InterpretadorThz {
     }
 
     /**
-     * Executa uma operação com contratos formais: EXIGE na entrada, GARANTE na saída.
+     * Retorna o gerenciador de idempotência e auditoria de reuso da sessão de execução.
+     */
+    public RegistroIdempotencia getRegistroIdempotencia() {
+        return registroIdempotencia;
+    }
+
+    /**
+     * Executa uma operação com contratos formais: EXIGE na entrada, GARANTE na saída e IDEMPOTÊNCIA se declarada.
      */
     public ValorThz executarOperacao(String nomeOperacao, Map<String, ValorThz> argumentos) {
         OperacaoResolvida alvo = listarOperacoesExecutaveis().stream()
@@ -123,6 +132,25 @@ public class InterpretadorThz {
         if (alvo == null) {
             throw new ErroExecucao("[Erro de Execução] Operação '" + nomeOperacao + "' não encontrada ou sem corpo executável.");
         }
+
+        boolean ehIdempotente = alvo.operacao().idempotente() || alvo.regra().idempotente();
+        String chaveIdemp = alvo.operacao().chaveIdempotencia() != null ? alvo.operacao().chaveIdempotencia() : alvo.regra().chaveIdempotencia();
+
+        if (ehIdempotente || (chaveIdemp != null && !chaveIdemp.isBlank())) {
+            return registroIdempotencia.executarOuReutilizar(
+                    alvo.operacao().nome(),
+                    chaveIdemp,
+                    argumentos,
+                    () -> executarOperacaoInterna(alvo, argumentos),
+                    emitir
+            );
+        }
+
+        return executarOperacaoInterna(alvo, argumentos);
+    }
+
+    private ValorThz executarOperacaoInterna(OperacaoResolvida alvo, Map<String, ValorThz> argumentos) {
+        String nomeOperacao = alvo.operacao().nome();
         boolean retornoResultado = alvo.operacao().tipoRetorno() != null && alvo.operacao().tipoRetorno().startsWith("RESULTADO");
 
         Escopo escopoGlobal = new Escopo();
@@ -144,11 +172,14 @@ public class InterpretadorThz {
             retorno = s.getValor();
         }
 
-        validarContratos(alvo.regra().clausulasSaida(), escopoGlobal, "GARANTE");
+        Escopo escopoSaida = new Escopo(escopoGlobal);
+        escopoSaida.definir("RESULTADO", retorno != null ? retorno : new ValorThz.Nulo());
+        validarContratos(alvo.regra().clausulasSaida(), escopoSaida, "GARANTE");
         if (retornoResultado && !ehValorResultado(retorno)) {
             return new ValorThz.Resultado(true, retorno, null);
         }
         return retorno;
+
     }
 
     public ValorThz executarOperacao(String nomeOperacao) {
@@ -158,6 +189,30 @@ public class InterpretadorThz {
     public void executarProcedimento(String nome, Map<String, ValorThz> argumentos) {
         ProcedimentoAst proc = listarProcedimentos().stream().filter(p -> p.nome().equals(nome)).findFirst().orElse(null);
         if (proc == null) throw new ErroExecucao("[Erro de Execução] Procedimento '" + nome + "' não encontrado.");
+
+        boolean ehIdempotente = proc.idempotente();
+        String chaveIdemp = proc.chaveIdempotencia();
+
+        if (ehIdempotente || (chaveIdemp != null && !chaveIdemp.isBlank())) {
+            registroIdempotencia.executarOuReutilizar(
+                    proc.nome(),
+                    chaveIdemp,
+                    argumentos,
+                    () -> {
+                        executarProcedimentoInterno(proc, argumentos);
+                        return new ValorThz.Nulo();
+                    },
+
+                    emitir
+            );
+            return;
+        }
+
+        executarProcedimentoInterno(proc, argumentos);
+    }
+
+    private void executarProcedimentoInterno(ProcedimentoAst proc, Map<String, ValorThz> argumentos) {
+        String nome = proc.nome();
         Escopo escopo = new Escopo();
         Map<String, ValorThz> args = argumentos != null ? argumentos : Map.of();
         for (ParametroOperacaoAst p : proc.parametros()) {
@@ -179,6 +234,7 @@ public class InterpretadorThz {
     public void executarProcedimento(String nome) {
         executarProcedimento(nome, Map.of());
     }
+
 
     // ---- Contratos formais ----
 
@@ -354,7 +410,25 @@ public class InterpretadorThz {
                 return ValorThz.NULO;
             }
         }
-        // operação de regra por nome
+        // operação de regra qualificada (Regra.Operacao)
+        if (ch.caminho().size() == 2) {
+            String nomeRegra = ch.caminho().get(0);
+            String nomeOp = ch.caminho().get(1);
+            for (RegraNegocioAst regra : ast.regras()) {
+                if (regra.nome().equals(nomeRegra)) {
+                    OperacaoAst op = regra.operacoes().stream().filter(o -> o.nome().equals(nomeOp)).findFirst().orElse(null);
+                    if (op != null) {
+                        if (args.size() != op.parametros().size()) throw new ErroExecucao("[Erro de Execução][Linha " + ch.linha() + ":" + ch.coluna() + "] Operação '" + op.nome() + "' exige " + op.parametros().size() + " arg(s), recebidos " + args.size() + ".");
+                        Map<String, ValorThz> mapa = new HashMap<>();
+                        for (int i = 0; i < op.parametros().size(); i++) mapa.put(op.parametros().get(i).nome(), args.get(i));
+                        ValorThz ret = executarOperacao(op.nome(), mapa);
+                        return ret != null ? ret : ValorThz.NULO;
+                    }
+                }
+            }
+        }
+
+        // operação de regra direta por nome simples
         if (ch.caminho().size() == 1) {
             for (RegraNegocioAst regra : ast.regras()) {
                 OperacaoAst op = regra.operacoes().stream().filter(o -> o.nome().equals(ch.caminho().get(0))).findFirst().orElse(null);
@@ -369,6 +443,7 @@ public class InterpretadorThz {
         }
         throw new ErroExecucao("[Erro de Execução][Linha " + ch.linha() + ":" + ch.coluna() + "] Chamada desconhecida: '" + nomeQualificado + "'.");
     }
+
 
     private ValorThz avaliarAcessoCampo(ExprAst.AcessoCampo ac, Escopo escopo) {
         ValorThz base = escopo.resolver(ac.caminho().get(0));

@@ -46,7 +46,10 @@ public final class PalavrasReservadas {
         Map.entry("VETORIZAR_PARA", new EntradaPalavra(TokenType.VETORIZAR_PARA, CategoriaPalavra.CONTROLE)),
         Map.entry("USAR_BLOCO_MEMORIA", new EntradaPalavra(TokenType.USAR_BLOCO_MEMORIA, CategoriaPalavra.MEMORIA)),
         Map.entry("LAYOUT_COLUNAR", new EntradaPalavra(TokenType.LAYOUT_COLUNAR, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("IDEMPOTENTE", new EntradaPalavra(TokenType.IDEMPOTENTE, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("CHAVE_IDEMPOTENCIA", new EntradaPalavra(TokenType.CHAVE_IDEMPOTENCIA, CategoriaPalavra.CONTRATO)),
         Map.entry("EM", new EntradaPalavra(TokenType.EM, CategoriaPalavra.MODIFICADOR)),
+
         Map.entry("PASSO_SIMD", new EntradaPalavra(TokenType.PASSO_SIMD, CategoriaPalavra.MODIFICADOR)),
         Map.entry("PARA", new EntradaPalavra(TokenType.PARA, CategoriaPalavra.CONTROLE)),
         Map.entry("PASSO", new EntradaPalavra(TokenType.PASSO, CategoriaPalavra.MODIFICADOR)),
