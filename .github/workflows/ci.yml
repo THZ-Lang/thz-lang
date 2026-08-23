@@ -41,19 +41,5 @@ jobs:
         working-directory: thz-lang-engine
         run: npm run extension:compile
 
-  engine-jvm:
-    name: Java 25 Engine
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Java 25
-        uses: actions/setup-java@v4
-        with:
-          java-version: '25'
-          distribution: 'oracle'
-
-      - name: Run Maven Tests (JUnit 5)
-        working-directory: thz-lang-engine-JVM
-        run: mvn --batch-mode clean test
+  # Motor JVM (Java 25): movido para repos independentes thz-core / thz-cli / thz-gui.
+  # Cada um possui seu próprio workflow de CI (.github/workflows/ci.yml).
