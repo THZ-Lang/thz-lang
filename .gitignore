@@ -1,5 +1,5 @@
 # ==============================================================================
-# THZ-LANG â€” Global .gitignore
+# THZ-LANG ÔÇö Global .gitignore
 # ==============================================================================
 
 # Node.js & TypeScript
@@ -61,8 +61,3 @@ ehthumbs_vista.db
 scratch/
 tmp/
 temp/
-
-# Motor JVM — repos independentes (checkouts aninhados)
-/thz-core/
-/thz-cli/
-/thz-gui/

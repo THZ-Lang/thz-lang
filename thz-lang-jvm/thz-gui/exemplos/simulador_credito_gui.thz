@@ -1,0 +1,115 @@
+VERSAO_LINGUAGEM "2.3"
+PROGRAMA SimuladorCreditoGui
+
+# --- DECLARAÇÕES DE METADADOS ARQUITETURAIS ---
+METADADOS_ARQUITETURA
+    DOMINIO: "ServicosFinanceiros"
+    SUBDOMINIO: "ConcessaoCredito"
+    CAMADA: "InterfaceGrafica"
+    VERSAO: "2.3.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "35ms"
+    CONFORMIDADE: "BACEN-Res4557", "ISO-10967"
+FIM_METADADOS
+
+# --- ENUMERAÇÃO DE MODALIDADES ---
+ENUMERACAO ModalidadeCredito
+    CAPITAL_GIRO_EMPRESARIAL
+    CREDITO_PESSOAL_PREMIUM
+    FINANCIAMENTO_VEICULOS
+    HOME_EQUITY_GARANTIA
+FIM_ENUMERACAO
+
+ENUMERACAO ScoreRisco
+    AAA_EXCELENTE
+    AA_MUITO_BOM
+    A_BOM
+    BBB_MODERADO
+FIM_ENUMERACAO
+
+# --- FORMULÁRIO DO SIMULADOR ---
+ESTRUTURA FormularioSimulador
+    titulo: TEXTO
+    tomador: TEXTO
+    modalidade: ModalidadeCredito
+    score: ScoreRisco
+    valorSolicitado: DECIMAL(14, 2)
+    prazoMeses: INTEIRO32
+    taxaJurosMensal: DECIMAL(5, 2)
+    incluirSeguroPrestamista: LOGICO
+    garantiaRealOferecida: LOGICO
+    parecerMesaCredito: TEXTO
+FIM_ESTRUTURA
+
+# --- REGRAS DE NEGÓCIO E CONTRATOS FINANCEIROS ---
+REGRA_NEGOCIO MotorCredito
+    IDENTIFICADOR_REGRA: "RN-CRED-100"
+    RASTREIO_REQUISITO: "REQ-RISCO-301"
+    DESCRICAO: "Valida requisitos de crédito e simula prestação com precisão decimal exata"
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(tomador) >= 3
+        EXIGE valorSolicitado >= 1000.00
+        EXIGE prazoMeses >= 6
+        EXIGE taxaJurosMensal > 0.00
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO Simular(tomador: TEXTO, modalidade: ModalidadeCredito, score: ScoreRisco, valorSolicitado: DECIMAL(14, 2), prazoMeses: INTEIRO32, taxaJurosMensal: DECIMAL(5, 2), incluirSeguroPrestamista: LOGICO, garantiaRealOferecida: LOGICO, parecerMesaCredito: TEXTO): TEXTO
+    INICIO
+        # Cálculo de amortização simples com juros
+        VARIAVEL divisor : DECIMAL(14, 2) <- 1.00 * prazoMeses
+        VARIAVEL amortizacaoBase : DECIMAL(14, 2) <- valorSolicitado / divisor
+        VARIAVEL jurosMes : DECIMAL(14, 2) <- valorSolicitado * (taxaJurosMensal / 100.00)
+        VARIAVEL parcelaEstimada : DECIMAL(14, 2) <- amortizacaoBase + jurosMes
+
+        SE incluirSeguroPrestamista
+            parcelaEstimada <- parcelaEstimada + 45.00
+        FIM_SE
+
+        EXIBA "[CREDITO] Proponente: " + tomador + " | Valor: R$ " + valorSolicitado + " em " + prazoMeses + "x | Parcela: R$ " + parcelaEstimada
+        RETORNE "Simulação Aprovada! " + tomador + " (" + modalidade + ") :: " + prazoMeses + "x de R$ " + parcelaEstimada + " (Taxa: " + taxaJurosMensal + "% a.m.)"
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- INICIALIZAÇÃO DA INTERFACE ---
+REGRA_NEGOCIO Inicializacao
+    IDENTIFICADOR_REGRA: "RN-INIT-003"
+    RASTREIO_REQUISITO: "REQ-UI-003"
+    DESCRICAO: "Inicializa o simulador financeiro com combos, checkboxes e notas"
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO MontarTela(): TEXTO
+    INICIO
+        VARIAVEL form : FormularioSimulador <- CRIAR FormularioSimulador(
+            titulo: "Simulador de Crédito & Risco Bancário — THZ GUI",
+            tomador: "Alpha Logística & Transportes LTDA",
+            modalidade: CAPITAL_GIRO_EMPRESARIAL,
+            score: AAA_EXCELENTE,
+            valorSolicitado: 150000.00,
+            prazoMeses: 36,
+            taxaJurosMensal: 1.45,
+            incluirSeguroPrestamista: VERDADEIRO,
+            garantiaRealOferecida: VERDADEIRO,
+            parecerMesaCredito: "Cliente com histórico positivo no SCR Bacen. Limite pré-aprovado de R$ 200.000,00."
+        )
+
+        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "MotorCredito.Simular")
+        EXIBA status
+        RETORNE status
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- PONTO DE ENTRADA ---
+PROCEDIMENTO Principal()
+INICIO
+    Inicializacao.MontarTela()
+FIM
+
+FIM_PROGRAMA

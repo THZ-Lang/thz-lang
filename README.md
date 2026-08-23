@@ -114,7 +114,12 @@ thz-lang/
 │   ├── exemplos/               # Programas canônicos (faturamento, pedidos, agenda)
 │   └── test/                   # 159 testes unitários e golden snapshots
 │
-> **Motor JVM:** o motor Java 25 foi extraído para repositórios independentes — [`thz-core`](./thz-core) (núcleo/stdlib), [`thz-cli`](./thz-cli) (CLI + REPL + UberJAR) e [`thz-gui`](./thz-gui) (IDE Desktop Swing). Consumo via Gradle Composite Build ou artefato `thz.lang:thz-core`.
+└── thz-lang-jvm/               # Motor Java 25 — multi-módulo Gradle
+    ├── thz-core/               # Núcleo/Stdlib (java-library + maven-publish)
+    ├── thz-cli/                # CLI + REPL + UberJAR
+    └── thz-gui/                # IDE Desktop Swing
+
+> Os módulos JVM comunicam entre si pela API pública do `thz-core`; as funções gráficas `TELA.*` são registradas por cada apresentação via `BibliotecaPadrao.registrar()`.
 ```
 
 ---
@@ -181,25 +186,27 @@ npm run bench
 
 ---
 
-### 2. Motor Java 25 (repos independentes `thz-core` / `thz-cli` / `thz-gui`)
+### 2. Motor Java 25 (`thz-lang-jvm` — multi-módulo Gradle)
 
-O motor JVM vive em três repositórios irmãos deste. Requisitos: OpenJDK 25 e Gradle Wrapper (embutido em cada repo).
+Requisitos: OpenJDK 25 (Gradle Wrapper embutido na raiz do motor).
 
 ```bash
-# 1) Publicar o núcleo no Maven Local (uma vez, ou a cada mudança no core)
-cd ./thz-core
-./gradlew test publishToMavenLocal
+cd thz-lang-jvm
 
-# 2) CLI — UberJAR executável
-cd ./thz-cli
+# Testes de todos os módulos (thz-core + thz-gui)
+./gradlew test
+
+# CLI — UberJAR executável (target/thz-jvm-2.3.0.jar)
 ./gradlew shadowJar
-java -jar target/thz-jvm-2.3.0.jar check ./thz-core/exemplos/agenda.thz
-java -jar target/thz-jvm-2.3.0.jar run   ./thz-core/exemplos/agenda.thz
+java -jar target/thz-jvm-2.3.0.jar check thz-core/exemplos/agenda.thz
+java -jar target/thz-jvm-2.3.0.jar run   thz-core/exemplos/colecao/01-ola-mundo.thz
 java -jar target/thz-jvm-2.3.0.jar repl
 
-# 3) IDE Desktop Swing
-cd ./thz-gui
+# IDE Desktop Swing
 ./gradlew gui
+
+# Publicar o núcleo no Maven Local (consumo externo)
+./gradlew :thz-core:publishToMavenLocal
 ```
 
 ---
@@ -208,7 +215,7 @@ cd ./thz-gui
 
 - **Gramática EBNF:** [`thz-lang-engine/docs/GRAMATICA.md`](thz-lang-engine/docs/GRAMATICA.md)
 - **Documentação do Motor Node/TS:** [`thz-lang-engine/README.md`](thz-lang-engine/README.md)
-- **Documentação do Motor JVM:** repos independentes [`./thz-core`](./thz-core), [`./thz-cli`](./thz-cli) e [`./thz-gui`](./thz-gui)
+- **Documentação do Motor JVM:** [`thz-lang-jvm/`](thz-lang-jvm/) — READMEs por módulo em `thz-core/`, `thz-cli/` e `thz-gui/`
 - **Visão Arquitetural e Roadmap:** [`PROJECT.md`](PROJECT.md)
 - **Diretrizes para Agentes de IA:** [`AGENTS.md`](AGENTS.md)
 - **Extensão VS Code:** [`thz-lang-engine/extension/README.md`](thz-lang-engine/extension/README.md)

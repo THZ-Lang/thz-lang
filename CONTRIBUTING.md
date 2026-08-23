@@ -9,7 +9,7 @@ Este projeto implementa uma linguagem de programação corporativa estruturada e
 ## 1. Estrutura do Repositório
 
 - `thz-lang-engine/`: Motor canônico em Node.js (v20+) + TypeScript (v5+), com Language Service, Playground Web (Monaco), Servidor LSP, Extensão VS Code, IR e vetorização SIMD.
-- `./thz-core/`, `./thz-cli/`, `./thz-gui/`: Porto do motor em Java 25, extraído para **repositórios independentes** (núcleo/stdlib, CLI+REPL e IDE Desktop Swing). Consumo via Gradle Composite Build ou artefato publicado.
+- `thz-lang-jvm/`: Porto do motor em Java 25 como multi-módulo Gradle (`thz-core` núcleo/stdlib, `thz-cli` CLI+REPL, `thz-gui` IDE Desktop Swing), comunicando pela API pública do core.
 - `docs/`: EBNF da gramática (`docs/GRAMATICA.md`) e documentações arquiteturais.
 - `PROJECT.md` & `AGENTS.md`: Diretrizes formais de arquitetura, invariantes e mapa do ecossistema.
 
@@ -46,12 +46,12 @@ npm run thz:check -- --estrito # Verificação semântica estrita
 npm run playground           # Inicia o Playground Web localmente
 ```
 
-### Motor JVM 25 / Java (repos independentes)
+### Motor JVM 25 / Java (`thz-lang-jvm`)
 
 ```bash
-cd ./thz-core && ./gradlew test          # Núcleo: suíte JUnit 5 com JDK 25
-cd ./thz-gui  && ./gradlew test          # IDE Desktop Swing
-cd ./thz-cli  && ./gradlew shadowJar     # UberJAR executável
+cd thz-lang-jvm
+./gradlew test          # Suíte JUnit 5 com JDK 25 (core + gui)
+./gradlew shadowJar     # UberJAR executável da CLI
 ```
 
 ---

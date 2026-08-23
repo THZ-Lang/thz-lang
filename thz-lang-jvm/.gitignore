@@ -1,0 +1,21 @@
+# Gradle
+.gradle/
+build/
+
+# Diretório de saída do UberJAR (compatibilidade scripts)
+target/
+
+# IDEs
+.idea/
+*.iml
+.ipr
+.iws
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+
+# Sistema operacional
+Thumbs.db
+.DS_Store

@@ -2,7 +2,7 @@
   "name": "thz-lang-workspace",
   "version": "2.3.3",
   "private": true,
-  "description": "Orquestrador do ecossistema THZ-LANG: motor TypeScript (referência/tooling) e motor JVM (thz-core, thz-cli, thz-gui — repos independentes consumidos via composite build).",
+  "description": "Orquestrador do ecossistema THZ-LANG: motor TypeScript (referência/tooling) e motor JVM multi-módulo (thz-core, thz-cli, thz-gui) em thz-lang-jvm/.",
   "scripts": {
     "// === Setup ===": "",
     "setup": "npm ci --prefix thz-lang-engine && npm run build:jvm",
@@ -11,18 +11,18 @@
     "// === Testes (tudo) ===": "",
     "test": "npm run test:ts && npm run test:core && npm run test:gui",
     "test:ts": "npm test --prefix thz-lang-engine",
-    "test:core": "cd thz-core && gradlew test",
-    "test:gui": "cd thz-gui && gradlew test",
+    "test:core": "cd thz-lang-jvm && gradlew :thz-core:test",
+    "test:gui": "cd thz-lang-jvm && gradlew :thz-gui:test",
 
     "// === CLI / REPL / IDE ===": "",
     "thz": "node scripts/thz.js",
     "repl": "node scripts/thz.js repl",
-    "ide": "cd thz-gui && gradlew gui",
+    "ide": "cd thz-lang-jvm && gradlew gui",
 
     "// === Módulos JVM individuais ===": "",
-    "core:publish": "cd thz-core && gradlew publishToMavenLocal",
-    "cli:jar": "cd thz-cli && gradlew shadowJar",
-    "cli:native": "cd thz-cli && powershell -ExecutionPolicy Bypass -File scripts/build-native.ps1",
-    "cli:package": "cd thz-cli && powershell -ExecutionPolicy Bypass -File scripts/build-package.ps1"
+    "core:publish": "cd thz-lang-jvm && gradlew :thz-core:publishToMavenLocal",
+    "cli:jar": "cd thz-lang-jvm && gradlew shadowJar",
+    "cli:native": "cd thz-lang-jvm && powershell -ExecutionPolicy Bypass -File scripts/build-native.ps1",
+    "cli:package": "cd thz-lang-jvm && powershell -ExecutionPolicy Bypass -File scripts/build-package.ps1"
   }
 }
