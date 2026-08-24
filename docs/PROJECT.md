@@ -198,13 +198,11 @@ npx tsx src/cli.ts run    exemplos/faturamento.thz
 - [x] **Fase 6 (G4):** Governança Auditável — `src/governanca.ts` + `thz audit` (CLI), LSP `thz/audit` e Playground `🛡️ Audit`.
 - [x] **Fase 6 (G5):** THZ-IR + Semântica SIMD Formal — `src/ir.ts` + `src/simd.ts` (IR `thz-ir/1`, verificação R1-R5, `thz ir` com `--llvm`).
 - [x] **Fase 6 (G6):** Bench + fmt — `src/fmt.ts` (`thz fmt`) + `bench/` (decimal/fatias/SIMD) — formatador canônico e benchmarks comparativos.
-- [ ] **Fase 7:** Fatias Zero-Copy (Arrow IPC), port para `thz.pest` e codegen nativo Rust + Inkwell (LLVM 17+).
+- [x] **Fase 7 (v2.4.0):** Compilação Nativa AOT LLVM (Clang 22 + GCC Dual-OS), Suíte do Compilador Self-Hosted em `.thz` (`compilador/driver.thz`) e eliminação da dependência obrigatória de JVM.
 
 ---
 
-## 5. Trilha Padrão Ouro (pós-v2.2) — Marcos G1 a G6
-
-Prioridade aprovada: **expressividade DDD primeiro**, tooling em seguida.
+## 5. Trilha Padrão Ouro (pós-v2.2) — Marcos G1 a G7
 
 | Marco | Entrega | Status |
 |---|---|---|
@@ -214,6 +212,7 @@ Prioridade aprovada: **expressividade DDD primeiro**, tooling em seguida.
 | **G4 — Governança Auditável** | Matriz `RASTREIO_REQUISITO → Regra → Contrato → Teste golden`; relatório de cobertura contratual | ✅ Concluído |
 | **G5 — THZ-IR + Semântica SIMD Formal** | IR intermediário estável, regras de vetorização verificáveis, ponte para LLVM | ✅ Concluído |
 | **G6 — Bench + fmt** | Benchmarks comparativos (decimal/fatias/SIMD) e formatador canônico `thz fmt` | ✅ Concluído |
+| **G7 — Compilação AOT & Self-Hosting** | Suíte do Compilador em `.thz`, Runtime C Dual-OS (`thz_runtime.c`) e executáveis nativos `.exe` | ✅ Concluído |
 
 ### Estado consolidado v2.2
 

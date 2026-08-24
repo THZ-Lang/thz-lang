@@ -167,6 +167,13 @@ public final class ThzUiHtmlEmitter {
                 String texto = c.getPropriedade("texto", rotulo);
                 sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-text\"").append(estiloInline).append(">").append(escapeHtml(texto)).append("</div>\n");
             }
+            case TABELA_DADOS -> {
+                String rotuloTabela = c.getPropriedade("rotulo", "Tabela");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-tabela-wrapper\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("  <div class=\"thz-label\" style=\"margin-bottom:8px\">").append(escapeHtml(rotuloTabela)).append("</div>\n");
+                for (ThzUiComponente filho : c.filhos()) renderizarComponente(filho, sb, indent + "  ");
+                sb.append(indent).append("</div>\n");
+            }
             case DIVISOR -> sb.append(indent).append("<hr class=\"thz-divider\"").append(estiloInline).append("/>\n");
             case ESPACO -> sb.append(indent).append("<div class=\"thz-spacer\" style=\"height: 16px;\"></div>\n");
             default -> sb.append(indent).append("<!-- Componente ").append(c.tipo()).append(" -->\n");
@@ -267,6 +274,10 @@ public final class ThzUiHtmlEmitter {
             .thz-badge-aviso { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
             .thz-badge-perigo { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
             .thz-alert { padding: 12px 16px; border-radius: var(--thz-radius); font-size: 0.9rem; border-left: 4px solid var(--thz-primary); background: rgba(59, 130, 246, 0.1); }
+            .thz-alert-sucesso { border-left-color: var(--thz-success); background: rgba(16,185,129,0.12); color: #a7f3d0; }
+            .thz-alert-erro { border-left-color: var(--thz-danger); background: rgba(239,68,68,0.12); color: #fecaca; }
+            .thz-alert-info { border-left-color: var(--thz-primary); background: rgba(59,130,246,0.1); }
+            .thz-tabela-wrapper { border: 1px solid var(--thz-border); border-radius: var(--thz-radius); padding: 12px; background: rgba(255,255,255,0.02); }
             .thz-divider { border: 0; border-top: 1px solid var(--thz-border); margin: 8px 0; }
             .thz-switch-wrapper { display: flex; align-items: center; gap: 10px; }
             .thz-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
@@ -285,32 +296,72 @@ public final class ThzUiHtmlEmitter {
     private static String gerarJs() {
         return """
             const _estadoInterno = {};
+            // hidrata estado inicial a partir dos inputs existentes
+            document.addEventListener('DOMContentLoaded', () => {
+              document.querySelectorAll('[data-vinculo]').forEach(el => {
+                const v = el.getAttribute('data-vinculo');
+                if (v && el.value !== undefined) _estadoInterno[v] = el.type === 'checkbox' ? el.checked : el.value;
+              });
+            });
             window.thzEstado = new Proxy(_estadoInterno, {
                 set(target, prop, val) {
                     target[prop] = val;
                     document.querySelectorAll('[data-vinculo="' + prop + '"], [data-thz-vinculo="' + prop + '"]').forEach(el => {
                         if ('value' in el && el.tagName !== 'DIV' && el.tagName !== 'SPAN') {
-                            if (el.value !== String(val)) el.value = val;
+                            if (el.type === 'checkbox') el.checked = !!val;
+                            else if (el.value !== String(val)) el.value = val;
                         } else {
                             el.textContent = val;
                         }
                     });
-                    if (window.thz && typeof window.thz.emitirEvento === 'function') {
-                        window.thz.emitirEvento('ui_vinculo_alterado', { vinculo: prop, valor: val });
-                    }
                     return true;
                 }
             });
-            function thzVinculoAtualizado(vinculo, valor) {
-                window.thzEstado[vinculo] = valor;
+            function thzVinculoAtualizado(vinculo, valor) { window.thzEstado[vinculo] = valor; }
+            function thzMostrarResultado(tipo, texto) {
+              let el = document.getElementById('thz_resultado');
+              if (!el) {
+                el = document.createElement('div');
+                el.id = 'thz_resultado';
+                el.style.marginTop = '16px';
+                document.querySelector('.thz-app-root')?.appendChild(el);
+              }
+              const cls = tipo === 'erro' ? 'thz-alert thz-alert-erro' : tipo === 'sucesso' ? 'thz-alert thz-alert-sucesso' : 'thz-alert thz-alert-info';
+              el.className = cls;
+              el.style.padding = '12px 16px';
+              el.style.borderRadius = '8px';
+              el.style.whiteSpace = 'pre-wrap';
+              el.textContent = texto;
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-            function thzDespacharAcao(acao, idComponente) {
+            async function thzDespacharAcao(acao, idComponente) {
                 if (!acao) return;
-                if (window.thz && typeof window.thz.invocar === 'function') {
-                    window.thz.invocar(acao, { componenteId: idComponente, estado: window.thzEstado });
-                } else {
+                if (acao === '__thz_restaurar__') { location.reload(); return; }
+                const btn = document.getElementById(idComponente);
+                const orig = btn ? btn.textContent : '';
+                if (btn) { btn.disabled = true; btn.textContent = 'Processando...'; }
+                try {
+                  if (window.thz && typeof window.thz.invocar === 'function') {
+                    const resp = await window.thz.invocar(acao, { componenteId: idComponente, estado: window.thzEstado });
+                    if (resp && resp.status === 'ok') {
+                      thzMostrarResultado('sucesso', '✓ ' + (resp.resultado || resp.mensagem || 'Operação concluída.'));
+                      window.dispatchEvent(new CustomEvent('thz:operacao_sucesso', { detail: resp }));
+                    } else {
+                      thzMostrarResultado('erro', '✗ ' + (resp.erro || resp.mensagem || JSON.stringify(resp)));
+                    }
+                  } else {
                     console.log('[THZ UI] Ação despachada:', acao, window.thzEstado);
+                  }
+                } catch(e) {
+                  thzMostrarResultado('erro', '✗ Erro de comunicação: ' + (e.message || e));
+                } finally {
+                  if (btn) { btn.disabled = false; btn.textContent = orig; }
                 }
+            }
+            // escuta eventos server->js
+            if (window.thz) {
+              window.thz.ouvir('operacao_sucesso', d => thzMostrarResultado('sucesso', '✓ ' + JSON.stringify(d)));
+              window.thz.ouvir('operacao_erro', d => thzMostrarResultado('erro', '✗ ' + JSON.stringify(d)));
             }
         """;
     }

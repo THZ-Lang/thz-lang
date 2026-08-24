@@ -1,0 +1,118 @@
+PROGRAMA ShowcaseWidgetsGui
+
+METADADOS_ARQUITETURA
+    DOMINIO: "InfraestruturaEnterprise"
+    SUBDOMINIO: "ConfiguradorEstacao"
+    CAMADA: "InterfaceGrafica"
+    VERSAO: "2.3.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "25ms"
+    CONFORMIDADE: "PCI-DSS", "ISO-27001", "ISO-42010"
+FIM_METADADOS
+
+ENUMERACAO AmbienteExecucao
+    DESENVOLVIMENTO
+    HOMOLOGACAO
+    PRODUCAO
+FIM_ENUMERACAO
+
+ENUMERACAO ProtocoloSeguranca
+    TLS_1_3_ESTRITO
+    MTLS_CORPORATIVO
+    IPSEC_TUNNEL_AES256
+    SSH_ED25519
+FIM_ENUMERACAO
+
+ESTRUTURA ParametroServico
+    chave: TEXTO
+    valor: TEXTO
+    descricao: TEXTO
+FIM_ESTRUTURA
+
+ESTRUTURA PainelControleMaster
+    titulo: TEXTO
+    nomeEstacao: TEXTO
+    senhaSegredoMestre: TEXTO
+    corTemaHex: TEXTO
+    caminhoCertificadoTls: TEXTO
+    nivelPrioridadeSlider: INTEIRO32
+    numeroConexoesSpinner: INTEIRO32
+    ambienteRadio: AmbienteExecucao
+    protocoloCombo: ProtocoloSeguranca
+    habilitarModoEstritoSwitch: LOGICO
+    gravarAuditoriaDiscoCheck: LOGICO
+    modulosHabilitadosLista: FATIA[TEXTO]
+    parametrosGrid: FATIA[ParametroServico]
+    detalhesParecerNotas: TEXTO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO GestaoEstacao
+    IDENTIFICADOR_REGRA: "RN-CONF-900"
+    RASTREIO_REQUISITO: "REQ-INFRA-801"
+    DESCRICAO: "Aplica parâmetros do painel de controle e valida contratos de segurança"
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(nomeEstacao) >= 3
+        EXIGE TEXTO.comprimento(senhaSegredoMestre) >= 4
+        EXIGE nivelPrioridadeSlider >= 0
+        EXIGE numeroConexoesSpinner >= 1
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO AplicarConfiguracoes(nomeEstacao: TEXTO, senhaSegredoMestre: TEXTO, corTemaHex: TEXTO, caminhoCertificadoTls: TEXTO, nivelPrioridadeSlider: INTEIRO32, numeroConexoesSpinner: INTEIRO32, ambienteRadio: AmbienteExecucao, protocoloCombo: ProtocoloSeguranca, habilitarModoEstritoSwitch: LOGICO, gravarAuditoriaDiscoCheck: LOGICO, modulosHabilitadosLista: FATIA[TEXTO], parametrosGrid: FATIA[ParametroServico], detalhesParecerNotas: TEXTO): TEXTO
+    INICIO
+        VARIAVEL qtdParam : INTEIRO32 <- 2
+        EXIBA "[PAINEL] Estação: " + nomeEstacao + " | Ambiente: " + ambienteRadio + " | Prioridade: " + nivelPrioridadeSlider + "% | Conexões: " + numeroConexoesSpinner
+        RETORNE "Configurações aplicadas com sucesso para [" + nomeEstacao + "] no ambiente " + ambienteRadio + "! (Cor: " + corTemaHex + ", Protocolo: " + protocoloCombo + ")."
+    FIM
+FIM_REGRA_NEGOCIO
+
+REGRA_NEGOCIO Inicializacao
+    IDENTIFICADOR_REGRA: "RN-INIT-005"
+    RASTREIO_REQUISITO: "REQ-UI-005"
+    DESCRICAO: "Inicializa o Showcase completo de controles de UI do THZ-LANG"
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO MontarTela(): TEXTO
+    INICIO
+        VARIAVEL p1 : ParametroServico <- CRIAR ParametroServico(chave: "JVM_HEAP_MAX", valor: "8192m", descricao: "Memória máxima para o processo JVM")
+        VARIAVEL p2 : ParametroServico <- CRIAR ParametroServico(chave: "SIMD_VECTOR_WIDTH", valor: "512", descricao: "Largura de registrador AVX-512")
+        VARIAVEL gradeParams : FATIA[ParametroServico] <- [p1, p2]
+
+        VARIAVEL listaMods : FATIA[TEXTO] <- ["Faturamento_SIMD", "Motor_Credito_SOX", "Auditoria_Bacen", "SPED_Fiscal"]
+
+        VARIAVEL form : PainelControleMaster <- CRIAR PainelControleMaster(
+            titulo: "Showcase Completo de Controles de UI — THZ-LANG",
+            nomeEstacao: "Cluster-Edge-Node-01",
+            senhaSegredoMestre: "Thz#SuperSafe2026",
+            corTemaHex: "#2563EB",
+            caminhoCertificadoTls: "C:\\Certificados\\ca_enterprise_root.pem",
+            nivelPrioridadeSlider: 85,
+            numeroConexoesSpinner: 32,
+            ambienteRadio: PRODUCAO,
+            protocoloCombo: TLS_1_3_ESTRITO,
+            habilitarModoEstritoSwitch: VERDADEIRO,
+            gravarAuditoriaDiscoCheck: VERDADEIRO,
+            modulosHabilitadosLista: listaMods,
+            parametrosGrid: gradeParams,
+            detalhesParecerNotas: "Estação provisionada com aceleração por hardware ativada. Registradores SIMD validados para processamento de ponto fixo contínuo."
+        )
+
+        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "GestaoEstacao.AplicarConfiguracoes")
+        EXIBA status
+        RETORNE status
+    FIM
+FIM_REGRA_NEGOCIO
+
+PROCEDIMENTO Principal()
+INICIO
+    Inicializacao.MontarTela()
+FIM
+
+FIM_PROGRAMA

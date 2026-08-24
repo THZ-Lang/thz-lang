@@ -1,0 +1,75 @@
+PROGRAMA CadastroCliente
+
+# --- DECLARAÇÕES DE METADADOS ARQUITETURAIS ---
+METADADOS_ARQUITETURA
+    DOMINIO: "AtendimentoAoCliente"
+    SUBDOMINIO: "Onboarding"
+    CAMADA: "InterfaceGrafica"
+    VERSAO: "2.3.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "50ms"
+    CONFORMIDADE: "LGPD-Art7", "ISO-42010"
+FIM_METADADOS
+
+# --- DEFINIÇÃO DECLARATIVA DE FORMULÁRIO ---
+ESTRUTURA FormularioCliente
+    titulo: TEXTO
+    nome: TEXTO
+    email: TEXTO
+    limiteCredito: DECIMAL(12, 2)
+FIM_ESTRUTURA
+
+# --- REGRAS DE NEGÓCIO E CONTRATOS FORMAIS ---
+REGRA_NEGOCIO ValidacaoCadastro
+    IDENTIFICADOR_REGRA: "RN-CAD-001"
+    RASTREIO_REQUISITO: "REQ-ONBOARDING-101"
+    DESCRICAO: "Valida dados ao submeter o formulário de cadastro de cliente"
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(nome) >= 3
+        EXIGE TEXTO.contem(email, "@")
+        EXIGE limite > 0.00
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO Salvar(nome: TEXTO, email: TEXTO, limite: DECIMAL(12, 2)): TEXTO
+    INICIO
+        EXIBA "[CADASTRO] Cliente: " + nome + " | Email: " + email + " | Limite: R$ " + limite
+        RETORNE "Cadastro realizado com sucesso para " + nome + "!"
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- INICIALIZAÇÃO DA INTERFACE GRÁFICA ---
+REGRA_NEGOCIO Inicializacao
+    IDENTIFICADOR_REGRA: "RN-INIT-001"
+    RASTREIO_REQUISITO: "REQ-UI-001"
+    DESCRICAO: "Inicializa o formulário declarativo no host renderer"
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO MontarTela(): TEXTO
+    INICIO
+        VARIAVEL form: FormularioCliente <- CRIAR FormularioCliente(
+            titulo: "Cadastro de Cliente — THZ GUI",
+            nome: "Lucas Thomaz",
+            email: "lucas@empresa.com",
+            limiteCredito: 5000.00
+        )
+        VARIAVEL status: TEXTO <- TELA.renderizarFormulario(form, "ValidacaoCadastro.Salvar")
+        EXIBA status
+        RETORNE status
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- PONTO DE ENTRADA DO PROGRAMA ---
+PROCEDIMENTO Principal()
+INICIO
+    Inicializacao.MontarTela()
+FIM
+
+FIM_PROGRAMA

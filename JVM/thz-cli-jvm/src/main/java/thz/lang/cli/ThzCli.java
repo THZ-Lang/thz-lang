@@ -33,7 +33,9 @@ public class ThzCli {
             return;
         }
 
-        String comando = args[0];
+        // Normaliza --gui -> gui para shim ./thz --gui
+        String comandoRaw = args[0];
+        String comando = comandoRaw.startsWith("--") ? comandoRaw.substring(2) : comandoRaw.startsWith("-") ? comandoRaw.substring(1) : comandoRaw;
         List<String> argumentos = new ArrayList<>(Arrays.asList(args));
         argumentos.remove(0);
         boolean estrito = argumentos.contains("--estrito");
@@ -42,7 +44,15 @@ public class ThzCli {
             return;
         }
         if (comando.equals("gui")) {
-            lancarGuiSeDisponivel();
+            // Padrão Fase 3: WebView (thz.exe WebView + jpackage). Swing só com --swing
+            boolean querSwing = argumentos.contains("--swing") || argumentos.contains("--jvm") || argumentos.contains("--desktop") || argumentos.contains("--legacy");
+            if (querSwing) {
+                lancarGuiSeDisponivel();
+                return;
+            }
+            // Flags explícitas webview também aceitas, mas default já é webview
+            // ex: thz gui / thz gui --webview / thz gui --browser
+            lancarGuiWebview();
             return;
         }
         String arquivo = resolverArquivo(argumentos);
@@ -289,7 +299,7 @@ public class ThzCli {
         System.out.println("  ir <arquivo> [--llvm] [--saida <caminho>] Gera a Representação Intermediária (THZ-IR/1)");
         System.out.println("  ui <arquivo[.thzui]> [--html]             Renderiza ou exporta a interface declarativa (ThzUiMaker)");
         System.out.println("  repl                                      Inicia o shell interativo multi-linha");
-        System.out.println("  gui                                       Abre a IDE Desktop Swing com realce e exemplos\n");
+        System.out.println("  gui [--swing]                             Abre a IDE WebView (padrão, sem Swing) — use --swing para IDE Desktop Swing legada");
         System.out.println("Exemplos:");
         System.out.println("  thz check exemplos/faturamento.thz --estrito");
         System.out.println("  thz run exemplos/faturamento.thz");
@@ -334,8 +344,9 @@ public class ThzCli {
     private static String q(String s){ return "\""+(s!=null?s:"")+"\""; }
 
     /**
-     * Lança a IDE Desktop (módulo thz-gui) via reflexão, se presente no classpath.
-     * Mantém thz-cli autônomo: sem dependência de compilação com thz-gui.
+     * Lança a IDE Desktop Swing legada (módulo thz-gui) via reflexão.
+     * Padrão agora é WebView; este método só é chamado com --swing.
+     * Fallback automático para WebView se Swing não estiver disponível.
      */
     private static void lancarGuiSeDisponivel() {
         try {
@@ -345,14 +356,145 @@ public class ThzCli {
                     Object janela = gui.getConstructor().newInstance();
                     gui.getMethod("setVisible", boolean.class).invoke(janela, true);
                 } catch (ReflectiveOperationException e) {
-                    System.err.println("[ERRO] Falha ao iniciar a IDE Desktop: " + e.getMessage());
-                    System.exit(1);
+                    System.err.println("[ERRO] Falha ao iniciar a IDE Desktop Swing: " + e.getMessage());
+                    System.err.println("[THZ] Caindo para IDE WebView (padrão)...");
+                    lancarGuiWebview();
                 }
             });
         } catch (ClassNotFoundException e) {
-            System.err.println("[ERRO] IDE Desktop não encontrada no classpath. O módulo 'thz-gui' não está incluído nesta distribuição.");
-            System.err.println("       Use: .\\gradlew :thz-gui:gui   ou inclua o JAR do thz-gui.");
-            System.exit(1);
+            System.err.println("[AVISO] IDE Desktop Swing não encontrada (thz-gui ausente). Iniciando IDE WebView padrão (sem Swing)...");
+            System.err.println("        Dica: thz gui          → WebView (padrão, recomendado, 100% GraalVM/native-image)");
+            System.err.println("              thz gui --swing → Swing legada (requer ./gradlew :thz-gui:gui ou dist/thz/thz-gui.exe)");
+            lancarGuiWebview();
         }
+    }
+
+    /**
+     * Fase 3: IDE via WebView — serve editor HTML leve sem Swing, 100% compatível native-image/Windows.
+     * Reusa ThzWebviewBridge + LancadorWebviewNativo com host WebView2 COM quando disponível.
+     */
+    private static void lancarGuiWebview() {
+        String htmlIde = """
+                <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+                <title>THZ-LANG IDE — WebView</title>
+                <style>
+                  :root{--bg:#0f172a;--card:rgba(30,41,59,0.85);--text:#f8fafc;--muted:#94a3b8;--primary:#3b82f6;--border:rgba(255,255,255,0.12);--radius:10px;--font:'Segoe UI',Inter,sans-serif}
+                  *{box-sizing:border-box;margin:0;padding:0;font-family:var(--font)}
+                  body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+                  header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(15,23,42,0.8);backdrop-filter:blur(12px);position:sticky;top:0}
+                  header h1{font-size:1.05rem} header span{font-size:0.8rem;color:var(--muted)}
+                  main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+                  @media(max-width:900px){main{grid-template-columns:1fr}}
+                  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px}
+                  .card h3{font-size:0.95rem;border-bottom:1px solid var(--border);padding-bottom:8px}
+                  textarea{width:100%;min-height:320px;background:rgba(15,23,42,0.6);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:13px;resize:vertical}
+                  pre{background:rgba(15,23,42,0.6);border:1px solid var(--border);border-radius:8px;padding:12px;white-space:pre-wrap;min-height:120px;font-size:13px;overflow:auto}
+                  .row{display:flex;gap:8px;flex-wrap:wrap}
+                  .btn{padding:9px 16px;border-radius:8px;font-weight:600;font-size:0.9rem;border:none;cursor:pointer}
+                  .btn-primary{background:var(--primary);color:#fff} .btn-sec{background:rgba(255,255,255,0.08);color:var(--text);border:1px solid var(--border)}
+                  .badge{display:inline-block;padding:3px 8px;border-radius:9999px;font-size:0.7rem;font-weight:700;background:rgba(59,130,246,0.2);color:#60a5fa;border:1px solid rgba(59,130,246,0.3)}
+                </style></head><body>
+                <header><div><h1>THZ-LANG IDE — WebView <span class="badge">Fase 3 • sem Swing</span></h1><span>Editor + Check + Run via bridge nativo</span></div><span style="font-size:0.75rem;color:var(--muted)">thz gui --webview</span></header>
+                <main>
+                  <div class="card"><h3>Editor — THZ-LANG</h3>
+                    <textarea id="thz_editor">PROGRAMA ExemploWebview
+
+                METADADOS_ARQUITETURA
+                    DOMINIO: "Demo"
+                    CAMADA: "Aplicacao"
+                    VERSAO: "1.0.0"
+                FIM_METADADOS
+
+                ESTRUTURA Usuario
+                    id: TEXTO
+                    saldo: DECIMAL(12,2)
+                FIM_ESTRUTURA
+
+                PROCEDIMENTO Principal()
+                INICIO
+                    VARIAVEL u : Usuario <- CRIAR Usuario(id: "USR-001", saldo: 250.00)
+                    EXIBA "THZ WebView pronto! Usuario: " + u.id + " | Saldo: " + u.saldo
+                FIM
+
+                FIM_PROGRAMA</textarea>
+                    <div class="row"><button class="btn btn-primary" onclick="thzRun()">▶ Executar (Run)</button><button class="btn btn-sec" onclick="thzCheck()">✓ Verificar (Check)</button><button class="btn btn-sec" onclick="thzClear()">Limpar saída</button></div>
+                  </div>
+                  <div class="card"><h3>Saída / Diagnósticos</h3><pre id="thz_saida">Pronto. Clique em Executar ou Verificar.</pre><div style="font-size:0.75rem;color:var(--muted)">Atalhos: F5 Run · F6 Check · Bridge: window.thz.invocar('run'|'check', {fonte})</div></div>
+                </main>
+                <script>
+                  async function thzRun(){
+                    const fonte=document.getElementById('thz_editor').value;
+                    const out=document.getElementById('thz_saida'); out.textContent='⏳ Executando...';
+                    try{ const r=await window.thz.invocar('run', {fonte}); out.textContent=(r.resultado||r.mensagem||JSON.stringify(r,null,2)); }
+                    catch(e){ out.textContent='✗ '+e.message; }
+                  }
+                  async function thzCheck(){
+                    const fonte=document.getElementById('thz_editor').value;
+                    const out=document.getElementById('thz_saida'); out.textContent='⏳ Verificando...';
+                    try{ const r=await window.thz.invocar('check', {fonte}); out.textContent=(r.resultado||r.mensagem||JSON.stringify(r,null,2)); }
+                    catch(e){ out.textContent='✗ '+e.message; }
+                  }
+                  function thzClear(){ document.getElementById('thz_saida').textContent='Saída limpa.'; }
+                </script></body></html>
+                """;
+        // Registra handlers check/run que usam o pipeline real do ThzCli sem Swing
+        thz.lang.webview.ThzWebviewBridge.registrarCanal("check", payload -> {
+            try {
+                String fonte = thz.lang.webview.ThzJson.extrairCampo(payload, "fonte");
+                if (fonte == null || fonte.isBlank()) fonte = thz.lang.webview.ThzJson.extrairBruto(payload, "fonte");
+                // fallback: payload direto já é fonte se não for JSON envelope
+                if ((fonte == null || fonte.isBlank()) && payload != null && payload.contains("PROGRAMA")) fonte = payload;
+                if (fonte == null) fonte = "";
+                // remove escaping parcial
+                fonte = fonte.replace("\\n", "\n").replace("\\\"", "\"");
+                var tokens = new thz.lang.lexico.ThzLexer(fonte).tokenize();
+                var ast = new thz.lang.sintatico.ThzParser(tokens).parse();
+                var erros = new thz.lang.semantico.AnalisadorSemantico(ast).analisar(new thz.lang.semantico.OpcoesAnalise(false));
+                if (erros.isEmpty()) return thz.lang.webview.ThzJson.stringify(java.util.Map.of("status","ok","resultado","✓ Check OK — AST íntegra para: " + ast.nome()));
+                return thz.lang.webview.ThzJson.erro(erros.size() + " erro(s) semântico(s): " + erros.get(0).mensagem());
+            } catch (Exception e) { return thz.lang.webview.ThzJson.erro(e.getMessage()); }
+        });
+        thz.lang.webview.ThzWebviewBridge.registrarCanal("run", payload -> {
+            try {
+                String fonte = thz.lang.webview.ThzJson.extrairCampo(payload, "fonte");
+                if (fonte == null || fonte.isBlank()) fonte = thz.lang.webview.ThzJson.extrairBruto(payload, "fonte");
+                if ((fonte == null || fonte.isBlank()) && payload != null && payload.contains("PROGRAMA")) fonte = payload;
+                if (fonte == null) fonte = "";
+                fonte = fonte.replace("\\n", "\n").replace("\\\"", "\"");
+                var tokens = new thz.lang.lexico.ThzLexer(fonte).tokenize();
+                var ast = new thz.lang.sintatico.ThzParser(tokens).parse();
+                var interp = new thz.lang.interpretador.InterpretadorThz(ast, msg -> {}, () -> null);
+                var procs = interp.listarProcedimentos();
+                StringBuilder sb = new StringBuilder();
+                if (!procs.isEmpty()) {
+                    var p = procs.stream().filter(x -> x.nome().equalsIgnoreCase("Principal")).findFirst().orElse(procs.get(0));
+                    // captura saída
+                    java.util.List<String> logs = new java.util.ArrayList<>();
+                    var interp2 = new thz.lang.interpretador.InterpretadorThz(ast, logs::add, () -> null);
+                    interp2.executarProcedimento(p.nome(), java.util.Map.of());
+                    sb.append(String.join("\n", logs));
+                } else {
+                    var ops = interp.listarOperacoesExecutaveis();
+                    if (ops.isEmpty()) return thz.lang.webview.ThzJson.erro("Nenhum PROCEDIMENTO Principal nem OPERACAO executável.");
+                    var prim = ops.get(0);
+                    java.util.List<String> logs = new java.util.ArrayList<>();
+                    var interp2 = new thz.lang.interpretador.InterpretadorThz(ast, logs::add, () -> null);
+                    var res = interp2.executarOperacao(prim.operacao().nome(), java.util.Map.of());
+                    sb.append(String.join("\n", logs));
+                    if (res != null) sb.append("\n[RESULTADO] ").append(interp2.formatar(res));
+                }
+                return thz.lang.webview.ThzJson.stringify(java.util.Map.of("status","ok","resultado", sb.toString()));
+            } catch (Exception e) { return thz.lang.webview.ThzJson.erro(e.getMessage()); }
+        });
+        String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-LANG IDE — WebView", htmlIde, 1200, 760);
+        System.out.println("[THZ IDE WebView] Aberto em: " + url);
+        if (Boolean.getBoolean("thz.nao_interativo") || java.awt.GraphicsEnvironment.isHeadless()) {
+            System.out.println("[THZ] Modo não-interativo/headless — bridge ativo sem bloqueio de stdin.");
+            // não bloqueia para testes CI/native-image
+            return;
+        }
+        System.out.println("[THZ] Pressione Enter para encerrar (ou feche a janela)...");
+        try { System.in.read(); } catch (Exception ignore) {}
+        thz.lang.webview.LancadorWebviewNativo.fechar();
     }
 }

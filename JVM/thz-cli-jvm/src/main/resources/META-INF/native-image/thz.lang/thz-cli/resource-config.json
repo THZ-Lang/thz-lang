@@ -1,0 +1,11 @@
+{
+  "resources": {
+    "includes": [
+      {"pattern": "\\QMETA-INF/native-image/thz.lang/thz-cli/reflect-config.json\\E"},
+      {"pattern": "\\QMETA-INF/native-image/thz.lang/thz-cli/resource-config.json\\E"},
+      {"pattern": "\\QMETA-INF/native-image/thz.lang/thz-cli/native-image.properties\\E"},
+      {"pattern": ".*\\.thz"},
+      {"pattern": ".*\\.thzui"}
+    ]
+  }
+}

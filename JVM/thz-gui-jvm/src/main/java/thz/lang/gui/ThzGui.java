@@ -166,6 +166,9 @@ public final class ThzGui extends JFrame implements BarraMenuGui.AcoesGui {
     }
 
     public static void main(String[] args) {
+        if (System.getProperty("java.home") == null) {
+            System.setProperty("java.home", System.getProperty("user.dir", "."));
+        }
         BibliotecaTela.registrar();
         try {
             Class.forName("com.formdev.flatlaf.FlatDarkLaf").getMethod("setup").invoke(null);
