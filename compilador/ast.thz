@@ -41,10 +41,10 @@ ESTRUTURA ComandoAST
     linha        : INTEIRO32
 FIM_ESTRUTURA
 
-REGRA_NEGOCIO FabricaAST
+REGRA_NEGOCIO FabricaNoAST
     IDENTIFICADOR_REGRA: "BR-COMP-002"
     RASTREIO_REQUISITO: "REQ-COMP-002"
-    DESCRICAO: "Instancia nos e componentes da Arvore de Sintaxe Abstrata do THZ-LANG."
+    DESCRICAO: "Instancia nos da Arvore de Sintaxe Abstrata do THZ-LANG com linha e coluna."
 
     CONTRATO_ENTRADA
         EXIGE linha > 0
@@ -56,6 +56,16 @@ REGRA_NEGOCIO FabricaAST
         VARIAVEL n : NoAST <- CRIAR NoAST(tipo_no: tipo_no, nome: nome, linha: linha, coluna: coluna)
         RETORNE n
     FIM
+FIM_REGRA_NEGOCIO
+
+REGRA_NEGOCIO FabricaComandoAST
+    IDENTIFICADOR_REGRA: "BR-COMP-002B"
+    RASTREIO_REQUISITO: "REQ-COMP-002"
+    DESCRICAO: "Instancia comandos da AST do THZ-LANG com informacao de linha."
+
+    CONTRATO_ENTRADA
+        EXIGE linha > 0
+    FIM_CONTRATO_ENTRADA
 
     OPERACAO NovoComando(tipo_comando: TEXTO, conteudo: TEXTO, linha: INTEIRO32) : ComandoAST
     INICIO
@@ -65,4 +75,3 @@ REGRA_NEGOCIO FabricaAST
 FIM_REGRA_NEGOCIO
 
 FIM_BIBLIOTECA
-

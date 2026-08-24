@@ -59,6 +59,12 @@ REGRA_NEGOCIO ParserSelfHost
 
         RETORNE estado
     FIM
+FIM_REGRA_NEGOCIO
+
+REGRA_NEGOCIO ValidacaoBlocos
+    IDENTIFICADOR_REGRA: "BR-COMP-003B"
+    RASTREIO_REQUISITO: "REQ-COMP-003"
+    DESCRICAO: "Valida se o identificador de bloco informado e compativel com a gramatica."
 
     OPERACAO ValidarEstruturaBloco(tipo_bloco: TEXTO) : LOGICO
     INICIO

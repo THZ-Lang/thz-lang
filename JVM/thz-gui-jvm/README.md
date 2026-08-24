@@ -1,29 +1,37 @@
-# thz-gui — IDE Desktop Swing do THZ-LANG (Java 25)
+# thz-gui — Desktop IDE Swing FlatLaf do THZ-LANG (Java 25)
 
-IDE desktop completa para a linguagem THZ-LANG, com FlatLaf (temas Dark/Light), realce léxico em tempo real e motor declarativo de formulários. Consome o núcleo [`thz-core`](../thz-core).
+IDE desktop industrial para a linguagem THZ-LANG, desenvolvida com FlatLaf (temas Dark/Light), realce léxico em tempo real, numeração ancorada e motor reativo de formulários. Consome o núcleo [`thz-core`](../thz-core-jvm).
 
 ## Recursos
 
-- **Editor** (`EditorThz`, `Gutter`): realce léxico em tempo real, numeração de linhas ancorada, marcação de erros.
-- **Barras modulares** (`gui/barra`): menus, ferramentas (toggle `--estrito`) e status com métricas e JVM ativa.
-- **Executor assíncrono** (`gui/execucao/ExecutorMotorGui`): check, run, fmt, audit, docgen e IR sem travar a UI.
-- **Formulários declarativos** (`gui/formulario`): telas geradas a partir de `ESTRUTURA` + contratos; exportação de dados.
-- **Configuração** (`gui/config`): detecção de JVMs instaladas, persistência em `~/.thz/desktop-config.json`, histórico de arquivos recentes.
-- **Extensões stdlib** (`BibliotecaTela`): registra as funções gráficas `TELA.renderizarFormulario/alerta/confirmar/pedirTexto` via `BibliotecaPadrao.registrar()`.
+- **Editor Avançado** (`EditorThz`, `Gutter`): realce de sintaxe em tempo real, numeração de linhas ancorada, marcadores de erro precisos.
+- **Barras Modulares** (`gui/barra`): menus, barra de ferramentas com toggle `--estrito` e barra de status com métricas de execução e runtime ativo.
+- **Executor Assíncrono** (`gui/execucao/ExecutorMotorGui`): execução não-bloqueante de `check`, `run`, `fmt`, `audit`, `docgen` e `ir` fora da EDT.
+- **Formulários Declarativos Reativos** (`gui/formulario`): interfaces dinâmicas geradas a partir de `ESTRUTURA` e validações de contrato; exportação de dados estruturados.
+- **Configuração & JVMs** (`gui/config`): detecção automática de JDKs instalados, persistência em `~/.thz/desktop-config.json`, histórico de arquivos recentes.
+- **Extensões Stdlib** (`BibliotecaTela`): registra as funções gráficas `TELA.renderizarFormulario/alerta/confirmar/pedirTexto` via `BibliotecaPadrao.registrar()`.
 
-## Build
+## Execução e Build
 
 ```bash
 ./gradlew test          # suíte JUnit 5
-./gradlew gui           # inicia a IDE Desktop
+./gradlew gui           # inicia a Desktop IDE diretamente
 ```
 
-> Os exemplos GUI (`*_gui.thz`) estão em `exemplos/` e são carregados pela Galeria da IDE.
+## Compilação Nativa AOT (GraalVM)
 
-## Dependência do core
+O `thz-gui-jvm` é configurado com reachability metadata e Look & Feel nativo:
+
+```powershell
+./gradlew nativeCompile
+```
+
+Gera o binário nativo `thz-desktop.exe` com inicialização instantânea.
+
+## Dependência do Core
 
 `implementation("thz.lang:thz-core:2.3.3")` — resolvido via Composite Build a partir de `../thz-core-jvm` (mesma pasta `JVM/`), ou como artefato publicado fora do workspace.
 
 ## Stack
 
-Java 25 (toolchain) · FlatLaf 3.5 · Swing · JUnit 5.11 · Gradle (Kotlin DSL)
+Java 25 (toolchain) · FlatLaf 3.5 · Swing · JUnit 5.11 · GraalVM Native Image · Gradle (Kotlin DSL)

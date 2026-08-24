@@ -7,18 +7,14 @@ Este documento define a gramática formal em sintaxe EBNF (*Extended Backus-Naur
 ## 1. Estrutura Global do Programa e Módulos
 
 ```ebnf
-Programa          ::= ModuloHeader MetadadosHeader? Importacao* Declaração* TerminadorModulo ;
-ModuloHeader      ::= TipoModulo IDENTIFICADOR ;
+Programa          ::= ModuloHeader MetadadosHeader? Importacao* Declaracao* TerminadorModulo ;
+ModuloHeader      ::= ArquetipoModulo IDENTIFICADOR ;
 
-MetadadosArq      ::= "METADADOS_ARQUITETURA" MetadadoItem* "FIM_METADADOS" ;
+MetadadosHeader   ::= "METADADOS_ARQUITETURA" MetadadoItem* "FIM_METADADOS" ;
 MetadadoItem      ::= IDENTIFICADOR ":" (STRING_LITERAL | NUMERO | IDENTIFICADOR) ;
 
-DeclaracaoModulo  ::= ArquetipoModulo IDENTIFICADOR ElementoModulo* TerminadorModulo ;
-
-ArquetipoModulo   ::= "PROGRAMA"
-                    | "PROGRAMA" "NEGOCIO"
-                    | "PROGRAMA" "VISUAL"
-                    | "PROGRAMA" "ARQUITETURA"
+ArquetipoModulo   ::= "PROGRAMA" ("NEGOCIO" | "VISUAL" | "ARQUITETURA")?
+                    | "PIPELINE_DADOS"
                     | "BIBLIOTECA"
                     | "EXTENSAO"
                     | "FERRAMENTA"
@@ -26,6 +22,7 @@ ArquetipoModulo   ::= "PROGRAMA"
                     | "TELA" ;
 
 TerminadorModulo  ::= "FIM_PROGRAMA"
+                    | "FIM_PIPELINE"
                     | "FIM_BIBLIOTECA"
                     | "FIM_EXTENSAO"
                     | "FIM_FERRAMENTA"
@@ -38,10 +35,11 @@ TerminadorModulo  ::= "FIM_PROGRAMA"
 ## 2. Elementos de Módulo
 
 ```ebnf
-ElementoModulo    ::= Importacao
+Declaracao        ::= Importacao
                     | DeclaracaoEstrutura
                     | DeclaracaoEnum
                     | RegraNegocio
+                    | DeclaracaoPipelineBloco
                     | Procedimento ;
 
 Importacao        ::= "IMPORTAR" IdentificadorLista "DE" STRING_LITERAL ;
@@ -53,9 +51,10 @@ IdentificadorLista::= IDENTIFICADOR ("," IDENTIFICADOR)* ;
 ## 3. Estruturas e Enumerações
 
 ```ebnf
-DeclaracaoEstrutura ::= "ESTRUTURA" IDENTIFICADOR LayoutModificador? CampoEstrutura* "FIM_ESTRUTURA" ;
+DeclaracaoEstrutura ::= "ESTRUTURA" IDENTIFICADOR LayoutModificador? (CampoEstrutura | InvarianteEstrutura)* "FIM_ESTRUTURA" ;
 LayoutModificador   ::= "LAYOUT_COLUNAR" ;
 CampoEstrutura      ::= IDENTIFICADOR ":" TipoDado ;
+InvarianteEstrutura ::= "INVARIANTE" Expressao ;
 
 DeclaracaoEnum      ::= "ENUMERACAO" IDENTIFICADOR ItemEnum ("," ItemEnum)* "FIM_ENUMERACAO" ;
 ItemEnum            ::= IDENTIFICADOR ;
@@ -63,16 +62,23 @@ ItemEnum            ::= IDENTIFICADOR ;
 
 ---
 
-## 4. Governança e Regras de Negócio
+## 4. Governança, Regras de Negócio e Big Data Pipelines
 
 ```ebnf
-RegraNegocio       ::= "REGRA_NEGOCIO" IDENTIFICADOR ClausulaGovernanca* BlocoCodigo "FIM_REGRA_NEGOCIO" ;
+RegraNegocio       ::= "REGRA_NEGOCIO" IDENTIFICADOR ClausulaGovernanca* BlocoCodigo? "FIM_REGRA_NEGOCIO" ;
 
 ClausulaGovernanca ::= RastreioRequisito | ClausulaExige | ClausulaGarante | ClausulaInvariante ;
 RastreioRequisito  ::= "RASTREIO_REQUISITO" ":" STRING_LITERAL ;
 ClausulaExige      ::= "EXIGE" ":" Expressao ;
 ClausulaGarante    ::= "GARANTE" ":" Expressao ;
 ClausulaInvariante ::= "INVARIANTE" ":" Expressao ;
+
+DeclaracaoPipelineBloco ::= FonteEntradaBloco | DestinoSaidaBloco | TransformacaoBloco ;
+
+FonteEntradaBloco   ::= "FONTE_ENTRADA" IDENTIFICADOR PropriedadeItem* "FIM_FONTE" ;
+DestinoSaidaBloco   ::= "DESTINO_SAIDA" IDENTIFICADOR PropriedadeItem* "FIM_DESTINO" ;
+TransformacaoBloco  ::= "TRANSFORMACAO" IDENTIFICADOR ClausulaGovernanca* BlocoCodigo "FIM_TRANSFORMACAO" ;
+PropriedadeItem     ::= IDENTIFICADOR ":" (STRING_LITERAL | NUMERO | IDENTIFICADOR) ;
 ```
 
 ---
@@ -80,7 +86,7 @@ ClausulaInvariante ::= "INVARIANTE" ":" Expressao ;
 ## 5. Procedimentos e Comandos
 
 ```ebnf
-Procedimento       ::= "PROCEDIMENTO" IDENTIFICADOR "(" Parametros? ")" BlocoCodigo "FIM" ;
+Procedimento       ::= "PROCEDIMENTO" IDENTIFICADOR "(" Parametros? ")" (":" TipoDado)? BlocoCodigo "FIM" ;
 Parametros         ::= Parametro ("," Parametro)* ;
 Parametro          ::= IDENTIFICADOR ":" TipoDado ;
 
@@ -103,12 +109,12 @@ Atribuicao         ::= (IDENTIFICADOR | AcessoMembro) "<-" Expressao ;
 
 Condicional        ::= "SE" Expressao "ENTAO" Comando* ("SENAO" Comando*)? "FIM_SE" ;
 LacoEnquanto       ::= "ENQUANTO" Expressao "FACA" Comando* "FIM_ENQUANTO" ;
-LacoPara           ::= "PARA" IDENTIFICADOR "DE" Expressao "ATE" Expressao "PASSO" Expressao "FACA" Comando* "FIM_PARA" ;
+LacoPara           ::= "PARA" IDENTIFICADOR "DE" Expressao "ATE" Expressao ("PASSO" Expressao)? "FACA" Comando* "FIM_PARA" ;
 
-LacoVetorizado     ::= "VETORIZAR_PARA" IDENTIFICADOR "DE" Expressao "ATE" Expressao "PASSO_SIMD" NUMERO Comando* "FIM_VETORIZAR" ;
-BlocoMemoria       ::= "USAR_BLOCO_MEMORIA" STRING_LITERAL "," Expressao "FACA" Comando* "FIM_BLOCO_MEMORIA" ;
+LacoVetorizado     ::= "VETORIZAR_PARA" IDENTIFICADOR ("EM" Expressao | "DE" Expressao "ATE" Expressao) "PASSO_SIMD" NUMERO Comando* ("FIM_VETORIZAR" | "FIM_PARA") ;
+BlocoMemoria       ::= "USAR_BLOCO_MEMORIA" STRING_LITERAL ("," Expressao)? "FACA" Comando* "FIM_BLOCO_MEMORIA" ;
 
-RetornoResultado   ::= "RETORNAR" ("RESULTADO" "(" Expressao ")")? ;
+RetornoResultado   ::= "RETORNAR" ("RESULTADO" "(" Expressao ")" | Expressao)? ;
 FalhaResultado     ::= "FALHAR_COM" "(" Expressao ")" ;
 
 CasoResultadoComando ::= "CASO_RESULTADO" Expressao
@@ -127,6 +133,11 @@ TipoDado          ::= "INTEIRO"
                     | "MONETARIO" "(" IDENTIFICADOR ")"
                     | "TEXTO"
                     | "LOGICO"
+                    | "UUID"
+                    | "DATA"
+                    | "DATA_HORA"
+                    | "FATIA" "[" TipoDado "]"
+                    | "RESULTADO" "[" TipoDado "," TipoDado "]"
                     | IDENTIFICADOR ;
 
 Expressao         ::= TermoOperador ;
@@ -138,7 +149,7 @@ Fator             ::= Primario ( ("*" | "/") Primario )* ;
 Primario          ::= LITERAL_NUMERICO
                     | LITERAL_MONETARIO
                     | STRING_LITERAL
-                    | "VERDADEIRO" | "FALSO"
+                    | "VERDADEIRO" | "FALSO" | "NULO"
                     | IDENTIFICADOR
                     | AcessoMembro
                     | ChamadaFuncao

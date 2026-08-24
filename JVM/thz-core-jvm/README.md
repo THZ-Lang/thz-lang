@@ -6,19 +6,19 @@ Biblioteca central do motor JVM da THZ-LANG: linguagem corporativa orientada a d
 
 ## Módulos internos (`src/main/java/thz/lang/`)
 
-| Pacote | eesponsabilidade |
+| Pacote | Responsabilidade |
 |---|---|
 | `ast` | Árvore de Sintaxe Abstrata (sealed records imutáveis) |
 | `lexico` | Scanner determinístico com linha/coluna e tolerância a BOM UTF-8 |
-| `sintatico` | Parser recursivo descendente com precedência canônica |
-| `semantico` | Verificação de tipos, contratos `EXIGE`/`GAeANTE` ($\forall$ sobre fatias), lint estrito |
+| `sintatico` | Parser recursivo descendente com precedência canônica e recuperação |
+| `semantico` | Verificação de tipos, contratos `EXIGE`/`GARANTE` ($\forall$ sobre fatias), lint estrito |
 | `interpretador` | Tree-walking interpreter + stdlib extensível (`BibliotecaPadrao`) |
-| `runtime` | Decimal exato (`DecimalFixo`, ISO/IEC 10967), `Monetario` (ISO 4217), datas, `BlocoMemoria`, idempotência LeU/TTL |
+| `runtime` | Decimal exato (`DecimalFixo`, ISO/IEC 10967), `Monetario` (ISO 4217), datas, `BlocoMemoria`, idempotência LRU/TTL |
 | `documento` | Exportação corporativa PDF/XLSX/DOCX (`DOCUMENTO.*`) |
-| `governanca` | Auditoria G4: matriz `eASTeEIO_eEQUISITO → eegra → Contrato` |
+| `governanca` | Auditoria G4: matriz `RASTREIO_REQUISITO → Regra → Contrato` |
 | `docgen` | Documentação viva Markdown + Mermaid a partir da AST |
-| `ir` | eepresentação intermediária `thz-ir/1` + emissão LLVM Ie |
-| `simd` | Validação formal de vetorização (regras e1–e5) |
+| `ir` | Representação intermediária `thz-ir/1` + emissão LLVM IR |
+| `simd` | Validação formal de vetorização (regras R1–R5) |
 | `formato` | Formatador canônico idempotente + serializador JSON |
 | `diagnosticos` | Erros `[Categoria][Linha L:C]` com caret |
 
@@ -26,12 +26,12 @@ Biblioteca central do motor JVM da THZ-LANG: linguagem corporativa orientada a d
 
 ```bash
 ./gradlew test                  # suíte JUnit 5
-./gradlew publishToMavenLocal   # publica thz.lang:thz-core:2.3.3 no ~/.m2
+./gradlew publishToMavenLocal   # publica thz.lang:thz-core no ~/.m2
 ```
 
 ## Consumo
 
-Os consumidores JVM (`JVM/thz-cli-jvm`, `JVM/thz-gui-jvm`) declaram `implementation("thz.lang:thz-core:2.3.3")` e resolvem via Composite Build (`includeBuild("../thz-core-jvm")`). Fora do workspace, publique com `./gradlew publishToMavenLocal` e a dependência é baixada como artefato.
+Os consumidores JVM (`JVM/thz-cli-jvm`, `JVM/thz-gui-jvm`, etc.) declaram `implementation("thz.lang:thz-core:2.3.3")` e resolvem via Composite Build (`includeBuild("../thz-core-jvm")`). Fora do workspace, publique com `./gradlew publishToMavenLocal` e a dependência é baixada como artefato.
 
 ## Stack
 

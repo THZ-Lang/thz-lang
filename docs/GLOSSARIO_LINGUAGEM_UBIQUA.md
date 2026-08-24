@@ -2,7 +2,7 @@
 
 Em **Domain-Driven Design (DDD)**, a **Linguagem Ubíqua** é o vocabulário rigoroso e compartilhado por analistas de negócio, arquitetos de software, engenheiros de dados e desenvolvedores. 
 
-No **THZ-LANG**, esse conceito foi elevado ao nível de código-fonte compilável: os termos de governança, financeira, arquitetura e infraestrutura são nativos na sintaxe da linguagem em português.
+No **THZ-LANG**, esse conceito foi elevado ao nível de código-fonte compilável: os termos de governança, finanças, arquitetura, infraestrutura e pipelines de dados são nativos na sintaxe da linguagem em português.
 
 ---
 
@@ -10,8 +10,9 @@ No **THZ-LANG**, esse conceito foi elevado ao nível de código-fonte compiláve
 1. [Governança, DDD & Contratos Formais](#1-governança-ddd--contratos-formais)
 2. [Aritmética Exata & Domínio Financeiro](#2-aritmética-exata--domínio-financeiro)
 3. [Arquitetura & Módulos Corporativos](#3-arquitetura--módulos-corporativos)
-4. [Engenharia Orientada a Dados & SIMD (DoD)](#4-engenharia-orientada-a-dados--simd-dod)
-5. [Interface Gráfica Declarativa & UIs (`.thzui`)](#5-interface-gráfica-declarativa--uis-thzui)
+4. [Big Data & Pipelines de Ingestão Massiva](#4-big-data--pipelines-de-ingestão-massiva)
+5. [Engenharia Orientada a Dados & SIMD (DoD)](#5-engenharia-orientada-a-dados--simd-dod)
+6. [Interface Gráfica Declarativa & UIs (`.thzui`)](#6-interface-gráfica-declarativa--uis-thzui)
 
 ---
 
@@ -33,7 +34,7 @@ Condição de verdade absoluta que uma entidade ou estrutura de dados deve mante
 Vínculo declarativo que conecta um trecho de código diretamente ao identificador do requisito funcional de negócio (ex: `"REQ-FIN-2026-001"`).
 
 ### **`METADADOS_ARQUITETURA` (Documentação Viva de Arquitetura)**
-Bloco obrigatório em programas corporativos que expõe propriedades como `SISTEMA`, `MODULO`, `DOMINIO`, `CAMADA`, `RESPONSAVEL` e `CRITICIDADE`.
+Bloco obrigatório em programas corporativos que expõe propriedades como `SISTEMA`, `MODULO`, `DOMINIO`, `CAMADA`, `RESPONSAVEL`, `CONFORMIDADE` e `CRITICIDADE`.
 
 ### **`SLO_LATENCIA_MS` (Objetivo de Nível de Serviço)**
 Declaração explícita do limite máximo de tempo aceitável em milissegundos para a execução daquele componente.
@@ -60,6 +61,7 @@ Classificação nativa do propósito arquitetural de um arquivo fonte no THZ-LAN
 - **`PROGRAMA NEGOCIO`**: Serviços backend e processamento de negócios.
 - **`PROGRAMA VISUAL`**: Aplicação gráfica desktop ou web.
 - **`PROGRAMA ARQUITETURA`**: Mapeamento de componentes e sistemas.
+- **`PIPELINE_DADOS`**: Ingestão e processamento massivo de Big Data.
 - **`BIBLIOTECA`**: Utilitários reutilizáveis sem efeito colateral global.
 - **`EXTENSAO`**: Módulos de expansão do ecossistema.
 - **`FERRAMENTA`**: Scripts e utilitários CLI.
@@ -67,7 +69,7 @@ Classificação nativa do propósito arquitetural de um arquivo fonte no THZ-LAN
 - **`TELA`**: Definição declarativa de interface visual (`.thzui`).
 
 ### **Terminador Pareado**
-Regra sintática onde o encerramento de um módulo exige a sintaxe exata correspondente ao seu arquétipo (`FIM_PROGRAMA`, `FIM_BIBLIOTECA`, `FIM_FERRAMENTA`, `FIM_TESTE`, `FIM_TELA`).
+Regra sintática onde o encerramento de um módulo exige a sintaxe exata correspondente ao seu arquétipo (`FIM_PROGRAMA`, `FIM_PIPELINE`, `FIM_BIBLIOTECA`, `FIM_FERRAMENTA`, `FIM_TESTE`, `FIM_TELA`).
 
 ### **`RESULTADO` / `FALHAR_COM` (Canal Seguro de Retorno)**
 Padrão idiomático de tratamento de erro que substitui o lançamento incondicional de exceções runtime por um canal tipado de `SUCESSO` ou `ERRO`.
@@ -77,7 +79,23 @@ Estrutura declarativa de *pattern matching* para tratar os canais `SUCESSO` e `E
 
 ---
 
-## 4. Engenharia Orientada a Dados & SIMD (DoD)
+## 4. Big Data & Pipelines de Ingestão Massiva
+
+### **`PIPELINE_DADOS`**
+Arquétipo de módulo focado no fluxo contínuo ou em lote de dados em larga escala.
+
+### **`FONTE_ENTRADA` / `DESTINO_SAIDA`**
+Declaração de conectores externos (PostgreSQL, MySQL, MongoDB, JSONB, CSV, Kafka) para ingestão e exportação de dados.
+
+### **`STREAMING` & `LOTE`**
+Modos de operação: processamento evento a evento em tempo real (*Streaming*) ou agregação em lotes temporais (*Batch*).
+
+### **`TRANSFORMACAO`**
+Etapa de processamento de dados contendo contratos de integridade e cálculos vetorizados.
+
+---
+
+## 5. Engenharia Orientada a Dados & SIMD (DoD)
 
 ### **`LAYOUT_COLUNAR` (Structure of Arrays — SoA)**
 Modificador de `ESTRUTURA` que orienta a disposição dos dados na memória de forma colunar contígua em vez de um array de objetos tradicionais (AoS), viabilizando vetorização de alto rendimento na CPU.
@@ -90,7 +108,7 @@ Padrão de alocação de memória em arena (*Arena Memory Allocation*), permitin
 
 ---
 
-## 5. Interface Gráfica Declarativa & UIs (`.thzui`)
+## 6. Interface Gráfica Declarativa & UIs (`.thzui`)
 
 ### **`.thzui` (Extensão de Interface Gráfica)**
 Extensão oficial de arquivo para componentes e telas visuais desenvolvidas com o arquétipo `TELA`.

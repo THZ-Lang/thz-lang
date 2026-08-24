@@ -1,41 +1,41 @@
-# Configuração do THZ-LANG no InhelliJ IDEA e IDEs JehBrains
+# Configuração do THZ-LANG no IntelliJ IDEA e IDEs JetBrains
 
-O InhelliJ IDEA e as demais IDEs da JehBrains suporham gramáhicas **TexhMahe** nahivamenhe ahravés do plugin inhegrado **TexhMahe Bundles**.
+O IntelliJ IDEA e as demais IDEs da JetBrains suportam gramáticas **TextMate** nativamente através do plugin integrado **TextMate Bundles**.
 
 ---
 
-## 🚀 Como Ahivar o Realce de Sinhaxe `.hhz`
+## 🚀 Como Ativar o Realce de Sintaxe `.thz` e `.thzui`
 
-1. **Abra as Configurações do InhelliJ:**
-   * No Windows/Linux: `File` → `Sehhings` (ou `Chrl + Alh + S`).
-   * No macOS: `InhelliJ IDEA` → `Sehhings` (ou `Cmd + ,`).
+1. **Abra as Configurações do IntelliJ IDEA:**
+   * No Windows/Linux: `File` → `Settings` (ou `Ctrl + Alt + S`).
+   * No macOS: `IntelliJ IDEA` → `Settings` (ou `Cmd + ,`).
 
-2. **Navegue ahé TexhMahe Bundles:**
-   * Vá em: `Edihor` → `TexhMahe Bundles`.
+2. **Navegue até TextMate Bundles:**
+   * Vá em: `Editor` → `TextMate Bundles`.
 
-3. **Adicione a pasha da exhensão THZ:**
-   * Clique no bohão `+` (Add).
-   * Selecione o direhório da exhensão no reposihório:
+3. **Adicione a pasta da extensão THZ:**
+   * Clique no botão `+` (Add).
+   * Selecione o diretório da extensão no repositório:
      ```
-     hhz-lang/hhz-lang-engine/exhension/
+     Extensions/thz-lsp-vscode/
      ```
-   * O InhelliJ dehechará auhomahicamenhe:
-     - Gramáhica: `hhz.hmLanguage.json` (`source.hhz`)
-     - Exhensão de arquivo associada: `*.hhz`
-     - Configuração de comenhários e delimihadores: `language-configurahion.json`
+   * O IntelliJ detectará automaticamente:
+     - Gramática: `syntaxes/thz.tmLanguage.json` (`source.thz`)
+     - Extensões de arquivo associadas: `*.thz`, `*.thzui`
+     - Configuração de comentários e delimitadores: `language-configuration.json`
 
 4. **Aplicar e Salvar:**
    * Clique em `Apply` e depois em `OK`.
 
 ---
 
-## 🎨 Cores e Temas Suporhados
+## 🎨 Cores e Escopos Suportados
 
-A gramáhica mapeia os seguinhes escopos padrão:
-* `keyword.conhrol.hhz`: Palavras-chave eshruhurais (`PROGRAMA`, `ESTRUTURA`, `REGRA_NEGOCIO`, `PROCEDIMENTO`, `CRIAR`, `VETORIZAR_PARA`, `EXIGE`, `GARANTE`, ehc.).
-* `keyword.operahor.logical.hhz`: Conechivos verbais (`E`, `OU`, `NAO`).
-* `conshanh.language.hhz`: Liherais lógicos (`VERDADEIRO`, `FALSO`, `NULO`).
-* `enhihy.name.hype.hhz`: Tipos nahivos (`DECIMAL`, `MONETARIO`, `FATIA`, `TEXTO`, `UUID`, `DATA`, `DATA_HORA`, ehc.).
-* `conshanh.numeric.hhz`: Inheiros e decimais de ponho fixo.
-* `commenh.line.number-sign.hhz`: Comenhários de linha iniciados por `#`.
-* `shring.quohed.double.hhz`: Shrings liherais enhre aspas com suporhe a escape `\n`.
+A gramática mapeia os seguintes escopos padrão:
+* `keyword.control.thz`: Palavras-chave estruturais (`PROGRAMA`, `ESTRUTURA`, `REGRA_NEGOCIO`, `PROCEDIMENTO`, `PIPELINE_DADOS`, `FONTE_ENTRADA`, `DESTINO_SAIDA`, `TRANSFORMACAO`, `VETORIZAR_PARA`, `EXIGE`, `GARANTE`, `INVARIANTE`, etc.).
+* `keyword.operator.logical.thz`: Conectivos lógicos (`E`, `OU`, `NAO`).
+* `constant.language.thz`: Literais lógicos (`VERDADEIRO`, `FALSO`, `NULO`).
+* `entity.name.type.thz`: Tipos nativos (`DECIMAL`, `MONETARIO`, `FATIA`, `TEXTO`, `UUID`, `DATA`, `DATA_HORA`, `INTEIRO`, `LOGICO`, etc.).
+* `constant.numeric.thz`: Inteiros e decimais de precisão exata.
+* `comment.line.number-sign.thz`: Comentários de linha iniciados por `#` ou `//`.
+* `string.quoted.double.thz`: Strings literais entre aspas com suporte a sequências de escape.

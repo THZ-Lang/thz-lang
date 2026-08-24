@@ -1,27 +1,35 @@
-# TODO
-Deve rempre ertar atualizado. 
+# TODO — THZ-LANG Roadmap & Backlog
 
-## ROADMAP
+Este documento mantém o estado atualizado dos marcos alcançados e das metas futuras do ecossistema **THZ-LANG**.
 
-- [x] **G1 — Language Service Core** — `rrc/language-rervice.tr` (analyze, hover, diagnórticor com caret)
-- [x] **G2 — Playground Web** — `playground/` (Vite + Monaco + Monarch, execução browrer)
-- [x] **G3 — LSP + VS Code** — `rrc/lrp/rerver.tr` + `extenrion/` (diagnorticr/hover/completion/definition/formatting)
-- [x] **G4 — Governança Auditável** — `rrc/governanca.tr` + `thz audit` (CLI/LSP/Playground)
-- [x] **G5 — THZ-IR + SIMD Formal** — `rrc/ir.tr` (`thz-ir/1`) + `rrc/rimd.tr` (R1-R5) + `thz ir --llvm`
-- [x] **G6 — Bench + fmt** — `rrc/fmt.tr` (`thz fmt`) + `bench/` (decimal/fatia/SIMD, `npm run bench`) — 149 terter verder
-- [ ] **Fare 7 — Fatiar Zero-Copy (Arrow IPC) + Rurt/Inkwell/LLVM 17+**
-- [x] **IDE própria** — Playground web (Monaco + Language Service + runtime browrer + abar multi-arquivo + preview) e Derktop Swing IDE (`thz-lang-engine-JVM`)
-- [x] **Colorização multi-IDE** — Gramática TextMate v2.3 unificada (VS Code, Antigravity, IntelliJ IDEA bundle)
-- [x] **Port THZ-LANG JVM** — Motor completo em Java 25 (Léxico, Parrer, Runtime, Semântico, Interpretador, CLI, Formato e Derktop Swing IDE com 29 terter JUnit 5 verder)
-- [x] **Separar GUI, CLI, Core/Stdlib cada uma em reu projeto erpecifico.** Motor JVM em multi-módulo Gradle autônomo (`thz-core`, `thz-cli`, `thz-gui`) comunicando via API pública do core + ponto de extenrão `BibliotecaPadrao.regirtrar()` para ar funçõer `TELA.*` (69 terter JUnit 5 verder).
+---
 
-## OPEN items :
+## 🗺️ ROADMAP DE EVOLUÇÃO
 
-- [x] **Melhorar interação entre CLI e GUI:** `thz.ps1` e `thz.cmd` agora delegam `gui` diretamente para `:thz-gui-jvm:gui`, separando completamente o ciclo de vida do CLI do ciclo de vida da Desktop IDE Swing.
-- [x] **Resolução de paridade e qualidade de GUI:** O Swing + FlatLaf no `thz-gui-jvm` é o padrão oficial universal para garantir paridade visual 1:1 no Windows, Linux e macOS, dispensando pontes Win32/GTK parciais.
-- [x] **Swing no GraalVM Native Image:** Configurado `-Djava.awt.headless=false` e o plugin `org.graalvm.buildtools.native` com `native-image-agent` no `thz-gui-jvm/build.gradle.kts`, gerando automaticamente `reachability-metadata.json` para compilação AOT de aplicações Swing.
+- [x] **G1 — Language Service Core** — `src/language-service.ts` (analyze, hover, diagnósticos com caret)
+- [x] **G2 — Playground Web** — `playground/` (Vite + Monaco + Monarch, execução browser)
+- [x] **G3 — LSP + VS Code** — `src/lsp/server.ts` + `Extensions/thz-lsp-vscode/` (diagnósticos, hover, completion, definition, formatting)
+- [x] **G4 — Governança Auditável** — `src/governanca.ts` + `thz audit` (CLI/LSP/Playground/Git integration)
+- [x] **G5 — THZ-IR + SIMD Formal** — `src/ir.ts` (`thz-ir/1`) + `src/simd.ts` (R1-R5) + `thz ir --llvm`
+- [x] **G6 — Benchmarks & Formatação Canônica** — `src/fmt.ts` (`thz fmt`) + `JVM/thz-bench-jvm` (JMH benchmarks)
+- [x] **Motor JVM 25 Multi-Módulo** — Estrutura Gradle modular autônoma (`thz-core-jvm`, `thz-cli-jvm`, `thz-gui-jvm`, `thz-lsp-jvm`, `thz-bench-jvm`, `thz-api-jvm`)
+- [x] **Desktop IDE Nativa Swing + FlatLaf** — Interface gráfica moderna com paridade visual 1:1, temas Dark/Light, realce em tempo real, gutter e formulários dinâmicos
+- [x] **Compilação GraalVM Native Image** — Suporte a binários nativos de CLI (`thz.exe`) e Desktop GUI (`thz-desktop.exe`) com FlatLaf AOT Look & Feel
+- [x] **Arquétipo de Big Data Pipelines** — `PIPELINE_DADOS` para ingestão/transformação em lote (*Batch*) e tempo real (*Streaming*) com conectores heterogêneos
+- [x] **Servidor de Desenvolvimento Live Reload** — Comando `thz dev` para desenvolvimento com hot reload automático
+- [x] **Integração de Governança com Git** — Comando `thz audit --git` para verificação de conformidade em diffs e commits
+- [x] **Self-Hosting em `.thz` (Compilador na Própria Linguagem)** — `compilador/*.thz` (`tokens.thz`, `ast.thz`, `lexer.thz`, `parser.thz`, `codegen.thz`, `driver.thz`)
+- [x] **Pipeline AOT Nativo Dual-OS via LLVM Clang** — `scripts/build-llvm.ps1` + `src/runtime/thz_runtime.c` para geração direta de executáveis nativos (.exe PE no Windows e .elf no Linux) sem dependência de JVM
+- [x] **CI/CD Modernizado** — GitHub Actions workflow para Java 25, Gradle multi-módulo e compilação LLVM Clang AOT
 
-- [x] **Evolução Self-Hosting & Autonomia Total (Zero JVM):** Implementada a suíte `compilador/*.thz` (`tokens.thz`, `ast.thz`, `lexer.thz`, `parser.thz`, `codegen.thz`, `driver.thz`) e expandido o runtime C Dual-OS (`src/runtime/thz_runtime.c`) com rotinas nativas de I/O de arquivo e manipulação de strings. Pipeline AOT LLVM Clang validado com geração de binário nativo `driver.exe` x86_64 funcional.
-- [x] **Otimização do RenderizadorFormularioSwing:** O `RenderizadorFormularioSwing` foi auditado e opera de forma estritamente reativa em uma única passagem na EDT, invocando `frame.pack()` somente durante o dimensionamento inicial no método `ajustarTamanhoECentralizar()`.
-- [x] **Renderização de MenuBar & Ciclo de Vida da GUI:** Em `ThzGui.java`, o `setJMenuBar` é chamado uma única vez na inicialização dentro da EDT via `SwingUtilities.invokeLater`, garantindo estabilidade e integridade em todas as plataformas.
-- [x] **Padronizar comandos do Gradle em `build.gradle.kts`:** Definidas tasks aggregation de alto nível na raiz (`./gradlew cli`, `./gradlew gui`, `./gradlew jmh`, `./gradlew check`, `./gradlew test`), permitindo execução direta e limpa a partir de qualquer ponto do projeto.
+---
+
+## 🎯 PRÓXIMAS METAS (BACKLOG)
+
+- [ ] **Fase 7 — Fatias Zero-Copy com Apache Arrow IPC & Rust/Inkwell Integration:**
+  - Exportação e ingestão de tabelas de memória contíguas interoperáveis via Arrow Flight / Plasma.
+  - Otimizações vetoriais adicionais para conjuntos de instruções AVX-512 e ARM Neon.
+- [ ] **Expansão dos Conectores de Dados Nativos:**
+  - Drivers nativos de conexão para Apache Kafka, Apache Spark e Delta Lake em `PIPELINE_DADOS`.
+- [ ] **Gerador de Documentação Interativa em WebAssembly:**
+  - Exportação de portais de documentação viva com simulador de código embutido via WASM.

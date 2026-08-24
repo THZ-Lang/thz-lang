@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/projects/jdk/25/)
 [![Gradle](https://img.shields.io/badge/Gradle-8.x-blue.svg)](https://gradle.org/)
+[![LLVM](https://img.shields.io/badge/LLVM-Clang%20AOT-red.svg)](https://llvm.org/)
 [![Status](https://img.shields.io/badge/Testes-100%25%20PASSED-brightgreen.svg)](#-suíte-de-testes)
 
 **Linguagem Corporativa de Sistemas, Governança de Negócio, Arquitetura Viva e Processamento de Dados de Alta Performance.**
@@ -16,7 +17,7 @@
 [Arquétipos](#-arquétipos-de-módulo) •
 [Exemplo Canônico](#-exemplo-canônico) •
 [Quick Start](#-quick-start-5-minutos) •
-[Documentação Completa](#-documentação-oficial)
+[Documentação Oficial](#-documentação-oficial)
 
 </div>
 
@@ -24,9 +25,9 @@
 
 ## 🌟 Visão Geral
 
-**THZ-LANG** (`.thz`, `.thzui`) é uma linguagem de programação orientada a domínio (DDD) com sintaxe estruturada em língua portuguesa, tipagem estática forte e contratos formais de governança integrados. Ela foi projetada para unir a legibilidade executiva com a eficiência de processamento de dados contíguos e vetorização SIMD.
+**THZ-LANG** (`.thz`, `.thzui`) é uma linguagem de programação orientada a domínio (DDD) com sintaxe estruturada em língua portuguesa, tipagem estática forte, contratos formais de governança integrados e compilação nativa de alta performance. Ela foi projetada para unir a legibilidade executiva com a eficiência de processamento de dados contíguos e vetorização SIMD.
 
-O repositório unifica os motores de execução em Java (JVM), ferramentas CLI, serviços de linguagem (LSP), extensão para VS Code e renderização gráfica de UI.
+O repositório unifica os motores de execução em Java 25 (JVM Multi-módulo), o compilador self-hosted em THZ, o backend de compilação nativa AOT via LLVM Clang, ferramentas CLI (`thz`), Desktop IDE Swing FlatLaf (`thz gui`), serviços de linguagem (LSP) e extensão para VS Code.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -43,6 +44,7 @@ O repositório unifica os motores de execução em Java (JVM), ferramentas CLI, 
 │ • Decimais    │        │ • C4 / Arch   │               │ • Layout SoA  │
 │ • ISO 4217    │        │ • OpenAPI/Spec│               │ • Zero-Copy   │
 │ • Invariantes │        │ • Rastreio Req│               │ • Arenas Mem  │
+│ • SOX / LGPD  │        │ • UI .thzui   │               │ • AOT Clang   │
 └───────────────┘        └───────────────┘               └───────────────┘
 ```
 
@@ -54,6 +56,7 @@ O repositório unifica os motores de execução em Java (JVM), ferramentas CLI, 
 2. **Design by Contract & Governança Integrada:** Cláusulas formais de pré-condição (`EXIGE`), pós-condição (`GARANTE`) e invariantes de entidade (`INVARIANTE`) validadas em tempo de compilação e execução.
 3. **Engenharia Orientada a Dados (DoD):** Suporte nativo a layout colunar (*Structure of Arrays* via `LAYOUT_COLUNAR`), laços vetorizados (`VETORIZAR_PARA ... PASSO_SIMD`) e gerenciamento de blocos em Arena contígua (`USAR_BLOCO_MEMORIA`).
 4. **Arquitetura Viva & UIs Declarativas:** Extração automática de metadados arquiteturais (`METADADOS_ARQUITETURA`), rastreabilidade de requisitos (`RASTREIO_REQUISITO`) e suporte nativo a arquivos de interface gráfica (`.thzui` e `TELA`).
+5. **Autonomia Total & Self-Hosting:** Compilador escrito na própria linguagem (`compilador/*.thz`) com emissão de LLVM IR e compilação nativa AOT Dual-OS via Clang/MinGW GCC (`scripts/build-llvm.ps1`) e runtime C (`src/runtime/thz_runtime.c`), sem dependência obrigatória de JVM em produção.
 
 ---
 
@@ -66,9 +69,10 @@ No THZ-LANG, a **Linguagem Ubíqua (DDD)** é compilável. O vocabulário alinha
 - **`INVARIANTE`**: Regra de integridade absoluta mantida por uma entidade de domínio.
 - **`RASTREIO_REQUISITO`**: Vínculo entre a especificação funcional (`"REQ-FIN-001"`) e a implementação.
 - **`DECIMAL` / `MONETARIO`**: Aritmética financeira exata sem aproximações de ponto flutuante.
+- **`PIPELINE_DADOS`**: Arquétipo de processamento massivo de dados em lote (*Batch*) ou tempo real (*Streaming*).
 - **`LAYOUT_COLUNAR` / `PASSO_SIMD`**: Estruturas otimizadas para processamento colunar de alta performance.
 
-👉 [Consulte o Glossário Completo de Linguagem Ubíqua](file:///c:/Users/lucas/Projetos/thz-lang/docs/GLOSSARIO_LINGUAGEM_UBIQUA.md)
+👉 [Consulte o Glossário Completo de Linguagem Ubíqua](docs/GLOSSARIO_LINGUAGEM_UBIQUA.md)
 
 ---
 
@@ -81,10 +85,11 @@ Em THZ-LANG v2.4, cada arquivo declara seu propósito arquitetural explícito co
 | `PROGRAMA NEGOCIO` | Processamento de regras de negócio e serviços backend | `FIM_PROGRAMA` |
 | `PROGRAMA VISUAL` | Aplicações gráficas interativas | `FIM_PROGRAMA` |
 | `PROGRAMA ARQUITETURA` | Especificações e diagramação de arquitetura de software | `FIM_PROGRAMA` |
+| `PIPELINE_DADOS` | Ingestão e transformação Big Data (Streaming & Batch) | `FIM_PIPELINE` |
 | `BIBLIOTECA` | Módulos utilitários e funções reutilizáveis | `FIM_BIBLIOTECA` |
 | `EXTENSAO` | Módulos de extensão do ecossistema | `FIM_EXTENSAO` |
 | `FERRAMENTA` | Utilitários de linha de comando e scripts | `FIM_FERRAMENTA` |
-| `TESTE` | Suites de testes automatizados integrados | `FIM_TESTE` |
+| `TESTE` | Suítes de testes automatizados integrados | `FIM_TESTE` |
 | `TELA` | Componentes de interface gráfica declarativa (`.thzui`) | `FIM_TELA` |
 
 ---
@@ -126,12 +131,13 @@ FIM_PROGRAMA
 ## ⚡ Quick Start (5 minutos)
 
 ### Pré-requisitos
-- **Java 25** (JDK 25 ou GraalVM JDK 25)
-- **Gradle 8.x** (incluso via Wrapper `./gradlew`)
+- **Java 25** (OpenJDK 25 ou GraalVM JDK 25)
+- **Gradle 8.x** (incluso via `./gradlew`)
+- **LLVM Clang & MinGW GCC** (Opcional, para compilação nativa AOT)
 
 ### 1. Clonar o Repositório
 ```bash
-git clone https.github.com/thz-lang/thz-lang.git
+git clone https://github.com/thz-lang/thz-lang.git
 cd thz-lang
 ```
 
@@ -140,22 +146,31 @@ cd thz-lang
 ./gradlew test
 ```
 
-### 3. Validar e Executar um Código THZ
+### 3. Comandos Principais da CLI
 ```bash
-# Análise semântica
-./gradlew :thz-cli-jvm:run --args="check exemplos/faturamento.thz"
+# Análise semântica e verificação de contratos
+./gradlew cli --args="check exemplos/faturamento.thz"
 
 # Executar programa
-./gradlew :thz-cli-jvm:run --args="run exemplos/faturamento.thz"
+./gradlew cli --args="run exemplos/faturamento.thz"
 
-# Renderizar tela .thzui em HTML5
-./gradlew :thz-cli-jvm:run --args="ui exemplos/faturamento_dashboard.thzui --html"
+# Servidor de desenvolvimento com Live Reload
+./gradlew cli --args="dev exemplos/faturamento.thz"
+
+# Auditoria de governança integrada com Git
+./gradlew cli --args="audit exemplos/faturamento.thz --git"
+
+# Iniciar a IDE Desktop Swing + FlatLaf
+./gradlew gui
+
+# Executar benchmarks JMH
+./gradlew jmh
 ```
 
 ### 4. Compilação Nativa AOT (Zero Dependência de JVM)
 ```bash
-# Compilar qualquer fonte .thz em binário nativo .exe via LLVM Clang + GCC Dual-OS:
-powershell.exe -ExecutionPolicy Bypass -File scripts/build-llvm.ps1 -ArquivoThz JVM/thz-core-jvm/exemplos/compilador/driver.thz
+# Compilar qualquer fonte .thz em binário nativo (.exe PE / .elf) via LLVM Clang:
+powershell.exe -ExecutionPolicy Bypass -File scripts/build-llvm.ps1 -ArquivoThz compilador/driver.thz
 
 # Executar o binário nativo autônomo gerado:
 ./dist/bin/driver.exe
@@ -167,12 +182,14 @@ powershell.exe -ExecutionPolicy Bypass -File scripts/build-llvm.ps1 -ArquivoThz 
 
 Explore os guias detalhados da documentação:
 
-- 📘 [**Manual Completo da Linguagem**](file:///c:/Users/lucas/Projetos/thz-lang/docs/MANUAL_LINGUAGEM.md) — Guia do iniciante ao avançado sobre sintaxe, tipos, contratos, UI e SIMD.
-- 📖 [**Glossário de Linguagem Ubíqua**](file:///c:/Users/lucas/Projetos/thz-lang/docs/GLOSSARIO_LINGUAGEM_UBIQUA.md) — Termos universais de negócio, governança, arquitetura e dados em português.
-- 📐 [**Gramática Formal EBNF (v2.4)**](file:///c:/Users/lucas/Projetos/thz-lang/docs/GRAMATICA.md) — Especificação rigorosa da linguagem.
-- 🛠️ [**CLI, Tooling & IDEs**](file:///c:/Users/lucas/Projetos/thz-lang/docs/CLI_E_TOOLING.md) — Manual do `thz check/run/fmt/doc/audit/ui/ir`, LSP e extensão VS Code.
-- 💡 [**Exemplos & Padrões**](file:///c:/Users/lucas/Projetos/thz-lang/docs/EXEMPLOS_E_PADROES.md) — Receitas de código DDD, SIMD, HTTP e UIs.
-- 🤝 [**Guia de Contribuição**](file:///c:/Users/lucas/Projetos/thz-lang/CONTRIBUTING.md) — Diretrizes para desenvolvedores do monorepo.
+- 📘 [**Manual Completo da Linguagem**](docs/MANUAL_LINGUAGEM.md) — Guia do iniciante ao avançado sobre sintaxe, tipos, contratos, UI e SIMD.
+- 📖 [**Glossário de Linguagem Ubíqua**](docs/GLOSSARIO_LINGUAGEM_UBIQUA.md) — Termos universais de negócio, governança, arquitetura e dados em português.
+- 📐 [**Gramática Formal EBNF (v2.4)**](docs/GRAMATICA.md) — Especificação rigorosa da linguagem.
+- 🛠️ [**CLI, Tooling & IDEs**](docs/CLI_E_TOOLING.md) — Manual do `thz check/run/dev/fmt/doc/audit/ui/ir`, Desktop IDE, LSP e extensão VS Code.
+- 🏛️ [**Conformidade e Normas Técnicas**](docs/CONFORMIDADE_E_NORMAS.md) — Adesão a ISO/IEC 10967, ISO 4217, ISO/IEC/IEEE 42010, RFCs e JSRs.
+- 💡 [**Exemplos & Padrões**](docs/EXEMPLOS_E_PADROES.md) — Receitas de código DDD, SIMD, HTTP e UIs.
+- 📊 [**Relatório de Evolução Histórica**](docs/RELATORIO-EVOLUCAO.md) — Trajetória de desenvolvimento e marcos alcançados.
+- 🤝 [**Guia de Contribuição**](CONTRIBUTING.md) — Diretrizes para desenvolvedores do ecossistema.
 
 ---
 
@@ -186,7 +203,13 @@ thz-lang/
 ├── src/
 │   └── runtime/
 │       └── thz_runtime.c       # 🌐 Runtime Nativo C Dual-OS (Windows Win32 / Linux POSIX)
-├── JVM/                        # ☕ Monorepo do Engine JVM (thz-core, thz-cli, thz-gui, thz-lsp, etc.)
+├── JVM/                        # ☕ Monorepo do Engine JVM
+│   ├── thz-core-jvm/           # Núcleo: Lexer, Parser, AST, Semântico, Runtime, DecimalFixo, IR, DocGen
+│   ├── thz-cli-jvm/            # CLI executável, REPL interativo e Dev Server
+│   ├── thz-gui-jvm/            # IDE Desktop Swing + FlatLaf (Editor, Gutter, Formulários Dinâmicos)
+│   ├── thz-lsp-jvm/            # Language Server Protocol (LSP4J)
+│   ├── thz-bench-jvm/          # Suíte de Benchmarks JMH
+│   └── thz-api-jvm/            # API REST Spring Boot
 ├── Extensions/
 │   └── thz-lsp-vscode/         # 🔌 Extensão oficial para o Visual Studio Code
 ├── docs/                       # 📖 Documentação técnica formal e manuais
