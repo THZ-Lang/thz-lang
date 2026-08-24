@@ -4,7 +4,7 @@ METADADOS_ARQUITETURA
     DOMINIO: "Compiladores"
     SUBDOMINIO: "Sintatico"
     CAMADA: "Core"
-    VERSAO: "1.0.0"
+    VERSAO: "2.0.0"
     AUTOR: "THZ Self-Hosting Project"
     SLO_LATENCIA_MAXIMA: "2ms"
     CRITICIDADE: "ALTA"
@@ -25,15 +25,26 @@ ESTRUTURA MetadadosAST
     autor      : TEXTO
 FIM_ESTRUTURA
 
+ESTRUTURA CampoEstruturaAST
+    nome : TEXTO
+    tipo : TEXTO
+FIM_ESTRUTURA
+
 ESTRUTURA DeclEstruturaAST
     nome       : TEXTO
     is_colunar : LOGICO
 FIM_ESTRUTURA
 
-REGRA_NEGOCIO CriarNoAST
+ESTRUTURA ComandoAST
+    tipo_comando : TEXTO
+    conteudo     : TEXTO
+    linha        : INTEIRO32
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO FabricaAST
     IDENTIFICADOR_REGRA: "BR-COMP-002"
     RASTREIO_REQUISITO: "REQ-COMP-002"
-    DESCRICAO: "Instancia um no de arvore de sintaxe abstrata."
+    DESCRICAO: "Instancia nos e componentes da Arvore de Sintaxe Abstrata do THZ-LANG."
 
     CONTRATO_ENTRADA
         EXIGE linha > 0
@@ -45,6 +56,13 @@ REGRA_NEGOCIO CriarNoAST
         VARIAVEL n : NoAST <- CRIAR NoAST(tipo_no: tipo_no, nome: nome, linha: linha, coluna: coluna)
         RETORNE n
     FIM
+
+    OPERACAO NovoComando(tipo_comando: TEXTO, conteudo: TEXTO, linha: INTEIRO32) : ComandoAST
+    INICIO
+        VARIAVEL cmd : ComandoAST <- CRIAR ComandoAST(tipo_comando: tipo_comando, conteudo: conteudo, linha: linha)
+        RETORNE cmd
+    FIM
 FIM_REGRA_NEGOCIO
 
 FIM_BIBLIOTECA
+

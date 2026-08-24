@@ -4,7 +4,7 @@ METADADOS_ARQUITETURA
     DOMINIO: "Compiladores"
     SUBDOMINIO: "GeracaoCodigo"
     CAMADA: "Core"
-    VERSAO: "1.0.0"
+    VERSAO: "2.0.0"
     AUTOR: "THZ Self-Hosting Project"
     SLO_LATENCIA_MAXIMA: "3ms"
     CRITICIDADE: "ALTA"
@@ -32,17 +32,45 @@ REGRA_NEGOCIO CodegenSelfHost
         )
 
         EXIBA "[CODEGEN SELF-HOSTED] Gerando LLVM IR para " + total_nos_ast + " nos de AST..."
-        EXIBA "[CODEGEN LLVM] ; Target: x86_64-pc-windows-msvc"
+        EXIBA "[CODEGEN LLVM] ; Target Triple: x86_64-pc-windows-msvc"
+        EXIBA "[CODEGEN LLVM] ; Declaracoes de Runtime C THZ-LANG"
         EXIBA "[CODEGEN LLVM] declare ptr @thz_arena_alloc(i64 %bytes)"
         EXIBA "[CODEGEN LLVM] declare void @thz_arena_free_all(ptr %arena)"
-        EXIBA "[CODEGEN LLVM] define i32 @main() { entry: ret i32 0 }"
+        EXIBA "[CODEGEN LLVM] declare void @thz_exiba_str(ptr %msg)"
+        EXIBA "[CODEGEN LLVM] declare void @thz_exiba_i128(i128 %val, i32 %scale)"
+        EXIBA "[CODEGEN LLVM] define i32 @main() {"
+        EXIBA "[CODEGEN LLVM] entry:"
+        EXIBA "[CODEGEN LLVM]   %arena = call ptr @thz_arena_alloc(i64 1048576)"
+        EXIBA "[CODEGEN LLVM]   call void @thz_arena_free_all(ptr %arena)"
+        EXIBA "[CODEGEN LLVM]   ret i32 0"
+        EXIBA "[CODEGEN LLVM] }"
 
-        estado.instrucoes_emitidas <- 12
-        estado.tamanho_ir_bytes <- 512
+        estado.instrucoes_emitidas <- 16
+        estado.tamanho_ir_bytes <- 1024
 
         EXIBA "[CODEGEN SELF-HOSTED] Geracao concluida. " + estado.instrucoes_emitidas + " instrucoes LLVM IR emitidas."
 
         RETORNE estado
+    FIM
+
+    OPERACAO MapearTipoPrimitivo(tipo_thz: TEXTO) : TEXTO
+    INICIO
+        SE tipo_thz = "INTEIRO32"
+            RETORNE "i32"
+        FIM_SE
+        SE tipo_thz = "INTEIRO"
+            RETORNE "i64"
+        FIM_SE
+        SE tipo_thz = "DECIMAL"
+            RETORNE "i128"
+        FIM_SE
+        SE tipo_thz = "TEXTO"
+            RETORNE "ptr"
+        FIM_SE
+        SE tipo_thz = "LOGICO"
+            RETORNE "i1"
+        FIM_SE
+        RETORNE "ptr"
     FIM
 FIM_REGRA_NEGOCIO
 

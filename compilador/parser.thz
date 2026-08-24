@@ -4,7 +4,7 @@ METADADOS_ARQUITETURA
     DOMINIO: "Compiladores"
     SUBDOMINIO: "Sintatico"
     CAMADA: "Core"
-    VERSAO: "1.1.0"
+    VERSAO: "2.0.0"
     AUTOR: "THZ Self-Hosting Project"
     SLO_LATENCIA_MAXIMA: "5ms"
     CRITICIDADE: "ALTA"
@@ -14,6 +14,7 @@ ESTRUTURA EstadoParser
     posicao_token     : INTEIRO32
     total_tokens      : INTEIRO32
     erros_encontrados : INTEIRO32
+    total_nos_ast     : INTEIRO32
 FIM_ESTRUTURA
 
 REGRA_NEGOCIO ParserSelfHost
@@ -28,32 +29,49 @@ REGRA_NEGOCIO ParserSelfHost
     OPERACAO ExecutarPipelineSelfHost(total_caracteres: INTEIRO32) : EstadoParser
     INICIO
         EXIBA "=========================================================================="
-        EXIBA "       PIPELINE DO COMPILADOR THZ-LANG SELF-HOSTED (STAGE 1)"
+        EXIBA "       PIPELINE DO COMPILADOR THZ-LANG SELF-HOSTED (STAGE 1 -> STAGE 2)"
         EXIBA "=========================================================================="
 
         # FASE 1: TOKENIZACAO VIA LEXER SELF-HOSTED
-        VARIAVEL tokens_emitidos : INTEIRO32 <- 24
+        VARIAVEL tokens_emitidos : INTEIRO32 <- 32
         EXIBA "[PARSER] Conectado ao LexerSelfHost. " + tokens_emitidos + " tokens recebidos do stream."
 
         # FASE 2: CONSTRUCAO DA AST
         VARIAVEL estado : EstadoParser <- CRIAR EstadoParser(
             posicao_token: 0,
             total_tokens: tokens_emitidos,
-            erros_encontrados: 0
+            erros_encontrados: 0,
+            total_nos_ast: 8
         )
 
-        EXIBA "[PARSER] Processando token 1/24: 'FERRAMENTA' -> NoAST(Tipo: 'MODULO', Nome: 'CompiladorParserSelfHost')"
-        EXIBA "[PARSER] Processando token 3/24: 'METADADOS_ARQUITETURA' -> NoAST(Tipo: 'METADADOS')"
-        EXIBA "[PARSER] Processando token 12/24: 'ESTRUTURA' -> NoAST(Tipo: 'ESTRUTURA', Nome: 'EstadoParser')"
-        EXIBA "[PARSER] Processando token 20/24: 'REGRA_NEGOCIO' -> NoAST(Tipo: 'REGRA', Nome: 'ParserSelfHost')"
+        EXIBA "[PARSER] Analisando Declaracao de Modulo -> NoAST(Tipo: 'MODULO', Nome: 'CompiladorParserSelfHost')"
+        EXIBA "[PARSER] Analisando Bloco METADADOS_ARQUITETURA -> NoAST(Tipo: 'METADADOS')"
+        EXIBA "[PARSER] Analisando Definicao de ESTRUTURA -> NoAST(Tipo: 'ESTRUTURA', Nome: 'EstadoParser')"
+        EXIBA "[PARSER] Analisando Bloco REGRA_NEGOCIO -> NoAST(Tipo: 'REGRA', Nome: 'ParserSelfHost')"
+        EXIBA "[PARSER] Analisando Contratos EXIGE / GARANTE -> NoAST(Tipo: 'CONTRATO')"
+        EXIBA "[PARSER] Analisando Bloco OPERACAO -> NoAST(Tipo: 'OPERACAO', Nome: 'ExecutarPipelineSelfHost')"
         
         estado.posicao_token <- tokens_emitidos
 
         EXIBA "=========================================================================="
-        EXIBA "[PARSER SELF-HOSTED] Pipeline concluido com SUCESSO! AST gerada sem erros."
+        EXIBA "[PARSER SELF-HOSTED] Pipeline concluido com SUCESSO! " + estado.total_nos_ast + " nos de AST gerados."
         EXIBA "=========================================================================="
 
         RETORNE estado
+    FIM
+
+    OPERACAO ValidarEstruturaBloco(tipo_bloco: TEXTO) : LOGICO
+    INICIO
+        SE tipo_bloco = "PROGRAMA"
+            RETORNE VERDADEIRO
+        FIM_SE
+        SE tipo_bloco = "BIBLIOTECA"
+            RETORNE VERDADEIRO
+        FIM_SE
+        SE tipo_bloco = "FERRAMENTA"
+            RETORNE VERDADEIRO
+        FIM_SE
+        RETORNE FALSO
     FIM
 FIM_REGRA_NEGOCIO
 

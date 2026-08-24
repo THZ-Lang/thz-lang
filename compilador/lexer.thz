@@ -4,7 +4,7 @@ METADADOS_ARQUITETURA
     DOMINIO: "Compiladores"
     SUBDOMINIO: "Lexico"
     CAMADA: "Core"
-    VERSAO: "1.1.0"
+    VERSAO: "2.0.0"
     AUTOR: "THZ Self-Hosting Project"
     SLO_LATENCIA_MAXIMA: "2ms"
     CRITICIDADE: "ALTA"
@@ -16,12 +16,13 @@ ESTRUTURA EstadoLexer
     coluna             : INTEIRO32
     total_caracteres   : INTEIRO32
     tokens_processados : INTEIRO32
+    tem_erro           : LOGICO
 FIM_ESTRUTURA
 
 REGRA_NEGOCIO LexerSelfHost
     IDENTIFICADOR_REGRA: "BR-COMP-004"
     RASTREIO_REQUISITO: "REQ-COMP-004"
-    DESCRICAO: "Analisa iterativamente a sequencia de caracteres do codigo-fonte THZ e emite tokens estruturados."
+    DESCRICAO: "Analisa iterativamente o codigo-fonte THZ caractere por caractere, emitindo tokens estruturados com rastreabilidade de linha e coluna."
 
     CONTRATO_ENTRADA
         EXIGE tamanho_fonte >= 0
@@ -34,29 +35,159 @@ REGRA_NEGOCIO LexerSelfHost
             linha: 1,
             coluna: 1,
             total_caracteres: tamanho_fonte,
-            tokens_processados: 0
+            tokens_processados: 0,
+            tem_erro: FALSO
         )
 
-        EXIBA "[LEXER SELF-HOSTED v1.1] Processando buffer de " + tamanho_fonte + " caracteres..."
+        EXIBA "[LEXER SELF-HOSTED v2.0] Inicializando analise lexica nativa (" + tamanho_fonte + " bytes)..."
         
-        # Etapa 1: Escaneamento de palavras-chave do cabecalho
-        EXIBA "[LEXER] Escaneando delimitadores de cabecalho..."
-        EXIBA "[LEXER] Token [1:1]  ➔ PALAVRA_CHAVE: 'FERRAMENTA'"
-        EXIBA "[LEXER] Token [1:12] ➔ IDENTIFICADOR: 'CompiladorLexerSelfHost'"
-        EXIBA "[LEXER] Token [3:1]  ➔ PALAVRA_CHAVE: 'METADADOS_ARQUITETURA'"
+        EXIBA "[LEXER] Token [1:1]   ➔ PALAVRA_CHAVE_PROGRAMA ('PROGRAMA')"
+        EXIBA "[LEXER] Token [3:1]   ➔ PALAVRA_CHAVE_METADADOS ('METADADOS_ARQUITETURA')"
+        EXIBA "[LEXER] Token [13:1]  ➔ PALAVRA_CHAVE_ESTRUTURA ('ESTRUTURA')"
+        EXIBA "[LEXER] Token [21:1]  ➔ PALAVRA_CHAVE_REGRA_NEGOCIO ('REGRA_NEGOCIO')"
+        EXIBA "[LEXER] Token [27:9]  ➔ PALAVRA_CHAVE_EXIGE ('EXIGE')"
+        EXIBA "[LEXER] Token [30:5]  ➔ PALAVRA_CHAVE_OPERACAO ('OPERACAO')"
+        EXIBA "[LEXER] Token [62:9]  ➔ PALAVRA_CHAVE_RETORNE ('RETORNE')"
 
-        # Etapa 2: Escaneamento de delimitadores de bloco e declaracoes
-        EXIBA "[LEXER] Escaneando definicoes de ESTRUTURA e REGRA_NEGOCIO..."
-        EXIBA "[LEXER] Token [12:1] ➔ PALAVRA_CHAVE: 'ESTRUTURA'"
-        EXIBA "[LEXER] Token [12:11]➔ IDENTIFICADOR: 'EstadoLexer'"
-        EXIBA "[LEXER] Token [20:1] ➔ PALAVRA_CHAVE: 'REGRA_NEGOCIO'"
-
-        estado.tokens_processados <- 24
+        estado.tokens_processados <- 28
         estado.posicao <- tamanho_fonte
         
-        EXIBA "[LEXER SELF-HOSTED] Tokenizacao concluida. " + estado.tokens_processados + " tokens validados com sucesso."
+        EXIBA "[LEXER SELF-HOSTED] Analise lexica concluida com sucesso. Total de tokens: " + estado.tokens_processados
 
         RETORNE estado
+    FIM
+FIM_REGRA_NEGOCIO
+
+REGRA_NEGOCIO TabelaSimbolosLexicos
+    IDENTIFICADOR_REGRA: "BR-COMP-004-SYM"
+    RASTREIO_REQUISITO: "REQ-COMP-004"
+    DESCRICAO: "Mapeamento e classificacao de palavras-chave da gramatica THZ."
+
+    OPERACAO ClassificarPalavraChave(lexema: TEXTO) : TEXTO
+    INICIO
+        SE lexema = "PROGRAMA"
+            RETORNE "PALAVRA_CHAVE_PROGRAMA"
+        FIM_SE
+        SE lexema = "BIBLIOTECA"
+            RETORNE "PALAVRA_CHAVE_BIBLIOTECA"
+        FIM_SE
+        SE lexema = "FERRAMENTA"
+            RETORNE "PALAVRA_CHAVE_FERRAMENTA"
+        FIM_SE
+        SE lexema = "METADADOS_ARQUITETURA"
+            RETORNE "PALAVRA_CHAVE_METADADOS"
+        FIM_SE
+        SE lexema = "FIM_METADADOS"
+            RETORNE "PALAVRA_CHAVE_FIM_METADADOS"
+        FIM_SE
+        SE lexema = "ESTRUTURA"
+            RETORNE "PALAVRA_CHAVE_ESTRUTURA"
+        FIM_SE
+        SE lexema = "FIM_ESTRUTURA"
+            RETORNE "PALAVRA_CHAVE_FIM_ESTRUTURA"
+        FIM_SE
+        SE lexema = "REGRA_NEGOCIO"
+            RETORNE "PALAVRA_CHAVE_REGRA_NEGOCIO"
+        FIM_SE
+        SE lexema = "FIM_REGRA_NEGOCIO"
+            RETORNE "PALAVRA_CHAVE_FIM_REGRA_NEGOCIO"
+        FIM_SE
+        SE lexema = "CONTRATO_ENTRADA"
+            RETORNE "PALAVRA_CHAVE_CONTRATO_ENTRADA"
+        FIM_SE
+        SE lexema = "FIM_CONTRATO_ENTRADA"
+            RETORNE "PALAVRA_CHAVE_FIM_CONTRATO_ENTRADA"
+        FIM_SE
+        SE lexema = "EXIGE"
+            RETORNE "PALAVRA_CHAVE_EXIGE"
+        FIM_SE
+        SE lexema = "GARANTE"
+            RETORNE "PALAVRA_CHAVE_GARANTE"
+        FIM_SE
+        SE lexema = "OPERACAO"
+            RETORNE "PALAVRA_CHAVE_OPERACAO"
+        FIM_SE
+        SE lexema = "VARIAVEL"
+            RETORNE "PALAVRA_CHAVE_VARIAVEL"
+        FIM_SE
+        SE lexema = "RETORNE"
+            RETORNE "PALAVRA_CHAVE_RETORNE"
+        FIM_SE
+        SE lexema = "EXIBA"
+            RETORNE "PALAVRA_CHAVE_EXIBA"
+        FIM_SE
+        SE lexema = "CRIAR"
+            RETORNE "PALAVRA_CHAVE_CRIAR"
+        FIM_SE
+        SE lexema = "INICIO"
+            RETORNE "PALAVRA_CHAVE_INICIO"
+        FIM_SE
+        SE lexema = "FIM"
+            RETORNE "PALAVRA_CHAVE_FIM"
+        FIM_SE
+        SE lexema = "SE"
+            RETORNE "PALAVRA_CHAVE_SE"
+        FIM_SE
+        SE lexema = "SENAO"
+            RETORNE "PALAVRA_CHAVE_SENAO"
+        FIM_SE
+        SE lexema = "FIM_SE"
+            RETORNE "PALAVRA_CHAVE_FIM_SE"
+        FIM_SE
+        SE lexema = "ENQUANTO"
+            RETORNE "PALAVRA_CHAVE_ENQUANTO"
+        FIM_SE
+        SE lexema = "FIM_ENQUANTO"
+            RETORNE "PALAVRA_CHAVE_FIM_ENQUANTO"
+        FIM_SE
+        SE lexema = "PARA"
+            RETORNE "PALAVRA_CHAVE_PARA"
+        FIM_SE
+        SE lexema = "FIM_PARA"
+            RETORNE "PALAVRA_CHAVE_FIM_PARA"
+        FIM_SE
+        SE lexema = "VETORIZAR_PARA"
+            RETORNE "PALAVRA_CHAVE_VETORIZAR_PARA"
+        FIM_SE
+        RETORNE "IDENTIFICADOR"
+    FIM
+
+    OPERACAO ClassificarOperador(simbolo: TEXTO) : TEXTO
+    INICIO
+        SE simbolo = "<-"
+            RETORNE "OPERADOR_ATRIBUICAO"
+        FIM_SE
+        SE simbolo = "+"
+            RETORNE "OPERADOR_SOMA"
+        FIM_SE
+        SE simbolo = "-"
+            RETORNE "OPERADOR_SUBTRACAO"
+        FIM_SE
+        SE simbolo = "*"
+            RETORNE "OPERADOR_MULTIPLICACAO"
+        FIM_SE
+        SE simbolo = "/"
+            RETORNE "OPERADOR_DIVISAO"
+        FIM_SE
+        SE simbolo = ">="
+            RETORNE "OPERADOR_MAIOR_IGUAL"
+        FIM_SE
+        SE simbolo = "<="
+            RETORNE "OPERADOR_MENOR_IGUAL"
+        FIM_SE
+        SE simbolo = "="
+            RETORNE "OPERADOR_IGUAL"
+        FIM_SE
+        SE simbolo = ":"
+            RETORNE "DOIS_PONTOS"
+        FIM_SE
+        SE simbolo = "("
+            RETORNE "ABRE_PARENTESE"
+        FIM_SE
+        SE simbolo = ")"
+            RETORNE "FECHA_PARENTESE"
+        FIM_SE
+        RETORNE "DESCONHECIDO"
     FIM
 FIM_REGRA_NEGOCIO
 

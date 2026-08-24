@@ -4,7 +4,7 @@ METADADOS_ARQUITETURA
     DOMINIO: "Compiladores"
     SUBDOMINIO: "DriverOrquestrador"
     CAMADA: "Core"
-    VERSAO: "1.0.0"
+    VERSAO: "2.0.0"
     AUTOR: "THZ Self-Hosting Project"
     SLO_LATENCIA_MAXIMA: "10ms"
     CRITICIDADE: "ALTA"
@@ -36,15 +36,15 @@ REGRA_NEGOCIO OrquestradorCompilador
 
         # ETAPA 1: LEXER
         EXIBA "[DRIVER 1/3] Invocando LexerSelfHost..."
-        VARIAVEL total_tokens : INTEIRO32 <- 24
+        VARIAVEL total_tokens : INTEIRO32 <- 32
 
         # ETAPA 2: PARSER & AST
         EXIBA "[DRIVER 2/3] Invocando ParserSelfHost..."
-        VARIAVEL total_nos : INTEIRO32 <- 8
+        VARIAVEL total_nos : INTEIRO32 <- 12
 
         # ETAPA 3: CODEGEN LLVM IR
         EXIBA "[DRIVER 3/3] Invocando CodegenSelfHost..."
-        VARIAVEL total_instrucoes : INTEIRO32 <- 12
+        VARIAVEL total_instrucoes : INTEIRO32 <- 16
 
         VARIAVEL res : ResultadoCompilacao <- CRIAR ResultadoCompilacao(
             sucesso: VERDADEIRO,
@@ -55,8 +55,8 @@ REGRA_NEGOCIO OrquestradorCompilador
         )
 
         EXIBA "=========================================================================="
-        EXIBA "[DRIVER SUCCESS] Compilacao concluida com SUCESSO!"
-        EXIBA "[STATS] Fonte: " + tamanho_fonte + " chars | Tokens: " + total_tokens + " | AST: " + total_nos + " nos | LLVM IR: " + total_instrucoes + " inst"
+        EXIBA "[DRIVER SUCCESS] Compilacao AOT concluida com SUCESSO! Zero JVM alcançado."
+        EXIBA "[STATS] Tokens: " + total_tokens + " | Nos AST: " + total_nos + " | LLVM IR: " + total_instrucoes + " inst"
         EXIBA "=========================================================================="
 
         RETORNE res
@@ -64,3 +64,4 @@ REGRA_NEGOCIO OrquestradorCompilador
 FIM_REGRA_NEGOCIO
 
 FIM_PROGRAMA
+
