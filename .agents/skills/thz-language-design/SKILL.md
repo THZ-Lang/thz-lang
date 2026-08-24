@@ -12,7 +12,7 @@ Este guia descreve o pipeline obrigatório para evoluir a linguagem **THZ-LANG**
 
 ## 1. Regra Fundamental: Fonte da Verdade Léxica
 
-- **TypeScript:** Todas as palavras reservadas **devem** ser declaradas exclusivamente em `thz-lang-engine/src/keywords.ts`. É expressamente proibido o uso de strings literais para palavras-chave em `lexer.ts`, `parser.ts`, `interpretador.ts` ou `docgen.ts`.
+- **TypeScript:** Todas as palavras reservadas **devem** ser declaradas exclusivamente em `../../../thz-lang-base/src/keywords.ts`. É expressamente proibido o uso de strings literais para palavras-chave em `lexer.ts`, `parser.ts`, `interpretador.ts` ou `docgen.ts`.
 - **Java 25:** Todas as palavras reservadas **devem** ser registradas em `thz.lang.lexico.PalavrasReservadas` e mapeadas no enum `thz.lang.lexico.TokenType`.
 
 ---
@@ -60,7 +60,7 @@ Sempre que introduzir uma nova palavra-chave, instrução ou construção sintá
 - Atualizar `src/docgen.ts` para refletir o novo nó na geração de Markdown e diagramas Mermaid.
 
 ### 9. Gramática EBNF e Snapshots
-- Atualizar a especificação formal em `thz-lang-engine/docs/GRAMATICA.md`.
+- Atualizar a especificação formal em `../../../thz-lang-base/docs/GRAMATICA.md`.
 - Rodar os golden tests e atualizar `test/__snapshots__/` se o formato da AST mudar.
 
 ---
@@ -68,7 +68,7 @@ Sempre que introduzir uma nova palavra-chave, instrução ou construção sintá
 ## 3. Checklist de Validação
 
 Após qualquer modificação sintática:
-1. `npm test` em `thz-lang-engine` (159+ testes verdes).
+1. `npm test` em `thz-lang-base` (159+ testes verdes).
 2. `mvn test` em `thz-lang-engine-JVM` (29+ testes verdes).
 3. `npm run thz:check -- --estrito` contra `exemplos/faturamento.thz` e `exemplos/pedidos.thz`.
 4. `npm run fmt:check` para garantir que o formatador seja idempotente: `fmt(fmt(x)) == fmt(x)`.

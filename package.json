@@ -5,14 +5,14 @@
   "description": "Orquestrador do ecossistema THZ-LANG: motor TypeScript (referência/tooling) e motor JVM multi-módulo (thz-core, thz-cli, thz-gui) em thz-lang-jvm/.",
   "scripts": {
     "// === Setup ===": "",
-    "setup": "npm ci --prefix thz-lang-engine && npm run build:jvm",
+    "setup": "npm ci --prefix Node/thz-lang-base && npm run build:jvm",
     "build:jvm": "npm run core:publish && npm run cli:jar",
 
     "// === Testes (tudo) ===": "",
     "test": "npm run test:ts && npm run test:core && npm run test:gui",
-    "test:ts": "npm test --prefix thz-lang-engine",
-    "test:core": "cd thz-lang-jvm && gradlew :thz-core:test",
-    "test:gui": "cd thz-lang-jvm && gradlew :thz-gui:test",
+    "test:ts": "npm test --prefix Node/thz-lang-base",
+    "test:core": "cd JVM/thz-core-jvm && gradlew test",
+    "test:gui": "cd JVM/thz-gui-jvm && gradlew test",
 
     "// === CLI / REPL / IDE ===": "",
     "thz": "node scripts/thz.js",
@@ -20,13 +20,13 @@
     "ide": "cd thz-gui-jvm && gradlew gui",
 
     "// === Extensão VS Code ===": "",
-    "ext:compile": "npm run extension:compile --prefix thz-lang-engine",
-    "ext:package": "npm run extension:package --prefix thz-lang-engine",
+    "ext:compile": "npm run compile --prefix Extensions/thz-lsp-vscode",
+    "ext:package": "cd Extensions/thz-lsp-vscode && npx @vscode/vsce package --out ../../thz-lang.vsix",
 
     "// === Módulos JVM individuais ===": "",
-    "core:publish": "cd thz-lang-jvm && gradlew :thz-core:publishToMavenLocal",
-    "cli:jar": "cd thz-lang-jvm && gradlew shadowJar",
-    "cli:native": "cd thz-lang-jvm && powershell -ExecutionPolicy Bypass -File scripts/build-native.ps1",
-    "cli:package": "cd thz-lang-jvm && powershell -ExecutionPolicy Bypass -File scripts/build-package.ps1"
+    "core:publish": "cd JVM/thz-core-jvm && gradlew publishToMavenLocal",
+    "cli:jar": "cd JVM/thz-cli-jvm && gradlew shadowJar",
+    "cli:native": "cd JVM/thz-cli-jvm && powershell -ExecutionPolicy Bypass -File scripts/build-native.ps1",
+    "cli:package": "cd JVM/thz-cli-jvm && powershell -ExecutionPolicy Bypass -File scripts/build-package.ps1"
   }
 }

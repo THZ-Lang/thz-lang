@@ -3,8 +3,8 @@
  * Wrapper da CLI THZ-LANG (motor JVM).
  *
  * Uso a partir da raiz do workspace:
- *   npm run thz -- check thz-lang-jvm/thz-core/exemplos/faturamento.thz
- *   npm run thz -- run   thz-lang-jvm/thz-core/exemplos/colecao/01-ola-mundo.thz
+ *   npm run thz -- check JVM/thz-core-jvm/exemplos/faturamento.thz
+ *   npm run thz -- run   JVM/thz-core-jvm/exemplos/colecao/01-ola-mundo.thz
  *   npm run repl
  *
  * Garante que o UberJAR exista (gera via Gradle shadowJar se necessário)
@@ -16,7 +16,7 @@ const { spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const repoJvm = path.join(__dirname, "..", "thz-lang-jvm");
+const repoJvm = path.join(__dirname, "..", "JVM", "thz-cli-jvm");
 const jar = path.join(repoJvm, "target", "thz-jvm-2.3.0.jar");
 
 function gerarUberJar() {
@@ -29,7 +29,7 @@ function gerarUberJar() {
     shell: win32,
   });
   if (r.status !== 0 || !fs.existsSync(jar)) {
-    console.error("[thz] Falha ao gerar o UberJAR em thz-lang-jvm/target/.");
+    console.error("[thz] Falha ao gerar o UberJAR em JVM/thz-cli-jvm/target/.");
     process.exit(r.status ?? 1);
   }
 }

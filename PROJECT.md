@@ -184,7 +184,7 @@ npx tsx src/cli.ts run    exemplos/faturamento.thz
 - [x] **Fase 5 (v2.2):** Expressividade DDD — `ENUMERACAO`, `RESULTADO[T,E]` + `FALHAR_COM`, `INVARIANTE` em `ESTRUTURA`; golden snapshots da AST.
 - [x] **Fase 6 (G1):** Language Service Core — src/language-service.ts (analyze, símbolos, hover, diagnósticos com caret).
 - [x] **Fase 6 (G2):** Playground Web — playground/ (Monaco + Monarch + Language Service + Runtime no browser).
-- [x] **Fase 6 (G3):** LSP + Extensão VS Code — src/lsp/server.ts + ../thz-lsp-vscode/ (hover, diagnósticos, símbolos, completion, go-to-definition).
+- [x] **Fase 6 (G3):** LSP + Extensão VS Code — src/lsp/server.ts + Extensions/thz-lsp-vscode/ (hover, diagnósticos, símbolos, completion, go-to-definition).
 - [x] **Fase 6 (G4):** Governança Auditável — `src/governanca.ts` + `thz audit` (CLI), LSP `thz/audit` e Playground `🛡️ Audit`.
 - [x] **Fase 6 (G5):** THZ-IR + Semântica SIMD Formal — `src/ir.ts` + `src/simd.ts` (IR `thz-ir/1`, verificação R1-R5, `thz ir` com `--llvm`).
 - [x] **Fase 6 (G6):** Bench + fmt — `src/fmt.ts` (`thz fmt`) + `bench/` (decimal/fatias/SIMD) — formatador canônico e benchmarks comparativos.
@@ -215,7 +215,7 @@ Prioridade aprovada: **expressividade DDD primeiro**, tooling em seguida.
 - Suíte atual: **149 testes verdes** (`npm test`) — incluindo `test/language-service.test.ts` + `test/governanca.test.ts` + `test/ir.test.ts` + `test/simd.test.ts` + `test/fmt.test.ts` (G1/G4/G5/G6).
 - Language Service Core: `src/language-service.ts` expõe `analisar()`, `obterHover()`, `posicaoParaOffset/offsetParaPosicao` e `tokenNoCursor`; base para Playground (G2) e LSP (G3).
 - Playground Web: `playground/` (Vite + Monaco + Monarch) com execução browser via `InterpretadorThz` e `ArenaMemoria` (`npm run playground`); agora com botões `🛡️ Audit`, `🧩 IR`/`⚡ LLVM` e `✨ Fmt` (Ctrl+S).
-- LSP + VS Code: `src/lsp/server.ts` (stdio, diagnostics/hover/symbols/completion/definition/formatting) + extensão em `thz-lsp-vscode/` (TextMate, LanguageClient) — `npm run lsp` / `npm run extension:compile`.
+- LSP + VS Code: `src/lsp/server.ts` (stdio, diagnostics/hover/symbols/completion/definition/formatting) + extensão em `Extensions/thz-lsp-vscode/` (TextMate, LanguageClient) — `npm run lsp` / `npm run extension:compile`.
 - Governança Auditável: `src/governanca.ts` (`auditar()`, `gerarMarkdownGovernanca()`) — matriz `RASTREIO_REQUISITO → Regra → Contrato`; CLI `thz audit` + LSP `thz/audit` + Playground `🛡️ Audit`.
 - THZ-IR + SIMD Formal: `src/ir.ts` (`VERSAO_IR='thz-ir/1'`, `baixarParaIr()`, `emitirLlvm()`) + `src/simd.ts` (R1-R5, `verificarVetorizado()`) — CLI `thz ir` (`--llvm`, `--saida`), LSP `thz/ir`/`thz/llvm`, Playground `🧩 IR`/`⚡ LLVM`.
 - Bench + fmt: `src/fmt.ts` (`formatar()` canônico, idempotente, preserva semântica; comentários `#` não preservados — AST sem trivia) — CLI `thz fmt` (`--check`, `--escrever`, `--saida`), LSP `textDocument/formatting`, Playground `✨ Fmt` + `bench/` (decimal BigInt vs Number, SoA/AoS/Arena, SIMD `VETORIZAR_PARA` N=100/1k/10k e `PASSO_SIMD` 4/8/16) — `npm run bench`.

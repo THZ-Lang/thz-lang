@@ -19,29 +19,54 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: thz-lang-engine/package-lock.json
+          cache-dependency-path: Node/thz-lang-base/package-lock.json
 
       - name: Install dependencies
-        working-directory: thz-lang-engine
+        working-directory: Node/thz-lang-base
         run: npm ci
 
       - name: Run test suite (159 tests)
-        working-directory: thz-lang-engine
+        working-directory: Node/thz-lang-base
         run: npm test
 
       - name: Run static type & contract check
-        working-directory: thz-lang-engine
+        working-directory: Node/thz-lang-base
         run: npm run thz:check -- --estrito
 
       - name: Build Playground Web
-        working-directory: thz-lang-engine
+        working-directory: Node/thz-lang-base
         run: npm run playground:build
 
       - name: Compile VS Code Extension
-        working-directory: thz-lsp-vscode
+        working-directory: Extensions/thz-lsp-vscode
         run: |
           npm install
           npm run compile
 
-  # Motor JVM (Java 25): movido para repos independentes thz-core / thz-cli / thz-gui.
-  # Cada um possui seu próprio workflow de CI (.github/workflows/ci.yml).
+  engine-jvm:
+    name: Java 25 Engine
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'oracle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Gradle Tests (JUnit 5 — thz-core)
+        working-directory: JVM/thz-core-jvm
+        run: ./gradlew --no-daemon test
+
+      - name: Run GUI Tests (thz-gui-jvm, xvfb)
+        working-directory: JVM/thz-gui-jvm
+        run: xvfb-run ./gradlew --no-daemon test
+
+      - name: Gerar UberJAR da CLI
+        working-directory: JVM/thz-cli-jvm
+        run: ./gradlew --no-daemon shadowJar

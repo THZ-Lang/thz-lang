@@ -44,7 +44,7 @@ git ls-files                          # estado atual rastreado
 
 Maior commit em volume absoluto. Importa o ecossistema inteiro de uma vez:
 
-- **Motor TypeScript maduro** (`thz-lang-engine/`): lexer, parser, analisador semântico, interpretador tree-walking com contratos `EXIGE`/`GARANTE`, CLI (`check/run/repl/doc/audit/ir/fmt`), LSP (`src/lsp/server.ts`), extensão VS Code, playground web (Vite + Monaco) e suíte de benchmarks (`bench/`). Conforme `PROJECT.md`: 149 testes verdes.
+- **Motor TypeScript maduro** (`thz-lang-base/`): lexer, parser, analisador semântico, interpretador tree-walking com contratos `EXIGE`/`GARANTE`, CLI (`check/run/repl/doc/audit/ir/fmt`), LSP (`src/lsp/server.ts`), extensão VS Code, playground web (Vite + Monaco) e suíte de benchmarks (`bench/`). Conforme `PROJECT.md`: 149 testes verdes.
 - **Motor JVM 25 inicial** (`thz-lang-engine-JVM25/`): esqueleto funcional com AST tipada, léxico, parser, semântico, interpretador, CLI (`ThzCli`), REPL, formatador, `JsonEscritor` e GUI Swing embrionária (`EditorThz`, `PaletaThz`, `ThzGui`).
 - **Infraestrutura**: workflow de CI (`.github/workflows/ci.yml`), `setup-thz.js` (script de scaffolding com 831 linhas), licença, guias de contribuição e **13 exemplos `.thz`** canônicos (de "olá mundo" até SIMD vetorizado e blocos de memória).
 

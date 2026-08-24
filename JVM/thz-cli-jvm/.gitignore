@@ -2,9 +2,6 @@
 .gradle/
 build/
 
-# Diretório de saída do UberJAR (compatibilidade scripts)
-target/
-
 # IDEs
 .idea/
 *.iml

@@ -105,7 +105,8 @@ thz-lang/
 ├── CONTRIBUTING.md             # Guia de contribuição
 ├── LICENSE                     # Licença MIT
 │
-├── thz-lsp-vscode/              # Extensão VS Code (TextMate + LanguageClient; servidor via thz-lang-engine)
+├── Extensions/
+│   └── thz-lsp-vscode/          # Extensão VS Code (TextMate + LanguageClient; servidor via thz-lang-engine)
 │
 ├── thz-lang-engine/             # Motor TypeScript / Node.js (v2.2+)
 │   ├── src/                    # Lexer, Parser, Semântico, Runtime, IR, SIMD, LSP
@@ -115,10 +116,10 @@ thz-lang/
 │   ├── exemplos/               # Programas canônicos (faturamento, pedidos, agenda)
 │   └── test/                   # 159 testes unitários e golden snapshots
 │
-└── thz-lang-jvm/               # Motor Java 25 — multi-módulo Gradle
-    ├── thz-core/               # Núcleo/Stdlib (java-library + maven-publish)
-    ├── thz-cli/                # CLI + REPL + UberJAR
-    └── thz-gui/                # IDE Desktop Swing
+├── JVM/                         # Motor Java 25 — três projetos Gradle autônomos
+│   ├── thz-core-jvm/            #   núcleo/stdlib (java-library + maven-publish)
+│   ├── thz-cli-jvm/             #   CLI + REPL + UberJAR
+│   └── thz-gui-jvm/             #   IDE Desktop Swing
 
 > Os módulos JVM comunicam entre si pela API pública do `thz-core`; as funções gráficas `TELA.*` são registradas por cada apresentação via `BibliotecaPadrao.registrar()`.
 ```
@@ -138,17 +139,17 @@ npm run test:ts      # apenas motor TypeScript (160 testes)
 npm run test:core    # apenas núcleo JVM
 npm run test:gui     # apenas IDE Desktop
 
-npm run thz -- check thz-core/exemplos/faturamento.thz   # CLI com args naturais*
+npm run thz -- check JVM/thz-core-jvm/exemplos/faturamento.thz   # CLI com args naturais*
 npm run repl                                             # REPL interativo
 npm run ide                                              # abre a IDE Desktop Swing
 
 npm run core:publish    # publica thz.lang:thz-core no ~/.m2
-npm run cli:jar         # gera thz-cli/target/thz-jvm-2.3.0.jar
+npm run cli:jar         # gera JVM/thz-cli-jvm/target/thz-jvm-2.3.0.jar
 ```
 
 > \* O wrapper `scripts/thz.js` gera o UberJAR automaticamente na primeira execução, se ainda não existir.
 
-### 1. Motor TypeScript / Node.js (`thz-lang-engine`)
+### 1. Motor TypeScript / Node.js (`thz-lang-base`)
 
 **Requisitos:** Node.js 20+ e npm.
 
@@ -187,39 +188,37 @@ npm run bench
 
 ---
 
-### 2. Motor Java 25 (`thz-lang-jvm` — multi-módulo Gradle)
+### 2. Motor Java 25 (`JVM/thz-core-jvm` / `JVM/thz-cli-jvm` / `JVM/thz-gui-jvm`)
 
-Requisitos: OpenJDK 25 (Gradle Wrapper embutido na raiz do motor).
+Três projetos Gradle autônomos na pasta `JVM/` do workspace, comunicando pela API pública do `thz-core` (as funções gráficas `TELA.*` são registradas por cada apresentação via `BibliotecaPadrao.registrar()`). Requisitos: OpenJDK 25 (Gradle Wrapper embutido em cada projeto).
 
 ```bash
-cd thz-lang-jvm
-
-# Testes de todos os módulos (thz-core + thz-gui)
-./gradlew test
+# Núcleo — testes e publicação no Maven Local
+cd JVM/thz-core-jvm
+./gradlew test publishToMavenLocal
 
 # CLI — UberJAR executável (target/thz-jvm-2.3.0.jar)
+cd ../thz-cli-jvm
 ./gradlew shadowJar
-java -jar target/thz-jvm-2.3.0.jar check thz-core/exemplos/agenda.thz
-java -jar target/thz-jvm-2.3.0.jar run   thz-core/exemplos/colecao/01-ola-mundo.thz
+java -jar target/thz-jvm-2.3.0.jar check ../thz-core-jvm/exemplos/agenda.thz
+java -jar target/thz-jvm-2.3.0.jar run   ../thz-core-jvm/exemplos/colecao/01-ola-mundo.thz
 java -jar target/thz-jvm-2.3.0.jar repl
 
 # IDE Desktop Swing
+cd ../thz-gui-jvm
 ./gradlew gui
-
-# Publicar o núcleo no Maven Local (consumo externo)
-./gradlew :thz-core:publishToMavenLocal
 ```
 
 ---
 
 ## 📚 Documentação
 
-- **Gramática EBNF:** [`thz-lang-engine/docs/GRAMATICA.md`](thz-lang-engine/docs/GRAMATICA.md)
-- **Documentação do Motor Node/TS:** [`thz-lang-engine/README.md`](thz-lang-engine/README.md)
-- **Documentação do Motor JVM:** [`thz-lang-jvm/`](thz-lang-jvm/) — READMEs por módulo em `thz-core/`, `thz-cli/` e `thz-gui/`
+- **Gramática EBNF:** [`Node/thz-lang-base/docs/GRAMATICA.md`](Node/thz-lang-base/docs/GRAMATICA.md)
+- **Documentação do Motor Node/TS:** [`Node/thz-lang-base/README.md`](Node/thz-lang-base/README.md)
+- **Documentação do Motor JVM:** [`thz-core-jvm/README.md`](JVM/thz-core-jvm/README.md), [`thz-cli-jvm/README.md`](JVM/thz-cli-jvm/README.md) e [`thz-gui-jvm/README.md`](JVM/thz-gui-jvm/README.md)
 - **Visão Arquitetural e Roadmap:** [`PROJECT.md`](PROJECT.md)
 - **Diretrizes para Agentes de IA:** [`AGENTS.md`](AGENTS.md)
-- **Extensão VS Code:** [`thz-lsp-vscode/README.md`](thz-lsp-vscode/README.md)
+- **Extensão VS Code:** [`thz-lsp-vscode/README.md`](Extensions/thz-lsp-vscode/README.md)
 
 ---
 

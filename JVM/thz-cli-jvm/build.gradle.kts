@@ -1,7 +1,8 @@
 // ==============================================================================
 // thz-cli — CLI e REPL do THZ-LANG
 //
-// Módulo autônomo que consome a API pública do thz-core. Registra as funções
+// Projeto Gradle autônomo na raiz do workspace. Consome o núcleo thz-core
+// (../thz-core-jvm) via Composite Build ou artefato publicado. Registra as funções
 // TELA.* em modo console (não interativo). Gera o UberJAR executável usado
 // pelos scripts de empacotamento e pelo GraalVM native-image.
 // ==============================================================================
@@ -26,7 +27,7 @@ java {
 }
 
 dependencies {
-    implementation(project(":thz-core"))
+    implementation("thz.lang:thz-core:2.3.3")
 
     // Testes Automatizados
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")

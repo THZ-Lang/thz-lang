@@ -1,5 +1,5 @@
 # ==============================================================================
-# THZ-LANG ÔÇö Global .gitignore
+# THZ-LANG ï¿½ï¿½ï¿½ Global .gitignore
 # ==============================================================================
 
 # Node.js & TypeScript
@@ -26,8 +26,8 @@ surefire-reports/
 
 # VS Code Extension Packaging
 *.vsix
-thz-lsp-vscode/dist/
-thz-lsp-vscode/out/
+Extensions/thz-lsp-vscode/dist/
+Extensions/thz-lsp-vscode/out/
 
 # IDEs and Editors
 .idea/

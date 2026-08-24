@@ -9,7 +9,7 @@ Diretrizes de Engenharia e Operação para Agentes de IA operando no repositóri
 * **Projeto:** thz-core — biblioteca central da linguagem THZ-LANG (`.thz`): lexer, parser, semântico, interpretador, runtime, SIMD, IR, governança, docgen e motor de documentos.
 * **Autonomia:** este módulo **não conhece GUI nem CLI**. Os módulos `thz-cli` e `thz-gui` (irmãos neste build Gradle) consomem sua API pública e registram extensões via o ponto de extensão da stdlib.
 * **Stack Canônica:** Java 25 (OpenJDK 25) + Gradle Wrapper (Kotlin DSL) + Apache POI + OpenPDF + JUnit 5.
-* **Paridade:** paridade comportamental estrita e golden tests com o motor TypeScript de referência (`thz-lang-engine`).
+* **Paridade:** paridade comportamental estrita e golden tests com o motor TypeScript de referência (`thz-lang-base`).
 
 ## 2. Invariantes Técnicos e Normas Obrigatórias
 

@@ -14,7 +14,7 @@ Este guia define as instruções, padrões de asserção e procedimentos para ad
 
 | Motor | Localização | Framework | Comando de Execução |
 | :--- | :--- | :--- | :--- |
-| **Node / TypeScript** | `thz-lang-engine/test/` | Node Test Runner (`tsx --test`) | `npm test` (dentro de `thz-lang-engine`) |
+| **Node / TypeScript** | `../../../thz-lang-base/test/` | Node Test Runner (`tsx --test`) | `npm test` (dentro de `thz-lang-base`) |
 | **Java 25 / JVM** | `thz-lang-engine-JVM/src/test/java/` | JUnit 5 (`org.junit.jupiter`) | `mvn test` (dentro de `thz-lang-engine-JVM`) |
 
 ---
@@ -37,14 +37,14 @@ Ao escrever novos testes, garanta que:
    - Asserte que violações de contrato disparam `ErroContrato` / `ErroExecucao` com linha exata e texto canônico da cláusula.
 
 4. **Estabilidade de Golden Snapshots:**
-   - Quando alterar a AST ou o parser, verifique se os snapshots em `thz-lang-engine/test/__snapshots__/` continuam válidos (`faturamento.ast.json` e `pedidos.ast.json`).
+   - Quando alterar a AST ou o parser, verifique se os snapshots em `../../../thz-lang-base/test/__snapshots__/` continuam válidos (`faturamento.ast.json` e `pedidos.ast.json`).
 
 ---
 
-## 3. Escrevendo Testes no Motor TypeScript (`thz-lang-engine`)
+## 3. Escrevendo Testes no Motor TypeScript (`thz-lang-base`)
 
 ### Localização dos Arquivos
-Os testes ficam em `thz-lang-engine/test/`:
+Os testes ficam em `../../../thz-lang-base/test/`:
 - `keywords.test.ts`: Tabela de palavras reservadas e integridade léxica.
 - `lexer.test.ts`: Tokenização, linha/coluna, literais e comentários.
 - `parser.test.ts`: Estruturas sintáticas, contratos e precedência de operadores.

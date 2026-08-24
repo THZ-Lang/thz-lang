@@ -1,8 +1,9 @@
 // ==============================================================================
-// thz-gui — IDE Desktop Swing do THZ-LANG
+// thz-gui-jvm — IDE Desktop Swing do THZ-LANG
 //
-// Repositório independente. Consome o thz-core via Composite Build
-// (includeBuild em settings.gradle.kts) ou artefato publicado.
+// Projeto Gradle autônomo na raiz do workspace. Consome o núcleo thz-core
+// (motor JVM em ../thz-lang-jvm) via Composite Build no dev local ou
+// artefato publicado (thz.lang:thz-core) em CI.
 // Registra as funções TELA.* (Swing) na stdlib via BibliotecaTela.registrar().
 // ==============================================================================
 
@@ -25,7 +26,7 @@ java {
 }
 
 dependencies {
-    implementation(project(":thz-core"))
+    implementation("thz.lang:thz-core:2.3.3")
 
     // UI Desktop & Tema
     implementation("com.formdev:flatlaf:3.5.4")
