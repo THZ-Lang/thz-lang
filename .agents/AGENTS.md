@@ -122,3 +122,16 @@ Este documento define o contexto técnico, restrições arquiteturais e diretriz
 * **THZ-IR + SIMD Formal (G5):** `src/ir.ts` (`VERSAO_IR='thz-ir/1'`, `baixarParaIr()`, `emitirLlvm()`) + `src/simd.ts` (regras R1-R5, `verificarVetorizado()`) — CLI `thz ir` (`--llvm`, `--saida`), LSP `thz/ir`/`thz/llvm` e Playground `🧩 IR`/`⚡ LLVM`.
 * **Bench + fmt (G6):** `src/fmt.ts` (`formatar()` canônico, idempotente) — CLI `thz fmt` (`--check`, `--escrever`, `--saida`), LSP `textDocument/formatting`, Playground `✨ Fmt` (Ctrl+S); `bench/` — `tsx bench/run.ts` (`npm run bench`) com Decimal/Arena/SoA/SIMD.
 * **Prioridade pos-v2.2:** trilha Padrao Ouro G1-G6 definida na secao 5 do `../docs/PROJECT.md` (expressividade DDD primeiro, tooling depois).
+
+---
+
+## 6. Verificação, Validação e Conformidade Normativa 1 a 1 (v2.4.0)
+
+* **Checklist de Conformidade 1 a 1:** Todo desenvolvimento no repositório DEVE obrigatoriamente manter 100% de adesão às seguintes especificações:
+  - **ISO/IEC 10967:** Proibição estrita de float binário (`float`/`double` IEEE 754) para decimais/moedas. Aritmética 100% exata via `DecimalFixo` com arredondamento bancário meio-par (*Half-Even*).
+  - **ISO 4217:** Validação rigorosa de códigos de moedas alfa-3 e proibição de operações monetárias diretas entre moedas distintas sem conversão explícita.
+  - **ISO/IEC/IEEE 42010:** Preservação obrigatória de metadados de arquitetura no nó `METADADOS_ARQUITETURA` da AST.
+  - **ISO/IEC TR 24772:** Mitigação de vulnerabilidades de linguagem via alocação contígua em arena (`USAR_BLOCO_MEMORIA`) com checagem rigorosa de limites.
+  - **RFC 4122 / RFC 8259 / SemVer 2.0.0:** Conformidade universal de UUID v4, JSON UTF-8 e versionamento semântico.
+  - **JSR 305 / JSR 380:** Validação de integridade e verificação contra nulos (`Objects.requireNonNull`).
+* **Suíte de Testes Automatizada:** Alterações no código JVM DEVEM ser validadas pela suíte `ValidadorConformidadeNormasTest.java` e passar 100% no `./gradlew test`.
