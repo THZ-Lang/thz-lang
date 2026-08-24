@@ -2,13 +2,52 @@ name: THZ-LANG CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, "feat/*" ]
   pull_request:
     branches: [ main, master ]
 
 jobs:
-  engine-node:
-    name: Node/TypeScript Engine
+  engine-jvm:
+    name: Java 25 Engine & Suite JUnit 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25 (Oracle)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'oracle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Conceder permissão de execução ao gradlew
+        run: chmod +x gradlew
+
+      - name: Executar todos os testes da plataforma (thz-core, thz-cli, thz-gui, thz-api, thz-lsp)
+        run: xvfb-run ./gradlew test --no-daemon --parallel
+
+      - name: Validar integridade semântica de exemplos e compilador self-hosted
+        run: |
+          ./gradlew :thz-cli-jvm:run --args="check exemplos/faturamento.thz"
+          ./gradlew :thz-cli-jvm:run --args="check exemplos/pedidos.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/tokens.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/ast.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/lexer.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/parser.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/codegen.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/driver.thz"
+
+      - name: Gerar artefatos distribuíveis (Shadow JARs e Spring Boot JAR)
+        run: |
+          ./gradlew :thz-cli-jvm:shadowJar
+          ./gradlew :thz-lsp-jvm:shadowJar
+          ./gradlew :thz-api-jvm:bootJar
+
+  vscode-extension:
+    name: VS Code Extension (TextMate & LSP Client)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -19,32 +58,16 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: Node/thz-lang-base/package-lock.json
+          cache-dependency-path: Extensions/thz-lsp-vscode/package.json
 
-      - name: Install dependencies
-        working-directory: Node/thz-lang-base
-        run: npm ci
-
-      - name: Run test suite (159 tests)
-        working-directory: Node/thz-lang-base
-        run: npm test
-
-      - name: Run static type & contract check
-        working-directory: Node/thz-lang-base
-        run: npm run thz:check -- --estrito
-
-      - name: Build Playground Web
-        working-directory: Node/thz-lang-base
-        run: npm run playground:build
-
-      - name: Compile VS Code Extension
+      - name: Instalar dependências e compilar extensão
         working-directory: Extensions/thz-lsp-vscode
         run: |
-          npm install
+          npm ci
           npm run compile
 
-  engine-jvm:
-    name: Java 25 Engine
+  native-aot-clang:
+    name: Native AOT LLVM Clang Verification
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -59,14 +82,18 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Run Gradle Tests (JUnit 5 — thz-core)
-        working-directory: JVM/thz-core-jvm
-        run: ./gradlew --no-daemon test
+      - name: Instalar Clang e GCC
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm gcc
 
-      - name: Run GUI Tests (thz-gui-jvm, xvfb)
-        working-directory: JVM/thz-gui-jvm
-        run: xvfb-run ./gradlew --no-daemon test
+      - name: Conceder permissão ao gradlew
+        run: chmod +x gradlew
 
-      - name: Gerar UberJAR da CLI
-        working-directory: JVM/thz-cli-jvm
-        run: ./gradlew --no-daemon shadowJar
+      - name: Gerar LLVM IR e compilar objeto ELF nativo
+        run: |
+          mkdir -p dist/bin
+          ./gradlew :thz-cli-jvm:run --args="ir compilador/driver.thz --llvm --saida dist/bin/driver.ll"
+          clang -target x86_64-unknown-linux-gnu -c dist/bin/driver.ll -o dist/bin/driver.o
+          gcc -O3 dist/bin/driver.o src/runtime/thz_runtime.c -o dist/bin/driver.elf
+          ./dist/bin/driver.elf
