@@ -84,6 +84,53 @@ public final class AssinaturasStdlib {
         m.put("DOCUMENTO.exportarXlsx", new Assinatura(3, 3, TIPO_TEXTO));
         m.put("DOCUMENTO.exportarDocx", new Assinatura(3, 3, TIPO_TEXTO));
 
+        // ---- VERSAO ----
+        m.put("VERSAO.obter", new Assinatura(0, 0, TIPO_TEXTO));
+        m.put("VERSAO.satisfaz", new Assinatura(2, 2, TIPO_LOGICO));
+
+        // ---- ARQUIVO & DIRETORIO ----
+        m.put("ARQUIVO.lerTexto", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("ARQUIVO.escreverTexto", new Assinatura(2, 2, TIPO_LOGICO));
+        m.put("ARQUIVO.anexarTexto", new Assinatura(2, 2, TIPO_LOGICO));
+        m.put("ARQUIVO.existe", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("ARQUIVO.remover", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("DIRETORIO.listar", new Assinatura(1, 1, new TipoThz("FATIA[TEXTO]", CategoriaTipo.FATIA, null, null, "TEXTO", null)));
+        m.put("DIRETORIO.criar", new Assinatura(1, 1, TIPO_LOGICO));
+
+        // ---- CONFIG ----
+        m.put("CONFIG.obter", new Assinatura(1, 2, TIPO_TEXTO));
+        m.put("CONFIG.carregarEnv", new Assinatura(0, 1, TIPO_LOGICO));
+
+        // ---- SEGURANCA ----
+        m.put("SEGURANCA.sha256", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("SEGURANCA.sha512", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("SEGURANCA.hmacSha256", new Assinatura(2, 2, TIPO_TEXTO));
+        m.put("SEGURANCA.criptografarAes", new Assinatura(2, 2, TIPO_TEXTO));
+        m.put("SEGURANCA.descriptografarAes", new Assinatura(2, 2, TIPO_TEXTO));
+        m.put("SEGURANCA.hashSenha", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("SEGURANCA.verificarSenha", new Assinatura(2, 2, TIPO_LOGICO));
+        m.put("SEGURANCA.gerarToken", new Assinatura(0, 1, TIPO_TEXTO));
+        m.put("SEGURANCA.uuid", new Assinatura(0, 0, TIPO_TEXTO));
+
+        // ---- LOG ----
+        m.put("LOG.info", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("LOG.aviso", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("LOG.erro", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("LOG.auditoria", new Assinatura(3, 3, TIPO_LOGICO));
+
+        // ---- BANCO ----
+        m.put("BANCO.conectar", new Assinatura(1, 1, TIPO_LOGICO));
+
+        // ---- WEBVIEW ----
+        m.put("WEBVIEW.iniciar", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("WEBVIEW.emitir", new Assinatura(2, 2, TIPO_LOGICO));
+        m.put("WEBVIEW.parar", new Assinatura(0, 0, TIPO_LOGICO));
+
+        // ---- UI ----
+        m.put("UI.temaPadrao", new Assinatura(0, 0, TIPO_TEXTO));
+        m.put("UI.renderizarHtml", new Assinatura(2, 2, TIPO_TEXTO));
+        m.put("UI.gerarCodigo", new Assinatura(1, 1, TIPO_TEXTO));
+
         return Collections.unmodifiableMap(m);
     }
 }

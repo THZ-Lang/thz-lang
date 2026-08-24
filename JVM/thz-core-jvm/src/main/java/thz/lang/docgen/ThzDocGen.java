@@ -71,7 +71,8 @@ public final class ThzDocGen {
                     sb.append("        <<LAYOUT_COLUNAR (SoA)>>\n");
                 }
                 for (CampoEstruturaAst campo : est.campos()) {
-                    sb.append("        +").append(campo.tipo()).append(" ").append(campo.nome()).append("\n");
+                    String tipoLimpo = campo.tipo().replaceAll("[\\[\\](),\\s]", "_");
+                    sb.append("        +").append(tipoLimpo).append(" ").append(campo.nome()).append("\n");
                 }
                 sb.append("    }\n");
             }

@@ -1,0 +1,91 @@
+PROGRAMA NEGOCIO GestaoSegurancaBancaria
+
+# --- METADADOS ARQUITETURAIS DE SEGURANÇA E CONFORMIDADE ---
+METADADOS_ARQUITETURA
+    DOMINIO: "SegurancaFinanceira"
+    SUBDOMINIO: "AutenticacaoECriptografia"
+    CAMADA: "Seguranca"
+    VERSAO: "2.4.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "PCI-DSS", "ISO-27001", "BACEN-Res4893", "LGPD-Art7"
+FIM_METADADOS
+
+ENUMERACAO NivelAcesso
+    OPERADOR
+    GERENTE
+    DIRETOR_RISCO
+FIM_ENUMERACAO
+
+ESTRUTURA CredencialUsuario
+    usuario_id      : UUID
+    nome_usuario    : TEXTO
+    hash_senha      : TEXTO
+    chave_secreta   : TEXTO
+    nivel           : NivelAcesso
+
+    INVARIANTE TEXTO.comprimento(nome_usuario) >= 3
+FIM_ESTRUTURA
+
+ESTRUTURA SessaoAutenticada
+    id_sessao         : TEXTO
+    usuario_id        : UUID
+    token_jwt_hmac    : TEXTO
+    payload_cifrado   : TEXTO
+    assinatura_sha256 : TEXTO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO AutenticacaoCriptografica
+    IDENTIFICADOR_REGRA: "BR-SEC-2026-09"
+    RASTREIO_REQUISITO: "REQ-AUTH-8821"
+    DESCRICAO: "Autentica operador, valida hash bcrypt-compatible e gera token HMAC e payload AES."
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(senha_digitada) >= 6
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(senha_digitada) >= 6
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO AutenticarECifrar(credencial: CredencialUsuario, senha_digitada: TEXTO, chave_aes_256: TEXTO): RESULTADO[SessaoAutenticada, TEXTO]
+    INICIO
+        LOG.info("Iniciando processo de autenticacao para usuario: " + credencial.nome_usuario)
+
+        # 1. Validação de senha via hash seguro
+        VARIAVEL senha_valida : LOGICO <- SEGURANCA.verificarSenha(senha_digitada, credencial.hash_senha)
+        SE NAO senha_valida
+            LOG.erro("Tentativa de acesso invalida para: " + credencial.nome_usuario)
+            FALHAR_COM "Falha de autenticacao: credenciais incorretas."
+        FIM_SE
+
+        # 2. Geração de identificadores criptográficos
+        VARIAVEL novo_token : TEXTO <- SEGURANCA.gerarToken(32)
+        VARIAVEL id_sessao  : TEXTO <- SEGURANCA.uuid()
+
+        # 3. Assinatura e integridade com HMAC-SHA256 e SHA-256
+        VARIAVEL assinatura_hmac : TEXTO <- SEGURANCA.hmacSha256(novo_token, credencial.chave_secreta)
+        VARIAVEL hash_integridade : TEXTO <- SEGURANCA.sha256(credencial.nome_usuario + "|" + id_sessao)
+
+        # 4. Criptografia simétrica AES-256 para dados sensíveis
+        VARIAVEL dados_sensiveis : TEXTO <- "PERMISSAO=" + credencial.nivel + ";ORIGEM=COCKPIT_CENTRAL;HORA=2026-08-24"
+        VARIAVEL payload_encriptado : TEXTO <- SEGURANCA.criptografarAes(dados_sensiveis, chave_aes_256)
+        VARIAVEL payload_conferido  : TEXTO <- SEGURANCA.descriptografarAes(payload_encriptado, chave_aes_256)
+
+        # 5. Registro formal de auditoria
+        LOG.auditoria("AUTENTICACAO_SUCESSO", credencial.nome_usuario, "Sessao: " + id_sessao + " | Nivel: " + credencial.nivel)
+
+        VARIAVEL sessao : SessaoAutenticada <- CRIAR SessaoAutenticada(
+            id_sessao: id_sessao,
+            usuario_id: credencial.usuario_id,
+            token_jwt_hmac: assinatura_hmac,
+            payload_cifrado: payload_encriptado,
+            assinatura_sha256: hash_integridade
+        )
+
+        EXIBA "[SESSÃO GERADA] ID: " + id_sessao + " | Token HMAC: " + assinatura_hmac
+        RETORNE sessao
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

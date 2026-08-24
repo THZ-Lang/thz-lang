@@ -1,0 +1,107 @@
+PROGRAMA NEGOCIO ReconciliacaoBancaria
+
+# --- METADADOS ARQUITETURAIS DE GOVERNANÇA E DDD ---
+METADADOS_ARQUITETURA
+    DOMINIO: "ServicosFinanceiros"
+    SUBDOMINIO: "ConciliacaoEPagamentos"
+    CAMADA: "Dominio"
+    VERSAO: "2.4.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "15ms"
+    CONFORMIDADE: "BACEN-Res4893", "SOX-404"
+FIM_METADADOS
+
+ENUMERACAO CanalPagamento
+    PIX
+    TED
+    BOLETO_REGISTRADO
+FIM_ENUMERACAO
+
+ENUMERACAO StatusReconciliacao
+    CONCILIADO
+    DIVERGENTE
+    EM_PROCESSAMENTO
+FIM_ENUMERACAO
+
+ESTRUTURA LancamentoBancario
+    id_lancamento  : TEXTO
+    canal          : CanalPagamento
+    valor_centavos : INTEIRO64
+    conciliado     : LOGICO
+
+    INVARIANTE valor_centavos > 0
+FIM_ESTRUTURA
+
+ESTRUTURA ResultadoConciliacao
+    total_conciliado_centavos : INTEIRO64
+    itens_processados         : INTEIRO64
+    status_final              : StatusReconciliacao
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO MotorReconciliacao
+    IDENTIFICADOR_REGRA: "BR-FIN-REC-2026"
+    RASTREIO_REQUISITO: "REQ-REC-7711"
+    DESCRICAO: "Reconcilia lançamentos contra extrato bancário usando tratamento funcional de erros e idempotência."
+    IDEMPOTENTE
+    CHAVE_IDEMPOTENCIA: "UUID-RECONCILIACAO-LOTE"
+
+    CONTRATO_ENTRADA
+        EXIGE limite_maximo_centavos > 0
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE limite_maximo_centavos > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO ValidarLancamento(lanc: LancamentoBancario, limite_maximo_centavos: INTEIRO64): RESULTADO[LancamentoBancario, TEXTO]
+    INICIO
+        SE lanc.valor_centavos > limite_maximo_centavos
+            FALHAR_COM "Lancamento excede teto maximo permitido: " + lanc.valor_centavos
+        SENAO
+            lanc.conciliado <- VERDADEIRO
+            RETORNE lanc
+        FIM_SE
+    FIM
+
+    OPERACAO ProcessarReconciliacaoLote(lancamentos: FATIA[LancamentoBancario], limite_maximo_centavos: INTEIRO64): ResultadoConciliacao
+    INICIO
+        VARIAVEL total_acumulado : INTEIRO64 <- 0
+        VARIAVEL processados : INTEIRO64 <- 0
+        VARIAVEL indice : INTEIRO64 <- 0
+        VARIAVEL total_itens : INTEIRO64 <- 3
+
+        # Exemplo de laço ENQUANTO com CASO_RESULTADO
+        ENQUANTO indice < total_itens FACA
+            VARIAVEL lanc_atual : LancamentoBancario <- lancamentos[indice]
+            VARIAVEL res_validacao : RESULTADO[LancamentoBancario, TEXTO] <- ValidarLancamento(lanc_atual, limite_maximo_centavos)
+
+            CASO_RESULTADO res_validacao
+                SUCESSO(aprovado) -> INICIO
+                    total_acumulado <- total_acumulado + aprovado.valor_centavos
+                    processados <- processados + 1
+                    EXIBA "[CONCILIADO COM SUCESSO] ID: " + aprovado.id_lancamento + " | Valor: " + aprovado.valor_centavos
+                FIM
+                ERRO(msg_erro) -> INICIO
+                    EXIBA "[FALHA DE CONCILIACAO] ID: " + lanc_atual.id_lancamento + " | Motivo: " + msg_erro
+                FIM
+            FIM_CASO
+
+            indice <- indice + 1
+        FIM_ENQUANTO
+
+        # Exemplo de laço PARA com passo
+        PARA i DE 1 ATE 3 PASSO 1 FACA
+            EXIBA "[AUDITORIA CHECKPOINT] Etapa " + i + " validada."
+        FIM_PARA
+
+        VARIAVEL res_final : ResultadoConciliacao <- CRIAR ResultadoConciliacao(
+            total_conciliado_centavos: total_acumulado,
+            itens_processados: processados,
+            status_final: CONCILIADO
+        )
+
+        RETORNE res_final
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

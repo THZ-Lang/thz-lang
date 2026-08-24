@@ -488,136 +488,187 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     }
 
-    // 1. Diagrama Geral (Hierárquico com classes de estilo de alto contraste)
-    let diagGeral = 'graph TD\\n';
-    diagGeral += '    classDef entity fill:#1e3a8a,stroke:#60a5fa,stroke-width:2px,color:#eff6ff;\\n';
-    diagGeral += '    classDef rule fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#ecfdf5;\\n';
-    diagGeral += '    classDef op fill:#78350f,stroke:#fbbf24,stroke-width:2px,color:#fffbeb;\\n';
-    diagGeral += '    classDef req fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#f5f3ff;\\n';
-    diagGeral += '    classDef pipe fill:#134e4a,stroke:#2dd4bf,stroke-width:2px,color:#f0fdf4;\\n';
-    diagGeral += '    classDef gate fill:#881337,stroke:#f43f5e,stroke-width:2px,color:#fff1f2;\\n';
-
-    diagGeral += `    subgraph Modulo["🏛️ ${nomeModulo} (${camada})"]\\n`;
-    diagGeral += `        direction TB\\n`;
-
-    const ests = elementos.filter(e => e.tipo === 'ESTRUTURA');
-    if (ests.length > 0) {
-      diagGeral += `        subgraph Entidades["📦 Entidades & Modelos de Dados"]\\n`;
-      for (const e of ests) {
-        const flagSoa = e.detalhes.layoutSoa ? ' (SoA/SIMD)' : '';
-        diagGeral += `            ${e.id}["📦 ${e.nome}${flagSoa}"]:::entity\\n`;
-      }
-      diagGeral += `        end\\n`;
+    function sanitizarId(s: string): string {
+      return s ? s.replace(/[^a-zA-Z0-9_]/g, '_') : 'node';
     }
 
+    function escaparMermaidTexto(s: string): string {
+      if (!s) return '';
+      return s
+        .replace(/"/g, "'")
+        .replace(/&/g, 'e')
+        .replace(/[<>{}[\]]/g, '')
+        .replace(/[\r\n]+/g, ' ')
+        .trim();
+    }
+
+    const ests = elementos.filter(e => e.tipo === 'ESTRUTURA');
     const regras = elementos.filter(e => e.tipo === 'REGRA');
+    const pipes = elementos.filter(e => e.tipo === 'PIPELINE');
+    const procs = elementos.filter(e => e.tipo === 'PROCEDIMENTO');
+
+    // 1. Diagrama Geral (Hierárquico com classes de estilo de alto contraste)
+    let diagGeral = 'graph TD\n';
+    diagGeral += '    classDef entity fill:#1e3a8a,stroke:#60a5fa,stroke-width:2px,color:#eff6ff;\n';
+    diagGeral += '    classDef rule fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#ecfdf5;\n';
+    diagGeral += '    classDef op fill:#78350f,stroke:#fbbf24,stroke-width:2px,color:#fffbeb;\n';
+    diagGeral += '    classDef req fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#f5f3ff;\n';
+    diagGeral += '    classDef pipe fill:#134e4a,stroke:#2dd4bf,stroke-width:2px,color:#f0fdf4;\n';
+    diagGeral += '    classDef gate fill:#881337,stroke:#f43f5e,stroke-width:2px,color:#fff1f2;\n';
+
+    diagGeral += `    subgraph Modulo ["🏛️ ${escaparMermaidTexto(nomeModulo)} (${escaparMermaidTexto(camada)})"]\n`;
+    diagGeral += `        direction TB\n`;
+
+    if (ests.length > 0) {
+      diagGeral += `        subgraph Entidades ["📦 Entidades e Modelos de Dados"]\n`;
+      for (const e of ests) {
+        const flagSoa = e.detalhes.layoutSoa ? ' (SoA/SIMD)' : '';
+        diagGeral += `            ${e.id}["📦 ${escaparMermaidTexto(e.nome + flagSoa)}"]\n`;
+      }
+      diagGeral += `        end\n`;
+    }
+
     if (regras.length > 0) {
-      diagGeral += `        subgraph RegrasDDD["🛡️ Regras de Negócio & Contratos"]\\n`;
+      diagGeral += `        subgraph RegrasDDD ["🛡️ Regras de Negócio e Contratos"]\n`;
       for (const r of regras) {
-        const idLabel = r.detalhes.idRegra ? `[${r.detalhes.idRegra}] ` : '';
+        const idLabel = r.detalhes.idRegra ? `(${r.detalhes.idRegra}) ` : '';
         const idempIcon = r.detalhes.idempotente ? ' 🛡️' : '';
-        diagGeral += `            ${r.id}["⚖️ ${idLabel}${r.nome}${idempIcon}"]:::rule\\n`;
+        diagGeral += `            ${r.id}["⚖️ ${escaparMermaidTexto(idLabel + r.nome + idempIcon)}"]\n`;
 
         if (r.detalhes.requisito) {
-          const reqId = `REQ_${r.nome}`;
-          diagGeral += `            ${reqId}["📋 Req: ${r.detalhes.requisito}"]:::req --> ${r.id}\\n`;
+          const reqClean = escaparMermaidTexto(r.detalhes.requisito);
+          const reqId = sanitizarId('REQ_' + r.nome);
+          diagGeral += `            ${reqId}["📋 Req: ${reqClean}"] --> ${r.id}\n`;
         }
 
         if (r.detalhes.preCondicoes && r.detalhes.preCondicoes.length > 0) {
-          const preId = `PRE_${r.nome}`;
-          diagGeral += `            ${preId}["🛡️ EXIGE: ${r.detalhes.preCondicoes.length} cláusula(s)"]:::gate -.-> ${r.id}\\n`;
+          const preId = sanitizarId('PRE_' + r.nome);
+          diagGeral += `            ${preId}["🛡️ EXIGE: ${r.detalhes.preCondicoes.length} cláusula(s)"] -.-> ${r.id}\n`;
         }
 
         if (r.detalhes.operacoes) {
           for (const op of r.detalhes.operacoes) {
-            const opId = `OP_${r.nome}_${op.nome}`;
+            const opId = sanitizarId('OP_' + r.nome + '_' + op.nome);
             const opIdemp = op.idempotente ? ' ⚡(Idemp)' : ' ⚡';
-            diagGeral += `            ${r.id} ==> ${opId}["${opIdemp} ${op.nome}()"]:::op\\n`;
+            diagGeral += `            ${r.id} ==> ${opId}["${opIdemp} ${escaparMermaidTexto(op.nome)}()"]\n`;
           }
         }
 
         if (r.detalhes.posCondicoes && r.detalhes.posCondicoes.length > 0) {
-          const posId = `POS_${r.nome}`;
-          diagGeral += `            ${r.id} -.-> ${posId}["✅ GARANTE: ${r.detalhes.posCondicoes.length} cláusula(s)"]:::gate\\n`;
+          const posId = sanitizarId('POS_' + r.nome);
+          diagGeral += `            ${r.id} -.-> ${posId}["✅ GARANTE: ${r.detalhes.posCondicoes.length} cláusula(s)"]\n`;
         }
       }
-      diagGeral += `        end\\n`;
+      diagGeral += `        end\n`;
     }
 
-    const pipes = elementos.filter(e => e.tipo === 'PIPELINE');
     if (pipes.length > 0) {
-      diagGeral += `        subgraph Pipelines["🚀 Pipelines de Dados"]\\n`;
+      diagGeral += `        subgraph Pipelines ["🚀 Pipelines de Dados"]\n`;
       for (const p of pipes) {
-        diagGeral += `            ${p.id}["🔄 Pipeline: ${p.nome}"]:::pipe\\n`;
+        diagGeral += `            ${p.id}["🔄 Pipeline: ${escaparMermaidTexto(p.nome)}"]\n`;
       }
-      diagGeral += `        end\\n`;
+      diagGeral += `        end\n`;
     }
 
-    diagGeral += `    end\\n`;
+    diagGeral += `    end\n`;
+
+    for (const e of ests) {
+      diagGeral += `    class ${e.id} entity;\n`;
+    }
+    for (const r of regras) {
+      diagGeral += `    class ${r.id} rule;\n`;
+      if (r.detalhes.requisito) diagGeral += `    class ${sanitizarId('REQ_' + r.nome)} req;\n`;
+      if (r.detalhes.preCondicoes && r.detalhes.preCondicoes.length > 0) diagGeral += `    class ${sanitizarId('PRE_' + r.nome)} gate;\n`;
+      if (r.detalhes.operacoes) {
+        for (const op of r.detalhes.operacoes) {
+          diagGeral += `    class ${sanitizarId('OP_' + r.nome + '_' + op.nome)} op;\n`;
+        }
+      }
+      if (r.detalhes.posCondicoes && r.detalhes.posCondicoes.length > 0) diagGeral += `    class ${sanitizarId('POS_' + r.nome)} gate;\n`;
+    }
+    for (const p of pipes) {
+      diagGeral += `    class ${p.id} pipe;\n`;
+    }
 
     // 2. Diagrama de Entidades (Class Diagram)
-    let diagEntidades = 'classDiagram\\n';
+    let diagEntidades = 'classDiagram\n';
     for (const e of ests) {
-      diagEntidades += `    class ${e.nome} {\\n`;
-      if (e.detalhes.layoutSoa) diagEntidades += `        <<LAYOUT_COLUNAR_SoA>>\\n`;
+      diagEntidades += `    class ${sanitizarId(e.nome)} {\n`;
+      if (e.detalhes.layoutSoa) diagEntidades += `        <<LAYOUT_COLUNAR_SoA>>\n`;
       if (e.detalhes.campos) {
         for (const c of e.detalhes.campos) {
-          diagEntidades += `        +${c.tipo} ${c.nome}\\n`;
+          const tipoSanitizado = c.tipo.replace(/[\[\]]/g, '_').replace(/[(),]/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+          diagEntidades += `        +${tipoSanitizado} ${sanitizarId(c.nome)}\n`;
         }
       }
       if (e.detalhes.invariantes) {
-        for (const inv of e.detalhes.invariantes) {
-          diagEntidades += `        *INVARIANTE ${inv.replace(/"/g, "'")}\\n`;
+        for (let invIdx = 0; invIdx < e.detalhes.invariantes.length; invIdx++) {
+          diagEntidades += `        +invariante_${invIdx + 1}()\n`;
         }
       }
-      diagEntidades += `    }\\n`;
+      diagEntidades += `    }\n`;
     }
-    if (ests.length === 0) diagEntidades += '    class Vazio["Nenhuma Estrutura Declarada"]\\n';
+    if (ests.length === 0) {
+      diagEntidades += '    class SemEstruturas {\n        +info Sem_Estruturas_Declaradas\n    }\n';
+    }
 
     // 3. Diagrama de Regras
-    let diagRegras = 'graph TD\\n';
-    diagRegras += '    classDef rule fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#ecfdf5;\\n';
-    diagRegras += '    classDef req fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#f5f3ff;\\n';
-    diagRegras += '    classDef op fill:#78350f,stroke:#fbbf24,stroke-width:2px,color:#fffbeb;\\n';
-    diagRegras += '    classDef gate fill:#881337,stroke:#f43f5e,stroke-width:2px,color:#fff1f2;\\n';
+    let diagRegras = 'graph TD\n';
+    diagRegras += '    classDef rule fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#ecfdf5;\n';
+    diagRegras += '    classDef req fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#f5f3ff;\n';
+    diagRegras += '    classDef op fill:#78350f,stroke:#fbbf24,stroke-width:2px,color:#fffbeb;\n';
+    diagRegras += '    classDef gate fill:#881337,stroke:#f43f5e,stroke-width:2px,color:#fff1f2;\n';
     for (const r of regras) {
-      diagRegras += `    ${r.id}["⚖️ Regra: ${r.nome}"]:::rule\\n`;
+      const idLabel = r.detalhes.idRegra ? `(${r.detalhes.idRegra}) ` : '';
+      diagRegras += `    ${r.id}["⚖️ Regra: ${escaparMermaidTexto(idLabel + r.nome)}"]\n`;
+      diagRegras += `    class ${r.id} rule;\n`;
       if (r.detalhes.requisito) {
-        diagRegras += `    REQ_${r.nome}["📌 Requisito: ${r.detalhes.requisito}"]:::req --> ${r.id}\\n`;
+        const reqClean = escaparMermaidTexto(r.detalhes.requisito);
+        const reqId = sanitizarId('REQ_' + r.nome);
+        diagRegras += `    ${reqId}["📌 Requisito: ${reqClean}"] --> ${r.id}\n`;
+        diagRegras += `    class ${reqId} req;\n`;
       }
       if (r.detalhes.preCondicoes) {
         for (let i = 0; i < r.detalhes.preCondicoes.length; i++) {
-          diagRegras += `    ${r.id} --> EX_${r.nome}_${i}["🛡️ EXIGE: ${r.detalhes.preCondicoes[i].replace(/"/g, "'")}"]:::gate\\n`;
+          const preClean = escaparMermaidTexto(r.detalhes.preCondicoes[i]);
+          const exId = sanitizarId(`EX_${r.nome}_${i}`);
+          diagRegras += `    ${r.id} --> ${exId}["🛡️ EXIGE: ${preClean}"]\n`;
+          diagRegras += `    class ${exId} gate;\n`;
         }
       }
       if (r.detalhes.operacoes) {
         for (const op of r.detalhes.operacoes) {
-          diagRegras += `    ${r.id} ==> OP_${r.nome}_${op.nome}["⚡ Operação: ${op.nome}()"]:::op\\n`;
+          const opId = sanitizarId(`OP_${r.nome}_${op.nome}`);
+          diagRegras += `    ${r.id} ==> ${opId}["⚡ Operação: ${escaparMermaidTexto(op.nome)}()"]\n`;
+          diagRegras += `    class ${opId} op;\n`;
         }
       }
       if (r.detalhes.posCondicoes) {
         for (let i = 0; i < r.detalhes.posCondicoes.length; i++) {
-          diagRegras += `    ${r.id} --> GA_${r.nome}_${i}["✅ GARANTE: ${r.detalhes.posCondicoes[i].replace(/"/g, "'")}"]:::gate\\n`;
+          const posClean = escaparMermaidTexto(r.detalhes.posCondicoes[i]);
+          const gaId = sanitizarId(`GA_${r.nome}_${i}`);
+          diagRegras += `    ${r.id} --> ${gaId}["✅ GARANTE: ${posClean}"]\n`;
+          diagRegras += `    class ${gaId} gate;\n`;
         }
       }
     }
-    if (regras.length === 0) diagRegras += '    SemRegras["Nenhuma Regra Declarada"]\\n';
+    if (regras.length === 0) diagRegras += '    SemRegras["Nenhuma Regra Declarada"]\n';
 
     // 4. Diagrama de Fluxo e Pipelines
-    let diagFluxo = 'graph LR\\n';
-    diagFluxo += '    classDef pipe fill:#134e4a,stroke:#2dd4bf,stroke-width:2px,color:#f0fdf4;\\n';
-    diagFluxo += '    classDef proc fill:#1e3a8a,stroke:#60a5fa,stroke-width:2px,color:#eff6ff;\\n';
+    let diagFluxo = 'graph LR\n';
+    diagFluxo += '    classDef pipe fill:#134e4a,stroke:#2dd4bf,stroke-width:2px,color:#f0fdf4;\n';
+    diagFluxo += '    classDef proc fill:#1e3a8a,stroke:#60a5fa,stroke-width:2px,color:#eff6ff;\n';
     for (const p of pipes) {
-      const org = p.detalhes.origemPipeline ? `Fonte: ${p.detalhes.origemPipeline}` : 'Entrada';
-      const trf = p.detalhes.transformacaoPipeline ? `Transformação: ${p.detalhes.transformacaoPipeline}` : 'Processamento';
-      const dst = p.detalhes.destinoPipeline ? `Destino: ${p.detalhes.destinoPipeline}` : 'Saída';
-      diagFluxo += `    ${p.id}_IN["📥 ${org}"] --> ${p.id}["🔄 Pipeline: ${p.nome}<br><i>${trf}</i>"]:::pipe --> ${p.id}_OUT["📤 ${dst}"]\\n`;
+      const org = p.detalhes.origemPipeline ? escaparMermaidTexto(p.detalhes.origemPipeline) : 'Entrada';
+      const dst = p.detalhes.destinoPipeline ? escaparMermaidTexto(p.detalhes.destinoPipeline) : 'Saída';
+      diagFluxo += `    ${p.id}_IN["📥 Fonte: ${org}"] --> ${p.id}["🔄 Pipeline: ${escaparMermaidTexto(p.nome)}"] --> ${p.id}_OUT["📤 Destino: ${dst}"]\n`;
+      diagFluxo += `    class ${p.id} pipe;\n`;
     }
-    const procs = elementos.filter(e => e.tipo === 'PROCEDIMENTO');
     for (const pr of procs) {
-      diagFluxo += `    ${pr.id}["🚀 Procedimento: ${pr.nome}()"]:::proc\\n`;
+      diagFluxo += `    ${pr.id}["🚀 Procedimento: ${escaparMermaidTexto(pr.nome)}()"]\n`;
+      diagFluxo += `    class ${pr.id} proc;\n`;
     }
-    if (pipes.length === 0 && procs.length === 0) diagFluxo += '    SemFluxo["Nenhum Pipeline ou Procedimento"]\\n';
+    if (pipes.length === 0 && procs.length === 0) diagFluxo += '    SemFluxo["Nenhum Pipeline ou Procedimento Declarado"]\n';
 
     return {
       nomeModulo,
@@ -796,9 +847,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   <!-- Viewport Interativo do Diagrama -->
   <main class="viewport-container" id="viewport" tabindex="0" role="region" aria-label="Visualizador Interativo de Diagramas (Arraste para mover, use roda do mouse ou botões para zoom)">
-    <div id="canvas">
-      <pre class="mermaid" id="mermaidGraph">${dados.diagramas.geral}</pre>
-    </div>
+    <div id="canvas"></div>
 
     <!-- HUD de Navegação Acessível -->
     <div class="hud-controls" role="toolbar" aria-label="Navegação e Zoom do Diagrama">
@@ -870,6 +919,7 @@ export function activate(context: vscode.ExtensionContext): void {
     let startX = 0;
     let startY = 0;
     let tabAtual = 'geral';
+    let renderCounter = 0;
 
     const canvas = document.getElementById('canvas');
     const viewport = document.getElementById('viewport');
@@ -878,11 +928,37 @@ export function activate(context: vscode.ExtensionContext): void {
     const drawerTitle = document.getElementById('drawerTitle');
 
     mermaid.initialize({
-      startOnLoad: true,
+      startOnLoad: false,
       theme: 'dark',
       securityLevel: 'loose',
       fontFamily: 'var(--font)'
     });
+
+    async function renderizarDiagrama(diagramSrc) {
+      if (!canvas) return;
+      try {
+        renderCounter++;
+        const renderId = 'mermaid-render-' + renderCounter;
+        const { svg } = await mermaid.render(renderId, diagramSrc);
+        canvas.innerHTML = svg;
+        atribuirEventosNos();
+        setTimeout(fitToScreen, 100);
+      } catch (err) {
+        console.error('Erro ao renderizar diagrama Mermaid:', err);
+        canvas.innerHTML = '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; color:#f87171;">' +
+          '<div style="font-size:2.5rem; margin-bottom:12px;">⚠️</div>' +
+          '<h3 style="font-size:1.1rem; color:#fca5a5; margin-bottom:8px;">Não foi possível renderizar o diagrama</h3>' +
+          '<p style="font-size:0.82rem; color:var(--muted); max-width:480px; margin-bottom:16px; font-family:monospace; background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; border:1px solid var(--border);">' + (err.message || err) + '</p>' +
+          '<button class="btn" id="btnCopiarMermaidFalha">📋 Copiar Código Mermaid</button>' +
+        '</div>';
+        const btnFalha = document.getElementById('btnCopiarMermaidFalha');
+        if (btnFalha) {
+          btnFalha.addEventListener('click', () => {
+            vscode.postMessage({ command: 'copyToClipboard', text: diagramSrc, feedback: 'Código Mermaid copiado!' });
+          });
+        }
+      }
+    }
 
     function aplicarTransform() {
       canvas.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + scale + ')';
@@ -985,10 +1061,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const diagramSrc = DADOS_ARQUITETURA.diagramas[tabAtual] || DADOS_ARQUITETURA.diagramas.geral;
-        canvas.innerHTML = '<pre class="mermaid">' + diagramSrc + '</pre>';
-        await mermaid.run();
-        atribuirEventosNos();
-        setTimeout(fitToScreen, 100);
+        await renderizarDiagrama(diagramSrc);
       });
     });
 
@@ -1163,10 +1236,9 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     // Inicialização
-    setTimeout(() => {
-      atribuirEventosNos();
-      fitToScreen();
-    }, 300);
+    setTimeout(async () => {
+      await renderizarDiagrama(DADOS_ARQUITETURA.diagramas.geral);
+    }, 100);
   </script>
 </body>
 </html>`;

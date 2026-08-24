@@ -147,6 +147,22 @@ powershell.exe -ExecutionPolicy Bypass -File JVM/thz-cli-jvm/scripts/build-nativ
 ./gradlew :thz-gui-jvm:nativeCompile
 ```
 
+#### 🛠️ Resolvendo Dependências Visuais (Swing/AWT/FlatLaf) no GraalVM
+A compilação AOT nativa de interfaces gráficas Java (Swing/AWT) no GraalVM impõe desafios devido à reflexão pesada, carregamento dinâmico de peers nativos e renderização dependente do ambiente. Isso foi solucionado em três frentes:
+
+1. **Agente de Metadados (`native-image-agent`):**
+   Foi criada a task Gradle `:thz-gui-jvm:guiColetarMetadadosAgente` que roda a aplicação Swing sob a JVM tradicional acoplada ao agente do GraalVM. Ela grava as interações em tempo de execução para gerar arquivos como `jni-config.json` e `reflect-config.json` em `src/main/resources/META-INF/native-image/thz.lang/thz-gui/`, os quais o GraalVM consome automaticamente durante o build nativo.
+   ```powershell
+   # Coletar/atualizar metadados caso mude a UI ou temas:
+   ./gradlew :thz-gui-jvm:guiColetarMetadadosAgente
+   ```
+
+2. **Desativação do Modo Headless:**
+   Configuração do argumento `-Djava.awt.headless=false` na compilação nativa para instruir o GraalVM de que o binário gerado necessita de um subsistema de janelas gráficas ativo no sistema operacional.
+
+3. **Inclusão Estrita de Recursos:**
+   Passagem do parâmetro `-H:IncludeResources=.*\.thz.*|.*\.properties|.*\.png|.*\.svg` nas opções de build do GraalVM para empacotar dinamicamente os temas JSON/Properties do FlatLaf e os assets de imagem integrados na GUI.
+
 ---
 
 ## ☕ 6. Atalhos do Gradle Monorepo

@@ -1,0 +1,87 @@
+PIPELINE_DADOS TelemetriaTransacional
+
+# --- METADADOS ARQUITETURAIS DE BIG DATA E GOVERNANÇA (ISO/IEC/IEEE 42010) ---
+METADADOS_ARQUITETURA
+    DOMINIO: "EngenhariaDeDados"
+    SUBDOMINIO: "TelemetriaEStreaming"
+    CAMADA: "Infraestrutura"
+    VERSAO: "2.4.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CONFORMIDADE: "ISO-27001", "LGPD-Art7", "BACEN-Res4893"
+FIM_METADADOS
+
+ENUMERACAO NivelSeveridade
+    INFO
+    ALERTA
+    CRITICO
+FIM_ENUMERACAO
+
+ESTRUTURA EventoTelemetria LAYOUT_COLUNAR
+    id_evento        : UUID
+    sensor_id        : TEXTO
+    latencia_ms      : INTEIRO32
+    taxa_erros_pct   : DECIMAL(5, 2)
+    severidade       : NivelSeveridade
+    ativo            : LOGICO
+
+    INVARIANTE latencia_ms >= 0
+    INVARIANTE taxa_erros_pct >= 0.00
+FIM_ESTRUTURA
+
+ESTRUTURA SumarioPipeline
+    total_eventos     : INTEIRO64
+    eventos_criticos  : INTEIRO64
+    latencia_media_ms : DECIMAL(10, 2)
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO ProcessamentoTelemetriaStreaming
+    IDENTIFICADOR_REGRA: "BR-DATA-PIPELINE-001"
+    RASTREIO_REQUISITO: "REQ-STREAM-4412"
+    DESCRICAO: "Processa fluxo contínuo de telemetria aplicando agregação colunar SIMD e detecção de anomalias."
+
+    CONTRATO_ENTRADA
+        EXIGE eventos.latencia_ms >= 0
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE RESULTADO.total_eventos >= 0
+        GARANTE RESULTADO.eventos_criticos >= 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO AgregarMetricas(eventos: FATIA[EventoTelemetria]): SumarioPipeline
+    INICIO
+        VARIAVEL total : INTEIRO64 <- 0
+        VARIAVEL criticos : INTEIRO64 <- 0
+        VARIAVEL soma_latencia : DECIMAL(18, 2) <- 0.00
+
+        VETORIZAR_PARA ev EM eventos PASSO_SIMD 8
+            total <- total + 1
+            soma_latencia <- soma_latencia + ev.latencia_ms
+
+            SE ev.taxa_erros_pct > 5.00
+                ev.severidade <- CRITICO
+                criticos <- criticos + 1
+                EXIBA "[ALERTA TELEMETRIA] Sensor: " + ev.sensor_id + " | Erro: " + ev.taxa_erros_pct + "% | Latência: " + ev.latencia_ms + "ms"
+            SENAO
+                ev.severidade <- INFO
+            FIM_SE
+        FIM_PARA
+
+        VARIAVEL media : DECIMAL(10, 2) <- 0.00
+        SE total > 0
+            media <- soma_latencia / total
+        FIM_SE
+
+        VARIAVEL sumario : SumarioPipeline <- CRIAR SumarioPipeline(
+            total_eventos: total,
+            eventos_criticos: criticos,
+            latencia_media_ms: media
+        )
+
+        EXIBA "[PIPELINE CONCLUÍDO] Eventos: " + total + " | Críticos: " + criticos + " | Latência Média: " + media + "ms"
+        RETORNE sumario
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PIPELINE

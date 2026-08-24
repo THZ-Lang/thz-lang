@@ -20,13 +20,20 @@ IDE desktop industrial para a linguagem THZ-LANG, desenvolvida com FlatLaf (tema
 
 ## Compilação Nativa AOT (GraalVM)
 
-O `thz-gui-jvm` é configurado com reachability metadata e Look & Feel nativo:
+O `thz-gui-jvm` é configurado com reachability metadata e Look & Feel nativo para viabilizar o uso do Swing/AWT sob o compilador do GraalVM.
 
 ```powershell
 ./gradlew nativeCompile
 ```
 
 Gera o binário nativo `thz-desktop.exe` com inicialização instantânea.
+
+> [!NOTE]
+> Se houver mudanças na interface gráfica ou inclusão de novos componentes/temas FlatLaf que exijam novos metadados de reflexão ou JNI, execute a task a seguir antes de compilar para atualizar as configurações gravadas:
+> ```powershell
+> ./gradlew :thz-gui-jvm:guiColetarMetadadosAgente
+> ```
+> Detalhes adicionais sobre como as limitações do AWT/Swing foram contornadas podem ser consultados no [Manual de Tooling](file:///c:/Users/lucas/Projetos/thz-lang/docs/CLI_E_TOOLING.md#resolvendo-dependencias-visuais-swingawtflatlaf-no-graalvm).
 
 ## Dependência do Core
 

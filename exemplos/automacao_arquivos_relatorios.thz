@@ -1,0 +1,99 @@
+FERRAMENTA AutomacaoRelatoriosEnterprise
+
+# --- METADADOS ARQUITETURAIS DA FERRAMENTA ---
+METADADOS_ARQUITETURA
+    DOMINIO: "OperacoesETooling"
+    SUBDOMINIO: "ExportacaoRelatorios"
+    CAMADA: "Automacao"
+    VERSAO: "2.4.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "50ms"
+    CONFORMIDADE: "ISO-27001", "RFC-8259"
+FIM_METADADOS
+
+ESTRUTURA ParametrosExportacao
+    diretorio_destino : TEXTO
+    nome_relatorio    : TEXTO
+    gerar_pdf         : LOGICO
+    gerar_planilha    : LOGICO
+    gerar_docx        : LOGICO
+FIM_ESTRUTURA
+
+ESTRUTURA ResultadoGeracao
+    total_gerados     : INTEIRO64
+    caminho_base      : TEXTO
+    sucesso           : LOGICO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO MotorGeradorRelatorios
+    IDENTIFICADOR_REGRA: "BR-TOOL-DOC-001"
+    RASTREIO_REQUISITO: "REQ-TOOL-5510"
+    DESCRICAO: "Gera relatórios executivos em múltiplos formatos (PDF, XLSX, DOCX) e sincroniza arquivos em disco."
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(params.diretorio_destino) > 0
+        EXIGE TEXTO.comprimento(params.nome_relatorio) > 0
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE RESULTADO.total_gerados >= 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO ExecutarGeracaoDocumentos(params: ParametrosExportacao, conteudo_csv: TEXTO): ResultadoGeracao
+    INICIO
+        # 1. Carregamento de configuração e manipulação de diretórios
+        VARIAVEL config_ambiente : TEXTO <- CONFIG.obter("THZ_ENV", "PRODUCAO")
+        EXIBA "[FERRAMENTA] Ambiente detectado: " + config_ambiente
+
+        VARIAVEL dir_existe : LOGICO <- ARQUIVO.existe(params.diretorio_destino)
+        SE NAO dir_existe
+            DIRETORIO.criar(params.diretorio_destino)
+            EXIBA "[DIRETÓRIO] Criado novo diretório: " + params.diretorio_destino
+        FIM_SE
+
+        # 2. Processamento e higienização de texto do relatório
+        VARIAVEL linhas : FATIA[TEXTO] <- TEXTO.dividir(conteudo_csv, ";")
+        VARIAVEL texto_normalizado : TEXTO <- TEXTO.juntar(linhas, " | ")
+        VARIAVEL caminho_log : TEXTO <- params.diretorio_destino + "/" + params.nome_relatorio + ".log"
+
+        ARQUIVO.escreverTexto(caminho_log, "INICIO_RELATORIO\n" + texto_normalizado + "\n")
+        ARQUIVO.anexarTexto(caminho_log, "STATUS=CONCLUIDO_COM_SUCESSO\n")
+
+        VARIAVEL qtd_docs : INTEIRO64 <- 0
+
+        # 3. Exportação documental de padrão corporativo
+        SE params.gerar_pdf
+            VARIAVEL caminho_pdf : TEXTO <- params.diretorio_destino + "/" + params.nome_relatorio + ".pdf"
+            DOCUMENTO.exportarPdf(caminho_pdf, "Relatorio Financeiro Executivo", texto_normalizado)
+            qtd_docs <- qtd_docs + 1
+            EXIBA "[DOCUMENTO] PDF exportado: " + caminho_pdf
+        FIM_SE
+
+        SE params.gerar_planilha
+            VARIAVEL caminho_xlsx : TEXTO <- params.diretorio_destino + "/" + params.nome_relatorio + ".xlsx"
+            DOCUMENTO.exportarXlsx(caminho_xlsx, "DadosOperacionais", texto_normalizado)
+            qtd_docs <- qtd_docs + 1
+            EXIBA "[DOCUMENTO] Planilha Excel exportada: " + caminho_xlsx
+        FIM_SE
+
+        SE params.gerar_docx
+            VARIAVEL caminho_docx : TEXTO <- params.diretorio_destino + "/" + params.nome_relatorio + ".docx"
+            DOCUMENTO.exportarDocx(caminho_docx, "Dossiê Executivo", texto_normalizado)
+            qtd_docs <- qtd_docs + 1
+            EXIBA "[DOCUMENTO] Word DOCX exportado: " + caminho_docx
+        FIM_SE
+
+        VARIAVEL arquivos_presentes : FATIA[TEXTO] <- DIRETORIO.listar(params.diretorio_destino)
+        EXIBA "[STATUS] Arquivos persistidos no diretório de saída."
+
+        VARIAVEL res : ResultadoGeracao <- CRIAR ResultadoGeracao(
+            total_gerados: qtd_docs,
+            caminho_base: params.diretorio_destino,
+            sucesso: VERDADEIRO
+        )
+
+        RETORNE res
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_FERRAMENTA

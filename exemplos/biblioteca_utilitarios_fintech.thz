@@ -1,0 +1,87 @@
+BIBLIOTECA UtilitariosFintech
+
+# --- METADADOS ARQUITETURAIS DA BIBLIOTECA COMPARTILHADA ---
+METADADOS_ARQUITETURA
+    DOMINIO: "CoreFintech"
+    SUBDOMINIO: "UtilitariosEFormatadores"
+    CAMADA: "Biblioteca"
+    VERSAO: "2.4.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "1ms"
+    CONFORMIDADE: "ISO-4217", "ISO-10967", "LGPD-Art7"
+FIM_METADADOS
+
+ENUMERACAO MoedaSuportada
+    BRL
+    USD
+    EUR
+FIM_ENUMERACAO
+
+ESTRUTURA ChavePixFormatada
+    tipo_chave  : TEXTO
+    chave_bruta : TEXTO
+    mascarada   : TEXTO
+    valida      : LOGICO
+FIM_ESTRUTURA
+
+PROCEDIMENTO MascararDocumento(documento: TEXTO, tipo: TEXTO)
+INICIO
+    VARIAVEL doc_limpo : TEXTO <- TEXTO.aparar(documento)
+    VARIAVEL tam : INTEIRO64 <- TEXTO.comprimento(doc_limpo)
+
+    SE tam = 11
+        VARIAVEL inicio_cpf : TEXTO <- TEXTO.subtexto(doc_limpo, 0, 3)
+        VARIAVEL fim_cpf : TEXTO <- TEXTO.subtexto(doc_limpo, 9, 11)
+        EXIBA "[MASCARAMENTO CPF] " + inicio_cpf + ".***.***-" + fim_cpf
+    SENAO
+        EXIBA "[MASCARAMENTO GENÉRICO] ***" + doc_limpo
+    FIM_SE
+FIM
+
+REGRA_NEGOCIO ValidadorChavesPix
+    IDENTIFICADOR_REGRA: "BR-LIB-PIX-001"
+    RASTREIO_REQUISITO: "REQ-PIX-3101"
+    DESCRICAO: "Valida e formata chaves PIX bancárias garantindo conformidade com padrões BACEN."
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(chave) > 0
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO.tipo_chave) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO ValidarEFormatarChave(chave: TEXTO, moeda: MoedaSuportada): ChavePixFormatada
+    INICIO
+        VARIAVEL limpa : TEXTO <- TEXTO.aparar(chave)
+        VARIAVEL eh_email : LOGICO <- TEXTO.contem(limpa, "@")
+        VARIAVEL tipo : TEXTO <- "CHAVE_ALEATORIA"
+
+        SE eh_email
+            tipo <- "EMAIL"
+        SENAO
+            VARIAVEL len : INTEIRO64 <- TEXTO.comprimento(limpa)
+            SE len = 11
+                tipo <- "CPF"
+            SENAO
+                SE len = 14
+                    tipo <- "CNPJ"
+                FIM_SE
+            FIM_SE
+        FIM_SE
+
+        VARIAVEL masc : TEXTO <- TEXTO.subtexto(limpa, 0, 3) + "***"
+
+        VARIAVEL res : ChavePixFormatada <- CRIAR ChavePixFormatada(
+            tipo_chave: tipo,
+            chave_bruta: limpa,
+            mascarada: masc,
+            valida: VERDADEIRO
+        )
+
+        EXIBA "[PIX REGISTRADO] Tipo: " + tipo + " | Mascarada: " + masc + " | Moeda: " + moeda
+        RETORNE res
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_BIBLIOTECA
