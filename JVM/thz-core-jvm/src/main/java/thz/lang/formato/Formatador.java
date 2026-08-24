@@ -18,8 +18,22 @@ public final class Formatador {
         java.util.ArrayList<String> out = new java.util.ArrayList<>();
         for (ComandoAst c : comandos) {
             switch (c) {
-                case ComandoAst.DeclVariavel d ->
-                    out.add(linha("VARIAVEL " + d.nome() + " : " + tipoCanonico(d.tipoDado()) + " <- " + formatarExpr(d.inicializacao()), nivel));
+                case ComandoAst.DeclVariavel d -> {
+                    String tipoStr = d.tipoDado() != null ? " : " + tipoCanonico(d.tipoDado()) : "";
+                    out.add(linha("VARIAVEL " + d.nome() + tipoStr + " <- " + formatarExpr(d.inicializacao()), nivel));
+                }
+                case ComandoAst.CasoResultado cr -> {
+                    out.add(linha("CASO_RESULTADO " + formatarExpr(cr.alvo()), nivel));
+                    if (cr.varSucesso() != null) {
+                        out.add(linha("SUCESSO(" + cr.varSucesso() + ") ->", nivel + 1));
+                        out.addAll(formatarComandos(cr.corpoSucesso(), nivel + 2));
+                    }
+                    if (cr.varErro() != null) {
+                        out.add(linha("ERRO(" + cr.varErro() + ") ->", nivel + 1));
+                        out.addAll(formatarComandos(cr.corpoErro(), nivel + 2));
+                    }
+                    out.add(linha("FIM_CASO", nivel));
+                }
                 case ComandoAst.Atribuicao a ->
                     out.add(linha(String.join(".", a.alvo()) + " <- " + formatarExpr(a.expressao()), nivel));
                 case ComandoAst.Se s -> {
@@ -72,7 +86,15 @@ public final class Formatador {
     public static String formatar(ProgramaAst ast) {
         java.util.ArrayList<String> out = new java.util.ArrayList<>();
         if (ast.versaoLinguagem() != null) { out.add("VERSAO_LINGUAGEM \"" + ast.versaoLinguagem() + "\""); out.add(""); }
-        out.add("PROGRAMA " + ast.nome()); out.add("");
+        TipoModulo tipo = ast.tipoModulo() != null ? ast.tipoModulo() : TipoModulo.PROGRAMA;
+        out.add(tipo.descricao() + " " + ast.nome()); out.add("");
+        if (ast.importacoes() != null && !ast.importacoes().isEmpty()) {
+            for (ImportacaoAst imp : ast.importacoes()) {
+                String de = imp.caminho() != null ? " DE \"" + imp.caminho() + "\"" : "";
+                out.add("IMPORTAR " + imp.modulo() + de);
+            }
+            out.add("");
+        }
         if (ast.metadados() != null) {
             out.add("METADADOS_ARQUITETURA");
             var m = ast.metadados();
@@ -141,7 +163,7 @@ public final class Formatador {
             out.add("");
         }
 
-        out.add("FIM_PROGRAMA"); out.add("");
+        out.add(tipo.terminadorPadrao()); out.add("");
         return String.join("\n", out);
     }
 }

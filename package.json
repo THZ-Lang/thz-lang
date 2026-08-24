@@ -2,22 +2,35 @@
   "name": "thz-lang-workspace",
   "version": "2.3.3",
   "private": true,
-  "description": "Orquestrador do ecossistema THZ-LANG: motor TypeScript (referência/tooling) e módulos JVM em JVM/ (thz-core-jvm, thz-cli-jvm, thz-gui-jvm).",
+  "description": "Orquestrador do ecossistema THZ-LANG: engine Java (produção) com API Spring Boot para web.",
   "scripts": {
     "// === Setup ===": "",
-    "setup": "npm ci --prefix Node/thz-lang-base && npm run build:jvm",
-    "build:jvm": "npm run core:publish && npm run cli:jar",
+    "setup": "npm run build:jvm",
+    "build:jvm": "npm run core:publish && npm run cli:jar && npm run api:build && npm run lsp:jar",
 
     "// === Testes (tudo) ===": "",
-    "test": "npm run test:ts && npm run test:core && npm run test:gui",
-    "test:ts": "npm test --prefix Node/thz-lang-base",
+    "test": "npm run test:core && npm run test:gui && npm run test:api && npm run test:lsp && npm run test:cli",
+    "test:ts": "echo 'DEPRECATED: TS engine migrado para Java. Use test:core.' && exit 0",
     "test:core": "cd JVM/thz-core-jvm && gradlew test",
     "test:gui": "cd JVM/thz-gui-jvm && gradlew test",
+    "test:api": "cd JVM/thz-api-jvm && gradlew test",
+    "test:lsp": "cd JVM/thz-lsp-jvm && gradlew test",
+    "test:cli": "cd JVM/thz-cli-jvm && gradlew test",
 
     "// === CLI / REPL / IDE ===": "",
     "thz": "node scripts/thz.js",
     "repl": "node scripts/thz.js repl",
     "ide": "cd JVM/thz-gui-jvm && gradlew gui",
+
+    "// === API REST (target web) ===": "",
+    "api:build": "cd JVM/thz-api-jvm && gradlew bootJar",
+    "api:run": "cd JVM/thz-api-jvm && gradlew bootRun",
+    "api:test": "cd JVM/thz-api-jvm && gradlew test",
+
+    "// === LSP Server (Java) ===": "",
+    "lsp:build": "cd JVM/thz-lsp-jvm && gradlew shadowJar",
+    "lsp:jar": "cd JVM/thz-lsp-jvm && gradlew shadowJar",
+    "lsp:run": "java -jar JVM/thz-lsp-jvm/target/thz-lsp-2.3.0.jar --stdio",
 
     "// === Extensão VS Code ===": "",
     "ext:compile": "npm run compile --prefix Extensions/thz-lsp-vscode",
@@ -27,6 +40,13 @@
     "core:publish": "cd JVM/thz-core-jvm && gradlew publishToMavenLocal",
     "cli:jar": "cd JVM/thz-cli-jvm && gradlew shadowJar",
     "cli:native": "cd JVM/thz-cli-jvm && powershell -ExecutionPolicy Bypass -File scripts/build-native.ps1",
-    "cli:package": "cd JVM/thz-cli-jvm && powershell -ExecutionPolicy Bypass -File scripts/build-package.ps1"
+    "cli:package": "cd JVM/thz-cli-jvm && powershell -ExecutionPolicy Bypass -File scripts/build-package.ps1",
+
+    "// === Benchmarks (JMH) ===": "",
+    "bench": "cd JVM/thz-bench-jvm && gradlew jmh",
+    "bench:decimal": "cd JVM/thz-bench-jvm && gradlew jmh -Pbenchmark=DecimalBench",
+    "bench:memoria": "cd JVM/thz-bench-jvm && gradlew jmh -Pbenchmark=BlocoMemoriaBench",
+    "bench:layout": "cd JVM/thz-bench-jvm && gradlew jmh -Pbenchmark=LayoutBench",
+    "bench:build": "cd JVM/thz-bench-jvm && gradlew build"
   }
 }

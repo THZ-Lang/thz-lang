@@ -21,12 +21,15 @@ import java.util.*;
 
 public class ThzCli {
     public static void main(String[] args) throws Exception {
-        System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
-        System.setErr(new PrintStream(System.err, true, StandardCharsets.UTF_8));
         BibliotecaConsole.registrar();
 
         if (args.length == 0 || args[0].equals("--ajuda") || args[0].equals("-h") || args[0].equals("ajuda") || args[0].equals("help")) {
             exibirAjuda();
+            return;
+        }
+
+        if (args[0].equals("--versao") || args[0].equals("-v") || args[0].equals("versao") || args[0].equals("version")) {
+            System.out.println("THZ-LANG Engine v2.4.0 (GraalVM / Java 25)");
             return;
         }
 
@@ -44,10 +47,10 @@ public class ThzCli {
         }
         String arquivo = resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank()) {
-            System.err.println("[ERRO] Nenhum arquivo .thz especificado. Use: thz " + comando + " <caminho.thz>");
+            System.err.println("[ERRO] Nenhum arquivo .thz ou .thzui especificado. Use: thz " + comando + " <caminho.thz|caminho.thzui>");
             System.exit(1);
         }
-        if (comando.equals("check") || comando.equals("ast") || comando.equals("fmt") || comando.equals("run") || comando.equals("audit") || comando.equals("doc") || comando.equals("ir")) {
+        if (comando.equals("check") || comando.equals("ast") || comando.equals("fmt") || comando.equals("run") || comando.equals("audit") || comando.equals("doc") || comando.equals("ir") || comando.equals("ui")) {
             if (!Files.exists(Path.of(arquivo))) { System.err.println("[ERRO] Arquivo não encontrado: " + arquivo); System.exit(1); }
             String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
 
@@ -87,6 +90,25 @@ public class ThzCli {
                         System.out.println("[THZ IR] Saída (" + (llvm ? "LLVM IR" : "THZ-IR/1") + ") gravada em: " + alvo);
                     } else {
                         System.out.println(resultado);
+                    }
+                    return;
+                }
+                if (comando.equals("ui")) {
+                    boolean html = argumentos.contains("--html");
+                    var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
+                        c.adicionar(thz.lang.ui.ThzUiMaker.card("card_" + ast.nome(), ast.nome(), card -> {
+                            card.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_modulo", "info", "Tela: " + ast.nome() + " [" + ast.tipoModulo() + "]"));
+                            if (ast.procedimentos() != null) {
+                                for (var p : ast.procedimentos()) {
+                                    card.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_" + p.nome(), p.nome(), p.nome()));
+                                }
+                            }
+                        }));
+                    });
+                    if (html) {
+                        System.out.println(maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass()));
+                    } else {
+                        System.out.println(maker.gerarCodigoThz(ast.nome()));
                     }
                     return;
                 }
@@ -250,6 +272,7 @@ public class ThzCli {
         System.out.println("  audit <arquivo> [--json] [--estrito]      Gera relatório de auditoria e governança (G4)");
         System.out.println("  doc <arquivo> [--saida <caminho.md>]      Gera documentação técnica com diagramas Mermaid");
         System.out.println("  ir <arquivo> [--llvm] [--saida <caminho>] Gera a Representação Intermediária (THZ-IR/1)");
+        System.out.println("  ui <arquivo[.thzui]> [--html]             Renderiza ou exporta a interface declarativa (ThzUiMaker)");
         System.out.println("  repl                                      Inicia o shell interativo multi-linha");
         System.out.println("  gui                                       Abre a IDE Desktop Swing com realce e exemplos\n");
         System.out.println("Exemplos:");

@@ -37,7 +37,14 @@ public class ThzLexer {
             if (c == ']') { tokens.add(make(TokenType.FECHA_COLCHETE, "]")); advance(); continue; }
             if (c == '%') { tokens.add(make(TokenType.OPERADOR_ARITMETICO, "%")); advance(); continue; }
             if (c == '+') { tokens.add(make(TokenType.OPERADOR_ARITMETICO, "+")); advance(); continue; }
-            if (c == '-') { tokens.add(make(TokenType.OPERADOR_ARITMETICO, "-")); advance(); continue; }
+            if (c == '-') {
+                char nxt = pos + 1 < input.length() ? input.charAt(pos + 1) : 0;
+                if (nxt == '>') {
+                    tokens.add(make(TokenType.SETA_CASO, "->"));
+                    advance(); advance(); continue;
+                }
+                tokens.add(make(TokenType.OPERADOR_ARITMETICO, "-")); advance(); continue;
+            }
             if (c == '*') { tokens.add(make(TokenType.OPERADOR_ARITMETICO, "*")); advance(); continue; }
             if (c == '/') { tokens.add(make(TokenType.OPERADOR_ARITMETICO, "/")); advance(); continue; }
             if (c == '<') {

@@ -4,12 +4,20 @@ import java.util.Map;
 
 public final class PalavrasReservadas {
 
-    public static final String VERSAO_LINGUAGEM_ATUAL = "2.3.0";
+    public static final String VERSAO_LINGUAGEM_ATUAL = "2.4.0";
 
     public record EntradaPalavra(TokenType token, CategoriaPalavra categoria) {}
 
     private static final Map<String, EntradaPalavra> TABELA = Map.ofEntries(
         Map.entry("PROGRAMA", new EntradaPalavra(TokenType.PROGRAMA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("VISUAL", new EntradaPalavra(TokenType.VISUAL, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("NEGOCIO", new EntradaPalavra(TokenType.NEGOCIO, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("ARQUITETURA", new EntradaPalavra(TokenType.ARQUITETURA, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("BIBLIOTECA", new EntradaPalavra(TokenType.BIBLIOTECA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("EXTENSAO", new EntradaPalavra(TokenType.EXTENSAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("FERRAMENTA", new EntradaPalavra(TokenType.FERRAMENTA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("TESTE", new EntradaPalavra(TokenType.TESTE, CategoriaPalavra.DECLARACAO)),
+        Map.entry("TELA", new EntradaPalavra(TokenType.TELA, CategoriaPalavra.DECLARACAO)),
         Map.entry("METADADOS_ARQUITETURA", new EntradaPalavra(TokenType.METADADOS_ARQUITETURA, CategoriaPalavra.DECLARACAO)),
         Map.entry("ESTRUTURA", new EntradaPalavra(TokenType.ESTRUTURA, CategoriaPalavra.DECLARACAO)),
         Map.entry("ENUMERACAO", new EntradaPalavra(TokenType.ENUMERACAO, CategoriaPalavra.DECLARACAO)),
@@ -19,6 +27,11 @@ public final class PalavrasReservadas {
         Map.entry("VARIAVEL", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
         Map.entry("VERSAO_LINGUAGEM", new EntradaPalavra(TokenType.VERSAO_LINGUAGEM, CategoriaPalavra.DECLARACAO)),
         Map.entry("FIM_PROGRAMA", new EntradaPalavra(TokenType.FIM_PROGRAMA, CategoriaPalavra.FIM_BLOCO)),
+        Map.entry("FIM_BIBLIOTECA", new EntradaPalavra(TokenType.FIM_BIBLIOTECA, CategoriaPalavra.FIM_BLOCO)),
+        Map.entry("FIM_EXTENSAO", new EntradaPalavra(TokenType.FIM_EXTENSAO, CategoriaPalavra.FIM_BLOCO)),
+        Map.entry("FIM_FERRAMENTA", new EntradaPalavra(TokenType.FIM_FERRAMENTA, CategoriaPalavra.FIM_BLOCO)),
+        Map.entry("FIM_TESTE", new EntradaPalavra(TokenType.FIM_TESTE, CategoriaPalavra.FIM_BLOCO)),
+        Map.entry("FIM_TELA", new EntradaPalavra(TokenType.FIM_TELA, CategoriaPalavra.FIM_BLOCO)),
         Map.entry("FIM_METADADOS", new EntradaPalavra(TokenType.FIM_METADADOS, CategoriaPalavra.FIM_BLOCO)),
         Map.entry("FIM_ESTRUTURA", new EntradaPalavra(TokenType.FIM_ESTRUTURA, CategoriaPalavra.FIM_BLOCO)),
         Map.entry("FIM_ENUMERACAO", new EntradaPalavra(TokenType.FIM_ENUMERACAO, CategoriaPalavra.FIM_BLOCO)),
@@ -46,6 +59,11 @@ public final class PalavrasReservadas {
         Map.entry("VETORIZAR_PARA", new EntradaPalavra(TokenType.VETORIZAR_PARA, CategoriaPalavra.CONTROLE)),
         Map.entry("USAR_BLOCO_MEMORIA", new EntradaPalavra(TokenType.USAR_BLOCO_MEMORIA, CategoriaPalavra.MEMORIA)),
         Map.entry("LAYOUT_COLUNAR", new EntradaPalavra(TokenType.LAYOUT_COLUNAR, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("IMPORTAR", new EntradaPalavra(TokenType.IMPORTAR, CategoriaPalavra.DECLARACAO)),
+        Map.entry("CASO_RESULTADO", new EntradaPalavra(TokenType.CASO_RESULTADO, CategoriaPalavra.CONTROLE)),
+        Map.entry("FIM_CASO", new EntradaPalavra(TokenType.FIM_CASO, CategoriaPalavra.FIM_BLOCO)),
+        Map.entry("SUCESSO", new EntradaPalavra(TokenType.SUCESSO, CategoriaPalavra.CONTROLE)),
+        Map.entry("ERRO", new EntradaPalavra(TokenType.ERRO, CategoriaPalavra.CONTROLE)),
         Map.entry("IDEMPOTENTE", new EntradaPalavra(TokenType.IDEMPOTENTE, CategoriaPalavra.MODIFICADOR)),
         Map.entry("CHAVE_IDEMPOTENCIA", new EntradaPalavra(TokenType.CHAVE_IDEMPOTENCIA, CategoriaPalavra.CONTRATO)),
         Map.entry("EM", new EntradaPalavra(TokenType.EM, CategoriaPalavra.MODIFICADOR)),

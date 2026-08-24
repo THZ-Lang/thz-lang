@@ -1,0 +1,67 @@
+# THZ-LANG v2.4 — Exemplos de Arquétipos de Módulos
+
+# 1. Programa Padrão (Backend, Batch, Console)
+PROGRAMA NovoPrograma
+    ESTRUTURA Parametro
+        chave : TEXTO
+        valor : TEXTO
+    FIM_ESTRUTURA
+FIM_PROGRAMA
+
+# 2. Programa Visual (Interface Gráfica / Desktop GUI)
+# PROGRAMA VISUAL NovoProgramaGUI
+#     PROCEDIMENTO MontarTela()
+#     INICIO
+#         EXIBA "Iniciando interface visual..."
+#     FIM
+# FIM_PROGRAMA
+
+# 3. Programa de Negócio (DDD, Regras Corporativas e Governança)
+# PROGRAMA NEGOCIO NovoNegocio
+#     METADADOS_ARQUITETURA
+#         DOMINIO: "LogisticaEFaturamento"
+#         CAMADA: "Dominio"
+#         SLO_LATENCIA_MAXIMA: "100ms"
+#     FIM_METADADOS
+# FIM_PROGRAMA
+
+# 4. Programa de Arquitetura (Documentação Viva e Modelagem C4)
+# PROGRAMA ARQUITETURA NovoArquitetura
+#     METADADOS_ARQUITETURA
+#         DOMINIO: "CoreBanking"
+#         CAMADA: "Arquitetura"
+#     FIM_METADADOS
+# FIM_PROGRAMA
+
+# 5. Biblioteca (Tipos, Estruturas e Funções Reutilizáveis)
+# BIBLIOTECA NovaBiblioteca
+#     ENUMERACAO StatusOperacao
+#         PENDENTE
+#         PROCESSADO
+#         FALHOU
+#     FIM_ENUMERACAO
+# FIM_BIBLIOTECA
+
+# 6. Extensão (Drivers, Adaptadores e Integrações)
+# EXTENSAO NovaExtensao
+#     ESTRUTURA ConexaoDriver
+#         url : TEXTO
+#         timeoutMs : INTEIRO64
+#     FIM_ESTRUTURA
+# FIM_EXTENSAO
+
+# 7. Ferramenta (Scripts Operacionais e Migrations)
+# FERRAMENTA NovaFerramenta
+#     PROCEDIMENTO ExecutarMigracao()
+#     INICIO
+#         EXIBA "Executando migração de esquema..."
+#     FIM
+# FIM_FERRAMENTA
+
+# 8. Teste (Suíte de Testes Formais e BDD)
+# TESTE Novoteste
+#     PROCEDIMENTO TestarCenárioPrincipal()
+#     INICIO
+#         EXIBA "Validando contratos de faturamento..."
+#     FIM
+# FIM_TESTE

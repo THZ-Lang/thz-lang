@@ -1,0 +1,22 @@
+TELA DashboardFaturamento
+
+METADADOS_ARQUITETURA
+    DOMINIO: "LogisticaEFaturamento"
+    CAMADA: "Apresentacao"
+    VERSAO: "2.4.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "15ms"
+FIM_METADADOS
+
+PROCEDIMENTO MontarInterface()
+INICIO
+    TELA.criarContainer("raiz", "CONTAINER")
+    TELA.criarCard("card_faturamento", "Gestão de Faturamento & Métricas")
+    TELA.adicionarMetrica("kpi_receita", "Receita Diária", "R$ 1.450.000,00")
+    TELA.adicionarCampoTexto("txt_cliente", "Cliente", "Filtrar por razão social...")
+    TELA.adicionarCampoMoeda("txt_valor_min", "Valor Mínimo", "BRL")
+    TELA.adicionarBotao("btn_filtrar", "Filtrar Resultados", "AplicarFiltro")
+    TELA.exibir("DashboardFaturamento")
+FIM
+
+FIM_TELA

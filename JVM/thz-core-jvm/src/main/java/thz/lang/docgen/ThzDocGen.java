@@ -23,8 +23,10 @@ public final class ThzDocGen {
         StringBuilder sb = new StringBuilder();
 
         // 1. Cabeçalho
+        TipoModulo tipo = ast.tipoModulo() != null ? ast.tipoModulo() : TipoModulo.PROGRAMA;
         sb.append("# Documentação Arquitetural e de Domínio — ").append(ast.nome()).append("\n\n");
-        sb.append("> **Versão da Linguagem THZ-LANG:** `").append(ast.versaoLinguagem() != null ? ast.versaoLinguagem() : "2.3.0").append("`  \n");
+        sb.append("> **Tipo de Módulo:** `").append(tipo.descricao()).append("`  \n");
+        sb.append("> **Versão da Linguagem THZ-LANG:** `").append(ast.versaoLinguagem() != null ? ast.versaoLinguagem() : "2.4.0").append("`  \n");
         sb.append("> **Gerado automaticamente pelo compilador THZ-LANG Engine.**\n\n");
 
         // 2. Metadados de Arquitetura
@@ -46,6 +48,18 @@ public final class ThzDocGen {
             sb.append("*Nenhum bloco de metadados arquiteturais declarado.*\n");
         }
         sb.append("\n---\n\n");
+
+        // 2.1 Módulos Importados
+        if (ast.importacoes() != null && !ast.importacoes().isEmpty()) {
+            sb.append("## 2. Dependências e Módulos Importados\n\n");
+            sb.append("| Módulo | Caminho / Origem |\n");
+            sb.append("|---|---|\n");
+            for (ImportacaoAst imp : ast.importacoes()) {
+                String caminho = imp.caminho() != null ? "`" + imp.caminho() + "`" : "*Resolução padrão*";
+                sb.append("| `").append(imp.modulo()).append("` | ").append(caminho).append(" |\n");
+            }
+            sb.append("\n---\n\n");
+        }
 
         // 3. Diagrama Mermaid de Entidades
         if (ast.estruturas() != null && !ast.estruturas().isEmpty()) {

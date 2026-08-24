@@ -105,21 +105,19 @@ thz-lang/
 ├── CONTRIBUTING.md             # Guia de contribuição
 ├── LICENSE                     # Licença MIT
 │
-├── Extensions/
-│   └── thz-lsp-vscode/          # Extensão VS Code (TextMate + LanguageClient; servidor via thz-lang-engine)
+├── Extensions/                  # Extensões para editores
+│   └── thz-lsp-vscode/          #   Extensão oficial do VS Code (LSP client)
 │
-├── thz-lang-engine/             # Motor TypeScript / Node.js (v2.2+)
-│   ├── src/                    # Lexer, Parser, Semântico, Runtime, IR, SIMD, LSP
-│   ├── playground/             # Playground Web (Vite + Monaco Editor + Monarch)
-│   ├── bench/                  # Benchmarks (Decimal, Fatia, SIMD)
-│   ├── docs/                   # Gramática EBNF canônica e docs de arquitetura
-│   ├── exemplos/               # Programas canônicos (faturamento, pedidos, agenda)
-│   └── test/                   # 159 testes unitários e golden snapshots
-│
-├── JVM/                         # Motor Java 25 — três projetos Gradle autônomos
-│   ├── thz-core-jvm/            #   núcleo/stdlib (java-library + maven-publish)
+├── JVM/                         # Motor Java 25 — produção
+│   ├── thz-core-jvm/            #   Núcleo: Lexer, Parser, Semântico, Runtime, IR, SIMD
 │   ├── thz-cli-jvm/             #   CLI + REPL + UberJAR
-│   └── thz-gui-jvm/             #   IDE Desktop Swing
+│   ├── thz-gui-jvm/             #   IDE Desktop Swing
+│   ├── thz-api-jvm/             #   REST API (Spring Boot) → Playground Web
+│   ├── thz-lsp-jvm/             #   LSP Server (LSP4J) → VS Code Extension
+│   └── thz-bench-jvm/           #   Benchmarks JMH (Decimal, Memoria, Layout)
+│
+└── docs/                        # Documentação da linguagem, EBNF e arquitetura
+```
 
 > Os módulos JVM comunicam entre si pela API pública do `thz-core`; as funções gráficas `TELA.*` são registradas por cada apresentação via `BibliotecaPadrao.registrar()`.
 ```
@@ -130,65 +128,32 @@ thz-lang/
 
 ### 0. Orquestrador da raiz (`package.json`)
 
-A raiz do workspace centraliza as operações mais comuns dos quatro módulos — sem ferramenta extra, apenas npm:
+A raiz do workspace centraliza as operações dos módulos JVM — sem ferramenta extra, apenas npm:
 
 ```bash
-npm run setup        # instala deps TS + publica core no Maven Local + gera UberJAR
-npm test             # suítes completas: TypeScript + thz-core + thz-gui
-npm run test:ts      # apenas motor TypeScript (160 testes)
+npm run setup        # compila core + CLI + API + LSP
+npm test             # suíte completa: core + gui + api + lsp
 npm run test:core    # apenas núcleo JVM
-npm run test:gui     # apenas IDE Desktop
 
-npm run thz -- check JVM/thz-core-jvm/exemplos/faturamento.thz   # CLI com args naturais*
+npm run thz -- check JVM/thz-core-jvm/exemplos/faturamento.thz   # CLI
 npm run repl                                             # REPL interativo
-npm run ide                                              # abre a IDE Desktop Swing
+npm run ide                                              # IDE Desktop Swing
 
-npm run core:publish    # publica thz.lang:thz-core no ~/.m2
-npm run cli:jar         # gera JVM/thz-cli-jvm/target/thz-jvm-2.3.0.jar
+# API REST (Spring Boot) — consume o core Java via HTTP
+npm run api:build    # gera o JAR da API
+npm run api:run      # http://localhost:8080
+
+# LSP Server (Java) — conecta ao VS Code
+npm run lsp:jar      # gera shadow JAR
+npm run lsp:run      # inicia servidor LSP via stdio
+
+# Benchmarks JMH
+npm run bench        # roda todos os benchmarks
 ```
-
-> \* O wrapper `scripts/thz.js` gera o UberJAR automaticamente na primeira execução, se ainda não existir.
-
-### 1. Motor TypeScript / Node.js (`thz-lang-base`)
-
-**Requisitos:** Node.js 20+ e npm.
-
-```bash
-cd thz-lang-engine
-
-# Instalar dependências
-npm install
-
-# Executar a suíte de testes (159 testes)
-npm test
-
-# Executar checagem estrita de tipos e contratos
-npm run thz:check -- --estrito
-
-# Executar programa canônico
-npm run thz:run
-
-# Iniciar o REPL interativo
-npm run thz:repl
-
-# Iniciar o Playground Web no navegador (http://localhost:5173)
-npm run playground
-
-# Executar benchmarks
-npm run bench
-```
-
-#### Comandos do CLI (`thz`):
-- `thz check <arquivo.thz> [--estrito]` — Análise léxica, sintática e semântica.
-- `thz run <arquivo.thz>` — Executa o programa via interpretador.
-- `thz fmt <arquivo.thz> [--escrever]` — Formatador canônico idempotente.
-- `thz doc <arquivo.thz> [--saida <dir>]` — Gera documentação viva com diagramas Mermaid.
-- `thz audit <arquivo.thz> [--json]` — Matriz de governança e auditoria de requisitos.
-- `thz ir <arquivo.thz> [--llvm]` — Baixa para THZ-IR e emite código LLVM.
 
 ---
 
-### 2. Motor Java 25 (`JVM/thz-core-jvm` / `JVM/thz-cli-jvm` / `JVM/thz-gui-jvm`)
+### 1. Motor Java 25 (produção)
 
 Três projetos Gradle autônomos na pasta `JVM/` do workspace, comunicando pela API pública do `thz-core` (as funções gráficas `TELA.*` são registradas por cada apresentação via `BibliotecaPadrao.registrar()`). Requisitos: OpenJDK 25 (Gradle Wrapper embutido em cada projeto).
 
@@ -207,15 +172,27 @@ java -jar target/thz-jvm-2.3.0.jar repl
 # IDE Desktop Swing
 cd ../thz-gui-jvm
 ./gradlew gui
+
+# API REST
+cd ../thz-api-jvm
+./gradlew bootRun    # http://localhost:8080
+
+# LSP Server (VS Code)
+cd ../thz-lsp-jvm
+./gradlew shadowJar
+java -jar target/thz-lsp-2.3.0.jar --stdio
+
+# Benchmarks
+cd ../thz-bench-jvm
+./gradlew jmh
 ```
 
 ---
 
 ## 📚 Documentação
 
-- **Gramática EBNF:** [`Node/thz-lang-base/docs/GRAMATICA.md`](Node/thz-lang-base/docs/GRAMATICA.md)
-- **Documentação do Motor Node/TS:** [`Node/thz-lang-base/README.md`](Node/thz-lang-base/README.md)
-- **Documentação do Motor JVM:** [`thz-core-jvm/README.md`](JVM/thz-core-jvm/README.md), [`thz-cli-jvm/README.md`](JVM/thz-cli-jvm/README.md) e [`thz-gui-jvm/README.md`](JVM/thz-gui-jvm/README.md)
+- **Gramática EBNF:** [`docs/GRAMATICA.md`](docs/GRAMATICA.md)
+- **Documentação do Motor JVM:** [`thz-core-jvm/README.md`](JVM/thz-core-jvm/README.md), [`thz-cli-jvm/README.md`](JVM/thz-cli-jvm/README.md), [`thz-api-jvm/README.md`](JVM/thz-api-jvm/README.md), [`thz-lsp-jvm/README.md`](JVM/thz-lsp-jvm/README.md)
 - **Visão Arquitetural e Roadmap:** [`docs/PROJECT.md`](docs/PROJECT.md)
 - **Diretrizes para Agentes de IA:** [`AGENTS.md`](AGENTS.md)
 - **Extensão VS Code:** [`thz-lsp-vscode/README.md`](Extensions/thz-lsp-vscode/README.md)

@@ -8,9 +8,9 @@ Este projeto implementa uma linguagem de programação corporativa estruturada e
 
 ## 1. Estrutura do Repositório
 
-- `Node/thz-lang-base/`: Motor canônico em Node.js (v20+) + TypeScript (v5+), com Language Service, Playground Web (Monaco), Servidor LSP, Extensão VS Code, IR e vetorização SIMD.
-- `JVM/thz-core-jvm/`, `JVM/thz-cli-jvm/`, `JVM/thz-gui-jvm/`: Porto do motor em Java 25 como três projetos Gradle autônomos (núcleo/stdlib, CLI+REPL e IDE Desktop Swing), comunicando pela API pública do core via Composite Build.
-- `docs/`: EBNF da gramática (`docs/GRAMATICA.md`) e documentações arquiteturais.
+- `JVM/`: Motor canônico em Java 25 (JDK 25 com Gradle), composto por módulos autônomos integrados (`thz-core-jvm`, `thz-cli-jvm`, `thz-gui-jvm`, `thz-api-jvm`, `thz-lsp-jvm` e `thz-bench-jvm`).
+- `Extensions/thz-lsp-vscode/`: Extensão oficial para VS Code conectada ao `thz-lsp-jvm` via stdio (LSP4J).
+- `docs/`: EBNF da gramática (`docs/GRAMATICA.md`), manual da linguagem e documentações arquiteturais.
 - `docs/PROJECT.md` & `AGENTS.md`: Diretrizes formais de arquitetura, invariantes e mapa do ecossistema.
 
 ---
@@ -21,10 +21,10 @@ Ao submeter código ou propor mudanças, certifique-se de respeitar os seguintes
 
 1. **Aritmética Financeira e Decimais (ISO/IEC 10967):**
    - É expressamente proibido o uso de ponto flutuante binário IEEE 754 (`number` float / `double`) para valores fiscais e monetários.
-   - Toda aritmética decimal utiliza inteiros escalados com `BigInt` (`DecimalFixo` no TypeScript / Java).
+   - Toda aritmética decimal utiliza inteiros escalados com `BigInt` / `DecimalFixo` no Java.
 
 2. **Fonte da Verdade Léxica:**
-   - Palavras-chave reservadas vivem unicamente em `src/keywords.ts` (TypeScript) e `thz.lang.lexico.PalavrasReservadas` (Java). É proibido criar literais dispersos no parser ou runtime.
+   - Palavras-chave reservadas vivem unicamente em `thz.lang.lexico.PalavrasReservadas` (Java). É proibido criar literais dispersos no parser ou runtime.
 
 3. **Design by Contract:**
    - Suporte e respeito integral a cláusulas `EXIGE`, `GARANTE` e `INVARIANTE`.
@@ -36,22 +36,13 @@ Ao submeter código ou propor mudanças, certifique-se de respeitar os seguintes
 
 ## 3. Fluxo de Desenvolvimento
 
-### Motor Node / TypeScript
+### Motor JVM 25 / Java
 
 ```bash
-cd thz-lang-engine
-npm install
-npm test                     # Executa toda a suíte de testes (159 testes)
-npm run thz:check -- --estrito # Verificação semântica estrita
-npm run playground           # Inicia o Playground Web localmente
-```
-
-### Motor JVM 25 / Java (três projetos autônomos)
-
-```bash
-cd JVM/thz-core-jvm && ./gradlew test          # Núcleo: suíte JUnit 5 com JDK 25
-cd JVM/thz-gui-jvm  && ./gradlew test          # IDE Desktop Swing
-cd JVM/thz-cli-jvm  && ./gradlew shadowJar     # UberJAR executável
+npm test                        # Executa toda a suíte de testes (Core, GUI, API, LSP)
+npm run ide                     # Executa a IDE Desktop Swing
+npm run lsp:jar                 # Compila o servidor LSP (shadowJar)
+npm run ext:compile             # Compila a extensão VS Code
 ```
 
 ---

@@ -1,6 +1,7 @@
 package thz.lang.semantico;
 
 import thz.lang.ast.*;
+import thz.lang.lexico.PalavrasReservadas;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -37,8 +38,15 @@ public final class AnalisadorSemantico {
     // ---------------------------------------------------------------- Ctor
 
 
+    private final ResolvedorModulos resolvedorModulos;
+
     public AnalisadorSemantico(ProgramaAst ast) {
+        this(ast, new ResolvedorModulos());
+    }
+
+    public AnalisadorSemantico(ProgramaAst ast, ResolvedorModulos resolvedorModulos) {
         this.ast = ast;
+        this.resolvedorModulos = resolvedorModulos != null ? resolvedorModulos : new ResolvedorModulos();
     }
 
     public List<ErroSemantico> analisar() {
@@ -49,6 +57,7 @@ public final class AnalisadorSemantico {
         erros.clear();
         estruturas.clear();
         enumeracoes.clear();
+        processarImportacoes();
         validarPragma();
         coletarEnumeracoes();
         coletarEstruturas();
@@ -81,10 +90,27 @@ public final class AnalisadorSemantico {
 
     // ---------------- Programa e estruturas ----------------
 
+    private void processarImportacoes() {
+        if (ast.importacoes() == null) return;
+        for (ImportacaoAst imp : ast.importacoes()) {
+            ProgramaAst astImportada = resolvedorModulos.resolver(imp, null);
+            if (astImportada != null) {
+                for (EstruturaAst est : astImportada.estruturas()) {
+                    estruturas.putIfAbsent(est.nome(), est);
+                }
+                for (EnumeracaoAst en : astImportada.enumeracoes()) {
+                    enumeracoes.add(en.nome());
+                }
+            } else if (imp.caminho() != null) {
+                erros.add(new ErroSemantico(imp.linha(), imp.coluna(), "Não foi possível resolver o módulo importado: '" + imp.modulo() + "' em '" + imp.caminho() + "'."));
+            }
+        }
+    }
+
     private void validarPragma() {
         String v = ast.versaoLinguagem();
         if (v == null) return;
-        if (!v.equals("2.2") && !v.equals("2.2.0") && !v.equals("2.3") && !v.equals("2.3.0")) {
+        if (!v.equals("2.2") && !v.equals("2.2.0") && !v.equals("2.3") && !v.equals("2.3.0") && !v.equals("2.4") && !v.equals("2.4.0")) {
             if (!Pattern.compile("^\\d+(\\.\\d+){1,2}$").matcher(v).matches()) {
                 erros.add(new ErroSemantico(1, 1, "VERSAO_LINGUAGEM inválida: '" + v + "'. Use semver major.minor.patch."));
             }
@@ -114,6 +140,9 @@ public final class AnalisadorSemantico {
             if (estruturas.containsKey(estrutura.nome())) {
                 erros.add(new ErroSemantico(1, 1, "Estrutura duplicada: '" + estrutura.nome() + "'."));
                 continue;
+            }
+            if (PalavrasReservadas.ehPalavraReservada(estrutura.nome())) {
+                erros.add(new ErroSemantico(1, 1, "Nome de estrutura '" + estrutura.nome() + "' é palavra reservada."));
             }
             estruturas.put(estrutura.nome(), estrutura);
         }
@@ -146,37 +175,36 @@ public final class AnalisadorSemantico {
     }
 
     private void validarEstruturas() {
-        for (EstruturaAst estrutura : ast.estruturas()) {
-            Set<String> vistas = new LinkedHashSet<>();
-            for (CampoEstruturaAst campo : estrutura.campos()) {
-                if (vistas.contains(campo.nome())) {
-                    erros.add(new ErroSemantico(1, 1, "Campo duplicado '" + campo.nome() + "' na estrutura '" + estrutura.nome() + "'."));
+        for (EstruturaAst est : ast.estruturas()) {
+            Set<String> campos = new HashSet<>();
+            for (CampoEstruturaAst campo : est.campos()) {
+                if (campos.contains(campo.nome())) {
+                    erros.add(new ErroSemantico(1, 1, "Campo duplicado '" + campo.nome() + "' na estrutura '" + est.nome() + "'."));
                 }
-                vistas.add(campo.nome());
+                campos.add(campo.nome());
                 tipoValido(campo.tipo(), 1, 1);
             }
-            validarInvariantes(estrutura);
+            EscopoTipos escopoEst = new EscopoTipos();
+            for (CampoEstruturaAst c : est.campos()) {
+                TipoThz t = tipoValido(c.tipo(), 1, 1);
+                if (t != null) escopoEst.definir(c.nome(), t, 1, 1, erros);
+            }
+            for (InvarianteAst inv : est.invariantes()) {
+                TipoThz tipoInv = inferir(inv.expressao(), escopoEst);
+                if (tipoInv != null && !tipoInv.nome().equals(TIPO_LOGICO.nome()) && !tipoInv.nome().equals(TIPO_NULO.nome())) {
+                    erros.add(new ErroSemantico(inv.linha(), inv.coluna(),
+                            "INVARIANTE da estrutura '" + est.nome() + "' deve ser expressão lógica; obtido " + Tipos.descrever(tipoInv) + "."));
+                }
+            }
         }
     }
 
-    /** INVARIANTE: validadas contra o ambiente dos campos da própria estrutura. */
-    private void validarInvariantes(EstruturaAst estrutura) {
-        if (estrutura.invariantes().isEmpty()) return;
-        EscopoTipos escopo = new EscopoTipos();
-        for (CampoEstruturaAst campo : estrutura.campos()) {
-            TipoThz t = tipoValido(campo.tipo(), 1, 1);
-            if (t == null) t = TIPO_NULO;
-            escopo.definir(campo.nome(), t, 1, 1, new ArrayList<>());
-        }
-        for (InvarianteAst invariante : estrutura.invariantes()) {
-            TipoThz tipo = inferir(invariante.expressao(), escopo);
-            exigirLogico(tipo, "invariante de '" + estrutura.nome() + "'", invariante.linha(), invariante.coluna());
-        }
-    }
-
-    // ---------------- Regras ----------------
+    // ---------------- Regras de negócio ----------------
 
     private void validarRegra(RegraNegocioAst regra) {
+        if (estruturas.containsKey(regra.nome()) || enumeracoes.contains(regra.nome())) {
+            erros.add(new ErroSemantico(1, 1, "Nome da regra '" + regra.nome() + "' conflita com estrutura/enumeração."));
+        }
         for (OperacaoAst operacao : regra.operacoes()) {
             ContextoOperacao contexto = new ContextoOperacao(regra, operacao);
             EscopoTipos escopoRaiz = new EscopoTipos();
@@ -196,7 +224,6 @@ public final class AnalisadorSemantico {
             for (ClausulaContratoAst clausula : regra.clausulasSaida()) validarClausula(clausula, escopoSaida);
 
             validarBlocoFilho(operacao.corpo(), escopoRaiz, contexto);
-
         }
     }
 
@@ -240,13 +267,45 @@ public final class AnalisadorSemantico {
     private void validarComando(ComandoAst cmd, EscopoTipos escopo, ContextoExec contexto) {
         switch (cmd) {
             case ComandoAst.DeclVariavel d -> {
-                TipoThz declarado = tipoValido(d.tipoDado(), d.linha(), d.coluna());
                 TipoThz init = inferir(d.inicializacao(), escopo);
-                if (declarado != null && init != null && !Tipos.saoCompativeis(init, declarado)) {
-                    erros.add(new ErroSemantico(d.linha(), d.coluna(),
-                            "Inicialização de '" + d.nome() + "' incompatível: " + Tipos.descrever(init) + " → " + Tipos.descrever(declarado) + "."));
+                TipoThz tipoFinal;
+                if (d.tipoDado() != null) {
+                    TipoThz declarado = tipoValido(d.tipoDado(), d.linha(), d.coluna());
+                    if (declarado != null && init != null && !Tipos.saoCompativeis(init, declarado)) {
+                        erros.add(new ErroSemantico(d.linha(), d.coluna(),
+                                "Inicialização de '" + d.nome() + "' incompatível: " + Tipos.descrever(init) + " → " + Tipos.descrever(declarado) + "."));
+                    }
+                    tipoFinal = declarado != null ? declarado : TIPO_NULO;
+                } else {
+                    if (init == null || init.equals(TIPO_NULO)) {
+                        erros.add(new ErroSemantico(d.linha(), d.coluna(),
+                                "Não foi possível inferir o tipo da variável '" + d.nome() + "'. Declare o tipo explicitamente."));
+                        tipoFinal = TIPO_NULO;
+                    } else {
+                        tipoFinal = init;
+                    }
                 }
-                escopo.definir(d.nome(), declarado != null ? declarado : TIPO_NULO, d.linha(), d.coluna(), erros);
+                escopo.definir(d.nome(), tipoFinal, d.linha(), d.coluna(), erros);
+            }
+            case ComandoAst.CasoResultado cr -> {
+                TipoThz tipoAlvo = inferir(cr.alvo(), escopo);
+                if (tipoAlvo != null && tipoAlvo.categoria() != CategoriaTipo.RESULTADO) {
+                    erros.add(new ErroSemantico(cr.linha(), cr.coluna(),
+                            "'CASO_RESULTADO' exige expressão do tipo RESULTADO[T, E]; obtido " + Tipos.descrever(tipoAlvo) + "."));
+                }
+                TipoThz tipoSucesso = (tipoAlvo != null && tipoAlvo.interno() != null) ? tipoValido(tipoAlvo.interno(), cr.linha(), cr.coluna()) : TIPO_NULO;
+                TipoThz tipoErro = (tipoAlvo != null && tipoAlvo.internoErro() != null) ? tipoValido(tipoAlvo.internoErro(), cr.linha(), cr.coluna()) : TIPO_NULO;
+
+                if (cr.varSucesso() != null) {
+                    EscopoTipos escopoSucesso = new EscopoTipos(escopo);
+                    escopoSucesso.definir(cr.varSucesso(), tipoSucesso != null ? tipoSucesso : TIPO_NULO, cr.linha(), cr.coluna(), erros);
+                    validarBlocoFilho(cr.corpoSucesso(), escopoSucesso, contexto);
+                }
+                if (cr.varErro() != null) {
+                    EscopoTipos escopoErro = new EscopoTipos(escopo);
+                    escopoErro.definir(cr.varErro(), tipoErro != null ? tipoErro : TIPO_NULO, cr.linha(), cr.coluna(), erros);
+                    validarBlocoFilho(cr.corpoErro(), escopoErro, contexto);
+                }
             }
             case ComandoAst.Atribuicao a -> {
                 TipoThz alvo = resolverCaminho(a.alvo(), escopo, a.linha(), a.coluna());
@@ -699,9 +758,6 @@ public final class AnalisadorSemantico {
     // ---------------- Lint de governança (--estrito) ----------------
 
     private void aplicarLintEstrito() {
-        if (ast.versaoLinguagem() == null) {
-            erros.add(new ErroSemantico(1, 1, "[Governança] Pragma VERSAO_LINGUAGEM ausente."));
-        }
         if (ast.metadados() == null || ast.metadados().sloLatencia() == null) {
             erros.add(new ErroSemantico(1, 1, "[Governança] METADADOS_ARQUITETURA sem SLO_LATENCIA_MAXIMA."));
         }

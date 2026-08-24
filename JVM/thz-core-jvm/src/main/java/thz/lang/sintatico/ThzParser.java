@@ -32,21 +32,57 @@ public class ThzParser {
     public ProgramaAst parse() {
         String versaoLinguagem = null;
         MetadadosArquiteturaAst metadados = null;
+        List<ImportacaoAst> importacoes = new ArrayList<>();
         List<EstruturaAst> estruturas = new ArrayList<>();
         List<EnumeracaoAst> enumeracoes = new ArrayList<>();
         List<RegraNegocioAst> regras = new ArrayList<>();
         List<ProcedimentoAst> procedimentos = new ArrayList<>();
 
-        // Pragma opcional de compatibilidade: VERSAO_LINGUAGEM "2.2"
+        // Pragma opcional de compatibilidade: VERSAO_LINGUAGEM "2.4"
         if (match(TokenType.VERSAO_LINGUAGEM)) {
             versaoLinguagem = consume(TokenType.STRING_LITERAL, "Esperada a versão da linguagem entre aspas após 'VERSAO_LINGUAGEM'.").value();
         }
 
-        consume(TokenType.PROGRAMA, "Esperado 'PROGRAMA' no início do arquivo.");
-        String nome = consumeIdentificador("Esperado o nome do programa.").value();
+        TipoModulo tipoModulo;
+        TokenType terminadorEsperado;
 
-        while (!check(TokenType.FIM_PROGRAMA) && !isAtEnd()) {
-            if (match(TokenType.METADADOS_ARQUITETURA)) {
+        if (match(TokenType.PROGRAMA)) {
+            if (match(TokenType.VISUAL)) {
+                tipoModulo = TipoModulo.PROGRAMA_VISUAL;
+            } else if (match(TokenType.NEGOCIO)) {
+                tipoModulo = TipoModulo.PROGRAMA_NEGOCIO;
+            } else if (match(TokenType.ARQUITETURA)) {
+                tipoModulo = TipoModulo.PROGRAMA_ARQUITETURA;
+            } else {
+                tipoModulo = TipoModulo.PROGRAMA;
+            }
+            terminadorEsperado = TokenType.FIM_PROGRAMA;
+        } else if (match(TokenType.BIBLIOTECA)) {
+            tipoModulo = TipoModulo.BIBLIOTECA;
+            terminadorEsperado = TokenType.FIM_BIBLIOTECA;
+        } else if (match(TokenType.EXTENSAO)) {
+            tipoModulo = TipoModulo.EXTENSAO;
+            terminadorEsperado = TokenType.FIM_EXTENSAO;
+        } else if (match(TokenType.FERRAMENTA)) {
+            tipoModulo = TipoModulo.FERRAMENTA;
+            terminadorEsperado = TokenType.FIM_FERRAMENTA;
+        } else if (match(TokenType.TESTE)) {
+            tipoModulo = TipoModulo.TESTE;
+            terminadorEsperado = TokenType.FIM_TESTE;
+        } else if (match(TokenType.TELA)) {
+            tipoModulo = TipoModulo.TELA;
+            terminadorEsperado = TokenType.FIM_TELA;
+        } else {
+            Token token = peek();
+            throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Esperada declaração de módulo no início do arquivo ('PROGRAMA', 'PROGRAMA VISUAL', 'PROGRAMA NEGOCIO', 'PROGRAMA ARQUITETURA', 'BIBLIOTECA', 'EXTENSAO', 'FERRAMENTA', 'TESTE' ou 'TELA'). (Encontrado: '" + token.value() + "')");
+        }
+
+        String nome = consumeIdentificador("Esperado o nome do módulo " + tipoModulo.descricao() + ".").value();
+
+        while (!check(terminadorEsperado) && !isAtEnd()) {
+            if (match(TokenType.IMPORTAR)) {
+                importacoes.add(parseImportacao());
+            } else if (match(TokenType.METADADOS_ARQUITETURA)) {
                 metadados = parseMetadados();
             } else if (match(TokenType.ESTRUTURA)) {
                 estruturas.add(parseEstrutura());
@@ -57,18 +93,28 @@ public class ThzParser {
             } else if (match(TokenType.PROCEDIMENTO)) {
                 procedimentos.add(parseProcedimento());
             } else {
-                erroDeclaracaoInvalida();
+                erroDeclaracaoInvalida(tipoModulo);
             }
         }
 
-        consume(TokenType.FIM_PROGRAMA, "Esperado 'FIM_PROGRAMA' encerrando o programa.");
+        consume(terminadorEsperado, "Esperado '" + tipoModulo.terminadorPadrao() + "' encerrando o bloco " + tipoModulo.descricao() + ".");
 
-        return new ProgramaAst(nome, versaoLinguagem, metadados, estruturas, enumeracoes, regras, procedimentos);
+        return new ProgramaAst(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos);
     }
 
-    private void erroDeclaracaoInvalida() {
+    private ImportacaoAst parseImportacao() {
+        Token inicio = previous();
+        String modulo = consumeIdentificador("Esperado nome do módulo após 'IMPORTAR'.").value();
+        String caminho = null;
+        if (match(TokenType.DE)) {
+            caminho = consume(TokenType.STRING_LITERAL, "Esperado caminho do arquivo entre aspas após 'DE'.").value();
+        }
+        return new ImportacaoAst(modulo, caminho, inicio.line(), inicio.column());
+    }
+
+    private void erroDeclaracaoInvalida(TipoModulo tipoModulo) {
         Token token = peek();
-        throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Declaração não reconhecida no nível do programa. Esperados 'METADADOS_ARQUITETURA', 'ESTRUTURA', 'ENUMERACAO', 'REGRA_NEGOCIO', 'PROCEDIMENTO' ou 'FIM_PROGRAMA'. (Encontrado: '" + token.value() + "')");
+        throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Declaração não reconhecida no nível do módulo. Esperados 'IMPORTAR', 'METADADOS_ARQUITETURA', 'ESTRUTURA', 'ENUMERACAO', 'REGRA_NEGOCIO', 'PROCEDIMENTO' ou '" + tipoModulo.terminadorPadrao() + "'. (Encontrado: '" + token.value() + "')");
     }
 
     /* ============================================================
@@ -342,11 +388,53 @@ public class ThzParser {
             case VARIAVEL: {
                 advance();
                 String nome = consumeIdentificador("Esperado nome da variável.").value();
-                consume(TokenType.DOIS_PONTOS, "Esperado ':' após o nome da variável.");
-                String tipoDado = parseTipoDado();
+                String tipoDado = null;
+                if (match(TokenType.DOIS_PONTOS)) {
+                    tipoDado = parseTipoDado();
+                }
                 consume(TokenType.SETA_ATRIBUICAO, "Esperado '<-' na inicialização da variável '" + nome + "'.");
                 ExprAst inicializacao = parseExpressao();
                 return new ComandoAst.DeclVariavel(nome, tipoDado, inicializacao, token.line(), token.column());
+            }
+
+            case CASO_RESULTADO: {
+                advance();
+                ExprAst alvo = parseExpressao();
+                String varSucesso = null;
+                List<ComandoAst> corpoSucesso = new ArrayList<>();
+                String varErro = null;
+                List<ComandoAst> corpoErro = new ArrayList<>();
+
+                while (!check(TokenType.FIM_CASO) && !isAtEnd()) {
+                    if (match(TokenType.SUCESSO)) {
+                        consume(TokenType.ABRE_PARENTESE, "Esperado '(' após 'SUCESSO'.");
+                        varSucesso = consumeIdentificador("Esperado identificador da variável de sucesso.").value();
+                        consume(TokenType.FECHA_PARENTESE, "Esperado ')' fechando parâmetro de 'SUCESSO'.");
+                        consume(TokenType.SETA_CASO, "Esperado '->' após SUCESSO(...).");
+                        if (match(TokenType.INICIO)) {
+                            corpoSucesso = parseBlocoComandos(TokenType.FIM);
+                            consume(TokenType.FIM, "Esperado 'FIM' encerrando o bloco de SUCESSO.");
+                        } else {
+                            corpoSucesso = List.of(parseComando());
+                        }
+                    } else if (match(TokenType.ERRO)) {
+                        consume(TokenType.ABRE_PARENTESE, "Esperado '(' após 'ERRO'.");
+                        varErro = consumeIdentificador("Esperado identificador da variável de erro.").value();
+                        consume(TokenType.FECHA_PARENTESE, "Esperado ')' fechando parâmetro de 'ERRO'.");
+                        consume(TokenType.SETA_CASO, "Esperado '->' após ERRO(...).");
+                        if (match(TokenType.INICIO)) {
+                            corpoErro = parseBlocoComandos(TokenType.FIM);
+                            consume(TokenType.FIM, "Esperado 'FIM' encerrando o bloco de ERRO.");
+                        } else {
+                            corpoErro = List.of(parseComando());
+                        }
+                    } else {
+                        Token t = peek();
+                        throw new RuntimeException("[Erro Sintático][Linha " + t.line() + ":" + t.column() + "] Esperado 'SUCESSO', 'ERRO' ou 'FIM_CASO' dentro de 'CASO_RESULTADO'. (Encontrado: '" + t.value() + "')");
+                    }
+                }
+                consume(TokenType.FIM_CASO, "Esperado 'FIM_CASO' encerrando 'CASO_RESULTADO'.");
+                return new ComandoAst.CasoResultado(alvo, varSucesso, corpoSucesso, varErro, corpoErro, token.line(), token.column());
             }
 
             case SE: {
@@ -439,7 +527,7 @@ public class ThzParser {
                 return new ComandoAst.FalharCom(parseExpressao(), token.line(), token.column());
             }
 
-            case IDENTIFICADOR: {
+            case IDENTIFICADOR, TELA: {
                 List<String> alvo = parseAcessoCaminho();
                 if (check(TokenType.ABRE_PARENTESE)) {
                     // Chamada isolada como comando: TEXTO.comprimento(x) ou MATEMATICA.abs(-3)
@@ -473,7 +561,11 @@ public class ThzParser {
 
     private List<String> parseAcessoCaminho() {
         List<String> caminho = new ArrayList<>();
-        caminho.add(consumeIdentificador("Esperado identificador.").value());
+        if (check(TokenType.TELA)) {
+            caminho.add(advance().value());
+        } else {
+            caminho.add(consumeIdentificador("Esperado identificador.").value());
+        }
         while (match(TokenType.PONTO)) {
             caminho.add(consumeIdentificador("Esperado campo após ponto de acesso.").value());
         }
@@ -632,7 +724,7 @@ public class ThzParser {
             return parsePosfixo(base);
         }
 
-        if (t.type() == TokenType.IDENTIFICADOR) {
+        if (t.type() == TokenType.IDENTIFICADOR || t.type() == TokenType.TELA) {
             List<String> caminho = parseAcessoCaminho();
             ExprAst base;
             if (check(TokenType.ABRE_PARENTESE)) {

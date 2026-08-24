@@ -130,6 +130,7 @@ public final class GeradorIr {
                 case ComandoAst.Chamada ch -> out.add("call @" + ThzParser.textoCanonicoDe(ch.expressao()));
                 case ComandoAst.Retorne r -> out.add("ret " + (r.expressao() != null ? ThzParser.textoCanonicoDe(r.expressao()) : "void"));
                 case ComandoAst.FalharCom fc -> out.add("fail " + ThzParser.textoCanonicoDe(fc.expressao()));
+                case ComandoAst.CasoResultado cr -> out.add("match_result " + ThzParser.textoCanonicoDe(cr.alvo()));
             }
         }
         return out;

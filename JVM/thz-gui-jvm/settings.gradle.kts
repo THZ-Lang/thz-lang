@@ -1,3 +1,7 @@
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
 rootProject.name = "thz-gui-jvm"
 
 // Composite Build: em desenvolvimento, resolve thz.lang:thz-core direto do

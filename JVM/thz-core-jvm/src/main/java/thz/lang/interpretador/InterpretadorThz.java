@@ -693,6 +693,27 @@ public class InterpretadorThz {
             case ComandoAst.Chamada ch -> avaliar(ch.expressao(), escopo);
             case ComandoAst.Retorne ret -> throw new SinalRetorne(ret.expressao() != null ? avaliar(ret.expressao(), escopo) : null);
             case ComandoAst.FalharCom fc -> throw new SinalFalhar(avaliar(fc.expressao(), escopo));
+            case ComandoAst.CasoResultado cr -> executarCasoResultado(cr, escopo);
+        }
+    }
+
+    private void executarCasoResultado(ComandoAst.CasoResultado cr, Escopo escopo) {
+        ValorThz alvo = avaliar(cr.alvo(), escopo);
+        if (!(alvo instanceof ValorThz.Resultado res)) {
+            throw new ErroExecucao("[Erro de Execução][Linha " + cr.linha() + ":" + cr.coluna() + "] CASO_RESULTADO exige valor RESULTADO; obtido " + formatar(alvo) + ".");
+        }
+        if (res.sucesso()) {
+            if (cr.varSucesso() != null && cr.corpoSucesso() != null) {
+                Escopo escopoSucesso = new Escopo(escopo);
+                escopoSucesso.definir(cr.varSucesso(), res.valor());
+                executarComandos(cr.corpoSucesso(), escopoSucesso);
+            }
+        } else {
+            if (cr.varErro() != null && cr.corpoErro() != null) {
+                Escopo escopoErro = new Escopo(escopo);
+                escopoErro.definir(cr.varErro(), res.erro());
+                executarComandos(cr.corpoErro(), escopoErro);
+            }
         }
     }
 

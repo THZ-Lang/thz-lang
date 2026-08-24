@@ -28,7 +28,8 @@
           "thz"
         ],
         "extensions": [
-          ".thz"
+          ".thz",
+          ".thzui"
         ],
         "configuration": "./language-configuration.json"
       }

@@ -393,6 +393,234 @@ public final class BibliotecaPadrao {
             }
         });
 
+        // ---------------- VERSAO ----------------
+        registrar(m, "VERSAO.obter", (args, ctx, interp) -> {
+            return ValorThz.TEXTO(thz.lang.version.ThzVersion.ATUAL.toString());
+        });
+        registrar(m, "VERSAO.satisfaz", (args, ctx, interp) -> {
+            exigirAridade("VERSAO.satisfaz", args, 2, ctx);
+            exigirClasse("VERSAO.satisfaz", args.get(0), "TEXTO", ctx);
+            exigirClasse("VERSAO.satisfaz", args.get(1), "TEXTO", ctx);
+            return ValorThz.LOGICO(thz.lang.version.ThzVersion.satisfaz(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            ));
+        });
+
+        // ---------------- ARQUIVO & DIRETORIO ----------------
+        registrar(m, "ARQUIVO.lerTexto", (args, ctx, interp) -> {
+            exigirAridade("ARQUIVO.lerTexto", args, 1, ctx);
+            exigirClasse("ARQUIVO.lerTexto", args.get(0), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.io.ThzIO.lerTexto(((ValorThz.Texto) args.get(0)).valor()));
+        });
+        registrar(m, "ARQUIVO.escreverTexto", (args, ctx, interp) -> {
+            exigirAridade("ARQUIVO.escreverTexto", args, 2, ctx);
+            exigirClasse("ARQUIVO.escreverTexto", args.get(0), "TEXTO", ctx);
+            exigirClasse("ARQUIVO.escreverTexto", args.get(1), "TEXTO", ctx);
+            thz.lang.io.ThzIO.escreverTexto(((ValorThz.Texto) args.get(0)).valor(), ((ValorThz.Texto) args.get(1)).valor());
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "ARQUIVO.anexarTexto", (args, ctx, interp) -> {
+            exigirAridade("ARQUIVO.anexarTexto", args, 2, ctx);
+            exigirClasse("ARQUIVO.anexarTexto", args.get(0), "TEXTO", ctx);
+            exigirClasse("ARQUIVO.anexarTexto", args.get(1), "TEXTO", ctx);
+            thz.lang.io.ThzIO.anexarTexto(((ValorThz.Texto) args.get(0)).valor(), ((ValorThz.Texto) args.get(1)).valor());
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "ARQUIVO.existe", (args, ctx, interp) -> {
+            exigirAridade("ARQUIVO.existe", args, 1, ctx);
+            exigirClasse("ARQUIVO.existe", args.get(0), "TEXTO", ctx);
+            return ValorThz.LOGICO(thz.lang.io.ThzIO.existe(((ValorThz.Texto) args.get(0)).valor()));
+        });
+        registrar(m, "ARQUIVO.remover", (args, ctx, interp) -> {
+            exigirAridade("ARQUIVO.remover", args, 1, ctx);
+            exigirClasse("ARQUIVO.remover", args.get(0), "TEXTO", ctx);
+            return ValorThz.LOGICO(thz.lang.io.ThzIO.remover(((ValorThz.Texto) args.get(0)).valor()));
+        });
+        registrar(m, "DIRETORIO.listar", (args, ctx, interp) -> {
+            exigirAridade("DIRETORIO.listar", args, 1, ctx);
+            exigirClasse("DIRETORIO.listar", args.get(0), "TEXTO", ctx);
+            List<String> itens = thz.lang.io.ThzIO.listarDiretorio(((ValorThz.Texto) args.get(0)).valor());
+            List<ValorThz> res = new ArrayList<>();
+            for (String item : itens) res.add(ValorThz.TEXTO(item));
+            return new ValorThz.Fatia("TEXTO", res);
+        });
+        registrar(m, "DIRETORIO.criar", (args, ctx, interp) -> {
+            exigirAridade("DIRETORIO.criar", args, 1, ctx);
+            exigirClasse("DIRETORIO.criar", args.get(0), "TEXTO", ctx);
+            thz.lang.io.ThzIO.criarDiretorio(((ValorThz.Texto) args.get(0)).valor());
+            return ValorThz.LOGICO(true);
+        });
+
+        // ---------------- CONFIG ----------------
+        registrar(m, "CONFIG.obter", (args, ctx, interp) -> {
+            if (args.size() == 1) {
+                exigirClasse("CONFIG.obter", args.get(0), "TEXTO", ctx);
+                return ValorThz.TEXTO(thz.lang.config.ThzConfig.obter(((ValorThz.Texto) args.get(0)).valor()));
+            } else if (args.size() == 2) {
+                exigirClasse("CONFIG.obter", args.get(0), "TEXTO", ctx);
+                exigirClasse("CONFIG.obter", args.get(1), "TEXTO", ctx);
+                return ValorThz.TEXTO(thz.lang.config.ThzConfig.obter(((ValorThz.Texto) args.get(0)).valor(), ((ValorThz.Texto) args.get(1)).valor()));
+            }
+            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] CONFIG.obter exige 1 ou 2 argumentos.");
+        });
+        registrar(m, "CONFIG.carregarEnv", (args, ctx, interp) -> {
+            if (args.isEmpty()) {
+                thz.lang.config.ThzConfig.carregarEnvPadrao();
+            } else {
+                exigirClasse("CONFIG.carregarEnv", args.get(0), "TEXTO", ctx);
+                thz.lang.config.ThzConfig.carregarArquivoEnv(((ValorThz.Texto) args.get(0)).valor());
+            }
+            return ValorThz.LOGICO(true);
+        });
+
+        // ---------------- SEGURANCA ----------------
+        registrar(m, "SEGURANCA.sha256", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.sha256", args, 1, ctx);
+            exigirClasse("SEGURANCA.sha256", args.get(0), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.sha256(((ValorThz.Texto) args.get(0)).valor()));
+        });
+        registrar(m, "SEGURANCA.sha512", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.sha512", args, 1, ctx);
+            exigirClasse("SEGURANCA.sha512", args.get(0), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.sha512(((ValorThz.Texto) args.get(0)).valor()));
+        });
+        registrar(m, "SEGURANCA.hmacSha256", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.hmacSha256", args, 2, ctx);
+            exigirClasse("SEGURANCA.hmacSha256", args.get(0), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.hmacSha256", args.get(1), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.hmacSha256(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            ));
+        });
+        registrar(m, "SEGURANCA.criptografarAes", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.criptografarAes", args, 2, ctx);
+            exigirClasse("SEGURANCA.criptografarAes", args.get(0), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.criptografarAes", args.get(1), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.criptografarAes(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            ));
+        });
+        registrar(m, "SEGURANCA.descriptografarAes", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.descriptografarAes", args, 2, ctx);
+            exigirClasse("SEGURANCA.descriptografarAes", args.get(0), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.descriptografarAes", args.get(1), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.descriptografarAes(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            ));
+        });
+        registrar(m, "SEGURANCA.hashSenha", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.hashSenha", args, 1, ctx);
+            exigirClasse("SEGURANCA.hashSenha", args.get(0), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.hashSenha(((ValorThz.Texto) args.get(0)).valor()));
+        });
+        registrar(m, "SEGURANCA.verificarSenha", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.verificarSenha", args, 2, ctx);
+            exigirClasse("SEGURANCA.verificarSenha", args.get(0), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.verificarSenha", args.get(1), "TEXTO", ctx);
+            return ValorThz.LOGICO(thz.lang.security.ThzSecurity.verificarSenha(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            ));
+        });
+        registrar(m, "SEGURANCA.gerarToken", (args, ctx, interp) -> {
+            int tamanho = args.isEmpty() ? 32 : ((ValorThz.Inteiro) args.get(0)).valor().intValue();
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.gerarToken(tamanho));
+        });
+        registrar(m, "SEGURANCA.uuid", (args, ctx, interp) -> {
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.gerarUuid());
+        });
+
+        // ---------------- LOG ----------------
+        registrar(m, "LOG.info", (args, ctx, interp) -> {
+            exigirAridade("LOG.info", args, 1, ctx);
+            thz.lang.log.ThzLog.info(args.get(0).formatar());
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "LOG.aviso", (args, ctx, interp) -> {
+            exigirAridade("LOG.aviso", args, 1, ctx);
+            thz.lang.log.ThzLog.aviso(args.get(0).formatar());
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "LOG.erro", (args, ctx, interp) -> {
+            exigirAridade("LOG.erro", args, 1, ctx);
+            thz.lang.log.ThzLog.erro(args.get(0).formatar());
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "LOG.auditoria", (args, ctx, interp) -> {
+            exigirAridade("LOG.auditoria", args, 3, ctx);
+            thz.lang.log.ThzLog.auditoria(
+                    args.get(0).formatar(),
+                    args.get(1).formatar(),
+                    args.get(2).formatar()
+            );
+            return ValorThz.LOGICO(true);
+        });
+
+        // ---------------- BANCO ----------------
+        registrar(m, "BANCO.conectar", (args, ctx, interp) -> {
+            exigirAridade("BANCO.conectar", args, 1, ctx);
+            exigirClasse("BANCO.conectar", args.get(0), "TEXTO", ctx);
+            thz.lang.db.ThzDb.conectar(((ValorThz.Texto) args.get(0)).valor());
+            return ValorThz.LOGICO(true);
+        });
+
+        // ---------------- WEBVIEW ----------------
+        registrar(m, "WEBVIEW.iniciar", (args, ctx, interp) -> {
+            exigirAridade("WEBVIEW.iniciar", args, 1, ctx);
+            exigirClasse("WEBVIEW.iniciar", args.get(0), "TEXTO", ctx);
+            String html = ((ValorThz.Texto) args.get(0)).valor();
+            int porta = thz.lang.webview.ThzWebviewBridge.iniciar(html);
+            return ValorThz.TEXTO(thz.lang.webview.ThzWebviewBridge.getUrl());
+        });
+        registrar(m, "WEBVIEW.emitir", (args, ctx, interp) -> {
+            exigirAridade("WEBVIEW.emitir", args, 2, ctx);
+            exigirClasse("WEBVIEW.emitir", args.get(0), "TEXTO", ctx);
+            exigirClasse("WEBVIEW.emitir", args.get(1), "TEXTO", ctx);
+            thz.lang.webview.ThzWebviewBridge.emitirParaJs(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            );
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "WEBVIEW.parar", (args, ctx, interp) -> {
+            thz.lang.webview.ThzWebviewBridge.parar();
+            return ValorThz.LOGICO(true);
+        });
+
+        // ---------------- UI (ThzUiMaker) ----------------
+        registrar(m, "UI.temaPadrao", (args, ctx, interp) -> {
+            return ValorThz.TEXTO("THZ Dark Glass");
+        });
+        registrar(m, "UI.renderizarHtml", (args, ctx, interp) -> {
+            exigirAridade("UI.renderizarHtml", args, 2, ctx);
+            exigirClasse("UI.renderizarHtml", args.get(0), "TEXTO", ctx);
+            exigirClasse("UI.renderizarHtml", args.get(1), "TEXTO", ctx);
+            String titulo = ((ValorThz.Texto) args.get(0)).valor();
+            String rotuloBotao = ((ValorThz.Texto) args.get(1)).valor();
+            var tela = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
+                c.adicionar(thz.lang.ui.ThzUiMaker.card("card_principal", titulo, card -> {
+                    card.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_info", "info", "Tela construída com ThzUiMaker"));
+                    card.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_acao", rotuloBotao, "ExecutarAcao"));
+                }));
+            });
+            return ValorThz.TEXTO(tela.renderizarHtml(titulo, thz.lang.ui.ThzUiTema.escuroGlass()));
+        });
+        registrar(m, "UI.gerarCodigo", (args, ctx, interp) -> {
+            exigirAridade("UI.gerarCodigo", args, 1, ctx);
+            exigirClasse("UI.gerarCodigo", args.get(0), "TEXTO", ctx);
+            String nome = ((ValorThz.Texto) args.get(0)).valor();
+            var tela = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
+                c.adicionar(thz.lang.ui.ThzUiMaker.card("card_app", nome, card -> {
+                    card.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_ok", "Confirmar", "ConfirmarAcao"));
+                }));
+            });
+            return ValorThz.TEXTO(tela.gerarCodigoThz(nome));
+        });
+
         // Base imutável; extensões de módulos (registrar) são aplicadas sobre cópia concorrente
         return new java.util.concurrent.ConcurrentHashMap<>(m);
     }
