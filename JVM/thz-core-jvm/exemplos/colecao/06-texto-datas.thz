@@ -1,7 +1,6 @@
 # 06 — Biblioteca padrão: TEXTO e DATA
 # Funções nativas TEXTO.* e DATA.* disponíveis em qualquer contexto.
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA TextoEDatas
 

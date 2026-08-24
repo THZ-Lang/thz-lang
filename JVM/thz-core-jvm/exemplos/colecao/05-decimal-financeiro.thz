@@ -2,7 +2,6 @@
 # DECIMAL(p, s) usa inteiros escalados (ISO/IEC 10967) — nunca IEEE 754.
 # MATEMATICA.arredondar usa half-even (banqueiro), padrão de mercado.
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA DecimalFinanceiro
 

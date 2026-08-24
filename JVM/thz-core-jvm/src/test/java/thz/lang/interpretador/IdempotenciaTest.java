@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class IdempotenciaTest {
 
     private static final String CODIGO_FONTE_IDEMPOTENTE = """
-            VERSAO_LINGUAGEM "2.3.0"
             PROGRAMA ServicoLiquidacaoFinanceira
 
             METADADOS_ARQUITETURA

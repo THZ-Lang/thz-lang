@@ -2,7 +2,6 @@
 # USAR_BLOCO_MEMORIA delimita alocações em arena: tudo que o bloco aloca
 # é descartado em O(1) ao sair do escopo (FIM_BLOCO_MEMORIA).
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA BlocoMemoria
 

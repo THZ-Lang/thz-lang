@@ -2,7 +2,6 @@
 # Mostra TEXTO, LOGICO, inteiros, DECIMAL, DATA e INVARIANTE.
 # Regra: tipos são validados em tempo de compilação; aritmética decimal usa BigInt escalado.
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA TiposEstruturas
 

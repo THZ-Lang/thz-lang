@@ -3,7 +3,6 @@
 # devolve FALHA(motivo); RETORNE no caminho feliz vira SUCESSO(valor).
 # GARANTE avalia apenas o canal de sucesso.
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA ResultadoDDD
 

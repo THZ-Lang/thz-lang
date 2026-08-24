@@ -108,13 +108,7 @@ public final class AnalisadorSemantico {
     }
 
     private void validarPragma() {
-        String v = ast.versaoLinguagem();
-        if (v == null) return;
-        if (!v.equals("2.2") && !v.equals("2.2.0") && !v.equals("2.3") && !v.equals("2.3.0") && !v.equals("2.4") && !v.equals("2.4.0")) {
-            if (!Pattern.compile("^\\d+(\\.\\d+){1,2}$").matcher(v).matches()) {
-                erros.add(new ErroSemantico(1, 1, "VERSAO_LINGUAGEM inválida: '" + v + "'. Use semver major.minor.patch."));
-            }
-        }
+        // Pragma VERSAO_LINGUAGEM depreciado e removido
     }
 
     private void coletarEnumeracoes() {

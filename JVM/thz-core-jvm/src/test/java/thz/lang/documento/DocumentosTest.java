@@ -154,7 +154,6 @@ public class DocumentosTest {
         String docxDest = tempDir.resolve("fatura.docx").toString().replace("\\", "/");
 
         String codigo = """
-                VERSAO_LINGUAGEM "2.3"
                 PROGRAMA TesteExportacaoDocumentos
 
                 ESTRUTURA ItemFatura

@@ -2,7 +2,6 @@
 # ENUMERACAO cria vocabulário fechado; membros viram valores globais tipados.
 # INVARIANTE garante que o domínio protege sua própria consistência.
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA EnumeracoesDemo
 

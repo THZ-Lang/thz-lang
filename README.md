@@ -92,8 +92,7 @@ Em THZ-LANG v2.4, cada arquivo declara seu propósito arquitetural explícito co
 ## 📝 Exemplo Canônico
 
 ```thz
-PROGRAMA NEGOCIO ProcessamentoFaturamentoLote
-VERSAO_LINGUAGEM "2.4"
+PROGRAMA NEGOCIO FaturamentoVendas
 
 METADADOS_ARQUITETURA
     SISTEMA: "FaturamentoCore"

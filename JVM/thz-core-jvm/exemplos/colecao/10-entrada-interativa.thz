@@ -4,7 +4,6 @@
 # GUI:      abre diálogo automaticamente ao executar (▶ Executar)
 # REPL:     lê do teclado durante a sessão
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA EntradaInterativa
 

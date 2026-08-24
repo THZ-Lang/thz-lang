@@ -74,7 +74,6 @@ public class FormularioGuiTest {
     @SuppressWarnings("unchecked")
     public void renderizadorFormularioSubmeteComSucessoEContrato() throws Exception {
         String codigo = """
-            VERSAO_LINGUAGEM "2.3"
             PROGRAMA TesteForm
             ESTRUTURA Form
                 titulo: TEXTO
@@ -138,7 +137,6 @@ public class FormularioGuiTest {
     @Test
     public void moduloTelaAlertaEConfirmarFuncionam() {
         String codigo = """
-            VERSAO_LINGUAGEM "2.3"
             PROGRAMA TesteTela
             REGRA_NEGOCIO Regra
                 IDENTIFICADOR_REGRA: "RN-TELA"

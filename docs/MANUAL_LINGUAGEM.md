@@ -81,7 +81,6 @@ O arquétipo `PIPELINE_DADOS` viabiliza a ingestão e transformação massiva de
 
 ```thz
 PIPELINE_DADOS ProcessamentoTransacoesStreaming
-VERSAO_LINGUAGEM "2.4"
 
 METADADOS_ARQUITETURA
     SISTEMA: "DataPipelineCore"

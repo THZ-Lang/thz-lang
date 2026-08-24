@@ -37,7 +37,7 @@ Valida tipagem, escopo de variáveis e contratos.
 # Análise padrão
 thz check exemplos/faturamento.thz
 
-# Modo estrito (exige pragma VERSAO_LINGUAGEM, rastreio e SLO)
+# Modo estrito (exige metadados de arquitetura, rastreio e SLO)
 thz check exemplos/faturamento.thz --estrito
 ```
 

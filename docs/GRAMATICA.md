@@ -7,9 +7,8 @@ Este documento define a gramática formal em sintaxe EBNF (*Extended Backus-Naur
 ## 1. Estrutura Global do Programa e Módulos
 
 ```ebnf
-Programa          ::= HeaderVersao? MetadadosArq? DeclaracaoModulo ;
-
-HeaderVersao      ::= "VERSAO_LINGUAGEM" STRING_LITERAL ;
+Programa          ::= ModuloHeader MetadadosHeader? Importacao* Declaração* TerminadorModulo ;
+ModuloHeader      ::= TipoModulo IDENTIFICADOR ;
 
 MetadadosArq      ::= "METADADOS_ARQUITETURA" MetadadoItem* "FIM_METADADOS" ;
 MetadadoItem      ::= IDENTIFICADOR ":" (STRING_LITERAL | NUMERO | IDENTIFICADOR) ;

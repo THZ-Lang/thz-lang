@@ -1,10 +1,9 @@
-﻿# 08 — Processamento vetorizado (SoA/SIMD)
+# 08 — Processamento vetorizado (SoA/SIMD)
 # VETORIZAR_PARA ... PASSO_SIMD 8 marca o laço para vetoriação AVX2/AVX-512.
 # LAYOUT_COLUNAR armazena a estrutura como Structure-of-Arrays.
 # Nota: campos UUID não são populáveis via CRIAR literal — veja faturamento.thz
 # canônico, cujo lote é injetado pelo motor (LOTE de demo na CLI).
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA VetorizadoSimd
 

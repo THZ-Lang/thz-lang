@@ -443,7 +443,6 @@ VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "RegraNegocio.MinhaOp
 ## 12. Exemplo Canônico Completo de Ponta a Ponta
 
 ```thz
-VERSAO_LINGUAGEM "2.3"
 PROGRAMA ExemploCompleto
 
 # --- METADADOS ARQUITETURAIS ---

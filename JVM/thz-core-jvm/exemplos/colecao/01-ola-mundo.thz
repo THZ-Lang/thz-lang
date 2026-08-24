@@ -1,7 +1,6 @@
 # 01 — Olá Mundo
 # Objetivo: programa mínimo executável. Mostra pragma, PROGRAMA, METADADOS e PROCEDIMENTO.
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA OlaMundo
 

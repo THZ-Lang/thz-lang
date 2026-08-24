@@ -85,7 +85,6 @@ public final class Formatador {
 
     public static String formatar(ProgramaAst ast) {
         java.util.ArrayList<String> out = new java.util.ArrayList<>();
-        if (ast.versaoLinguagem() != null) { out.add("VERSAO_LINGUAGEM \"" + ast.versaoLinguagem() + "\""); out.add(""); }
         TipoModulo tipo = ast.tipoModulo() != null ? ast.tipoModulo() : TipoModulo.PROGRAMA;
         out.add(tipo.descricao() + " " + ast.nome()); out.add("");
         if (ast.importacoes() != null && !ast.importacoes().isEmpty()) {

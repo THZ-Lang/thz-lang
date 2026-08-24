@@ -79,7 +79,6 @@ public class IrSimdTest {
     @Test
     public void testViolacaoSimdComIoImpuro() {
         String fonte = """
-                VERSAO_LINGUAGEM "2.3.0"
                 PROGRAMA TesteSimdInvalido
                 ESTRUTURA Dado LAYOUT_COLUNAR
                     valor: INTEIRO

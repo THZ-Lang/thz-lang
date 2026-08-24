@@ -89,7 +89,6 @@ public class GovernancaTest {
     @Test
     public void testAuditarProgramaSemMetadadosOuRastreio() {
         String fonte = """
-                VERSAO_LINGUAGEM "2.3.0"
                 PROGRAMA TesteIncompleto
                 REGRA_NEGOCIO RegraSolta
                     DESCRICAO: "Sem rastreio e sem contrato"

@@ -65,7 +65,6 @@ public final class ThzGui extends JFrame implements BarraMenuGui.AcoesGui {
 
     private static final Pattern POSICAO = Pattern.compile("\\[Linha (\\d+):(\\d+)]");
     private static final String FONTE_INICIAL = """
-            VERSAO_LINGUAGEM "2.3"
 
             PROGRAMA ExemploDesktop
 

@@ -2,7 +2,6 @@
 # SE/SENAO, ENQUANTO e PARA ... DE ... ATE [PASSO].
 # Convenção: '=' compara, '<-' atribui; conectivos são verbais (E, OU, NAO).
 
-VERSAO_LINGUAGEM "2.3"
 
 PROGRAMA ControleFluxo
 

@@ -64,13 +64,23 @@ Linguagem de programação corporativa orientada a domínio (DDD), contratos for
 
 
 
-\## 2. Código Canônico de Referência (`exemplos/faturamento.thz`)
+---
 
+## 1. Pilares da Linguagem
 
+1. **Aritmética Exata de Domínio:** Suporte nativo a `DECIMAL(P, S)` e `MONETARIO(ISO)` sem imprecisões binárias (ISO/IEC 10967 / ISO 4217).
+
+2. **Contratos Formais e Invariantes:** Cláusulas de pré-condição (`EXIGE`) e pós-condição (`GARANTE`) integradas à semântica da linguagem.
+
+3. **Engenharia Orientada a Dados (DoD):** Modificador `LAYOUT_COLUNAR` (*Structure of Arrays*), loops vetorizados (`VETORIZAR_PARA ... PASSO_SIMD`) e gerenciamento de memória em blocos contíguos (`USAR_BLOCO_MEMORIA ARENA_EPHEMERAL`).
+
+4. **Arquitetura Viva:** Extração direta de metadados arquiteturais (ISO/IEC/IEEE 42010), diagramas C4 e Mermaid a partir da AST.
+
+---
+
+## 2. Código Canônico de Referência (`exemplos/faturamento.thz`)
 
 ```thz
-VERSAO_LINGUAGEM "2.2"
-
 PROGRAMA ProcessamentoFaturamentoLote
 
 METADADOS_ARQUITETURA

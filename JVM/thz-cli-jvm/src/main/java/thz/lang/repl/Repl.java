@@ -52,7 +52,6 @@ public final class Repl {
 
     private static String montarPrograma(List<String> topo, List<String> corpo) {
         List<String> partes = new ArrayList<>();
-        partes.add("VERSAO_LINGUAGEM \"2.3\"");
         partes.add("PROGRAMA SESSAO");
         partes.addAll(topo);
         partes.add("REGRA_NEGOCIO Sessao");

@@ -43,7 +43,7 @@ Todos os exemplos desta pasta são detectados dinamicamente e listados no menu *
 
 | # | Arquivo | Tema Principal | Construtos e Funcionalidades Demonstradas |
 |:---:|---|---|---|
-| **01** | `01-ola-mundo.thz` | Programa Mínimo | `VERSAO_LINGUAGEM`, `PROGRAMA`, `METADADOS_ARQUITETURA`, `PROCEDIMENTO Principal`, `EXIBA`. |
+| **01** | `01-ola-mundo.thz` | Programa Mínimo | `PROGRAMA`, `METADADOS_ARQUITETURA`, `PROCEDIMENTO Principal`, `EXIBA`. |
 | **02** | `02-tipos-estruturas.thz` | Tipos e Estruturas | Primitivos (`TEXTO`, `NATURAL32`, `DECIMAL`, `LOGICO`, `DATA`), `CRIAR`, acesso a campos, mutação com `<-`, `INVARIANTE`. |
 | **03** | `03-enumeracoes.thz` | Enumerações | `ENUMERACAO`, membros globais tipados, comparações verbais e conjunção `E`. |
 | **04** | `04-controle-fluxo.thz` | Fluxo de Controle | `SE/SENAO/FIM_SE`, `ENQUANTO`, `PARA..DE..ATE [PASSO]`, conectivo verbal `NAO`. |
@@ -80,7 +80,7 @@ Todos os exemplos desta pasta são detectados dinamicamente e listados no menu *
 
 ## Convenções da Linguagem THZ-LANG
 
-1. **Pragma de Versão:** Todo programa inicia com `VERSAO_LINGUAGEM "2.3"` antes de `PROGRAMA`.
+1. **Programa:** Todo programa inicia com a declaração do arquétipo de módulo (ex.: `PROGRAMA`).
 2. **Metadados Obrigatórios:** Bloco `METADADOS_ARQUITETURA` com domínio, autor, SLO e conformidade regulatória.
 3. **Fluxo de Dados Unidirecional:** O operador de atribuição e inicialização é `<-` (a seta indica o fluxo para o identificador).
 4. **Comparação e Conectivos:** Igualdade com `=` e conectivos lógicos verbais em português: `E`, `OU`, `NAO`.

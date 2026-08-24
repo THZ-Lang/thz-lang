@@ -17,7 +17,6 @@ Este documento fornece receitas práticas e padrões de código testados para o 
 
 ```thz
 PROGRAMA NEGOCIO GestaoClientes
-VERSAO_LINGUAGEM "2.4"
 
 METADADOS_ARQUITETURA
     SISTEMA: "CRM"
@@ -63,7 +62,6 @@ Uso do modificador `LAYOUT_COLUNAR` para otimização de memória contígua e la
 
 ```thz
 PROGRAMA NEGOCIO FaturamentoVetorizado
-VERSAO_LINGUAGEM "2.4"
 
 METADADOS_ARQUITETURA
     SISTEMA: "MotorCalculo"

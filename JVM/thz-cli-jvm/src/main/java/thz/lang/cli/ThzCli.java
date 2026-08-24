@@ -147,7 +147,7 @@ public class ThzCli {
                         System.err.println("[THZ CHECK] " + erros.size() + " erro(s) semântico(s).");
                         System.exit(1);
                     }
-                    String versao = ast.versaoLinguagem()!=null ? " (ver. linguagem declarada: " + ast.versaoLinguagem() + ")" : " (sem pragma VERSAO_LINGUAGEM — assumindo versão corrente)";
+                    String versao = "";
                     System.out.println("[THZ CHECK] Código validado com sucesso! AST íntegra para o programa: " + ast.nome() + versao + (estrito ? " [lint estrito aprovado]" : ""));
                     return;
                 }
