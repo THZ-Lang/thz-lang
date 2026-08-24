@@ -1,0 +1,78 @@
+PROGRAMA HelloWorldGui
+
+# --- DECLARAÇÕES DE METADADOS ARQUITETURAIS ---
+METADADOS_ARQUITETURA
+    DOMINIO: "Exemplos"
+    SUBDOMINIO: "InterfaceGrafica"
+    CAMADA: "Apresentacao"
+    VERSAO: "1.0.0"
+    AUTOR: "THZ-LANG Team"
+    SLO_LATENCIA_MAXIMA: "50ms"
+    CONFORMIDADE: "ISO-42010"
+FIM_METADADOS
+
+# --- DEFINIÇÃO DECLARATIVA DO FORMULÁRIO / TELA ---
+ESTRUTURA FormularioHelloWorld
+    titulo: TEXTO
+    seuNome: TEXTO
+FIM_ESTRUTURA
+
+# --- REGRAS DE NEGÓCIO E AÇÃO DO BOTÃO ---
+REGRA_NEGOCIO SaudacaoNegocio
+    IDENTIFICADOR_REGRA: "RN-HELLO-001"
+    RASTREIO_REQUISITO: "REQ-UI-HELLO"
+    DESCRICAO: "Processa a ação de clique do botão e exibe a mensagem de Hello World"
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(seuNome) >= 0
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO DizerOla(seuNome: TEXTO): TEXTO
+    INICIO
+        VARIAVEL mensagem : TEXTO <- ""
+        
+        SE TEXTO.comprimento(seuNome) > 0 ENTAO
+            mensagem <- "Hello World, " + seuNome + "!"
+        SENAO
+            mensagem <- "Hello World!"
+        FIM_SE
+
+        EXIBA "[GUI] " + mensagem
+        TELA.alerta("Saudação", mensagem)
+        RETORNE mensagem
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- INICIALIZAÇÃO DA INTERFACE GRÁFICA ---
+REGRA_NEGOCIO Inicializacao
+    IDENTIFICADOR_REGRA: "RN-INIT-001"
+    RASTREIO_REQUISITO: "REQ-UI-001"
+    DESCRICAO: "Inicializa o formulário declarativo no host renderer"
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO MontarTela(): TEXTO
+    INICIO
+        VARIAVEL form : FormularioHelloWorld <- CRIAR FormularioHelloWorld(
+            titulo: "Meu Primeiro App GUI — THZ-LANG",
+            seuNome: "Mundo"
+        )
+        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "SaudacaoNegocio.DizerOla")
+        EXIBA status
+        RETORNE status
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- PONTO DE ENTRADA DO PROGRAMA ---
+PROCEDIMENTO Principal()
+INICIO
+    Inicializacao.MontarTela()
+FIM
+
+FIM_PROGRAMA

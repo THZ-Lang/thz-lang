@@ -37,7 +37,16 @@ import thz.lang.sintatico.ThzParser;
 
 public class ThzCli {
     public static void main(String[] args) throws Exception {
-        BibliotecaConsole.registrar();
+        boolean modoWeb = Arrays.asList(args).contains("--web") || Arrays.asList(args).contains("--webview");
+        if (modoWeb) {
+            BibliotecaConsole.registrar();
+        } else {
+            try {
+                thz.lang.gui.BibliotecaTela.registrar();
+            } catch (Throwable t) {
+                BibliotecaConsole.registrar();
+            }
+        }
 
         if (args.length == 0 || args[0].equals("--ajuda") || args[0].equals("-h") || args[0].equals("ajuda")
                 || args[0].equals("help")) {

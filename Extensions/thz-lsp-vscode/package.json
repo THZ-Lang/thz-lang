@@ -33,7 +33,12 @@
     "onCommand:thz.showIr",
     "onCommand:thz.showLlvm",
     "onCommand:thz.runTarget",
-    "onView:thz-governance-view"
+    "onCommand:thz.refreshCockpit",
+    "onCommand:thz.toggleLintEstrito",
+    "onView:thz-cockpit-view",
+    "onView:thz-governance-view",
+    "onView:thz-gallery-view",
+    "onView:thz-environment-view"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -131,8 +136,23 @@
     "views": {
       "thz-sidebar": [
         {
+          "id": "thz-cockpit-view",
+          "name": "Cockpit de Comando (Ações Rápidas)",
+          "icon": "assets/thz-sidebar.svg"
+        },
+        {
           "id": "thz-governance-view",
-          "name": "Governança & Arquitetura Viva",
+          "name": "Estrutura do Código & Arquitetura Viva",
+          "icon": "assets/thz-sidebar.svg"
+        },
+        {
+          "id": "thz-gallery-view",
+          "name": "Galeria de Exemplos & Showcases",
+          "icon": "assets/thz-sidebar.svg"
+        },
+        {
+          "id": "thz-environment-view",
+          "name": "Ambiente & Status do Runtime",
           "icon": "assets/thz-sidebar.svg"
         }
       ]
@@ -196,6 +216,18 @@
         "command": "thz.runTarget",
         "title": "Executar Alvo",
         "category": "THZ-LANG"
+      },
+      {
+        "command": "thz.refreshCockpit",
+        "title": "Atualizar Cockpit THZ",
+        "category": "THZ-LANG",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "thz.toggleLintEstrito",
+        "title": "Alternar Modo Estrito (Lint Restritivo)",
+        "category": "THZ-LANG",
+        "icon": "$(pass)"
       }
     ],
     "menus": {
@@ -208,29 +240,24 @@
       ],
       "editor/title": [
         {
-          "command": "thz.run",
+          "command": "thz.check",
           "when": "resourceLangId == thz",
           "group": "navigation@1"
         },
         {
-          "command": "thz.check",
+          "command": "thz.previewArchitecture",
           "when": "resourceLangId == thz",
           "group": "navigation@2"
         },
         {
-          "command": "thz.previewArchitecture",
+          "command": "thz.previewUi",
           "when": "resourceLangId == thz",
           "group": "navigation@3"
         },
         {
-          "command": "thz.previewUi",
-          "when": "resourceLangId == thz",
-          "group": "navigation@4"
-        },
-        {
           "command": "thz.showAudit",
           "when": "resourceLangId == thz",
-          "group": "navigation@5"
+          "group": "navigation@4"
         }
       ],
       "editor/context": [

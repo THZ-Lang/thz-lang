@@ -20,7 +20,12 @@ if ($ArgsRest.Count -ge 1) {
 }
 $joined = $ArgsRest -join " "
 if ($ArgsRest.Count -ge 1 -and $ArgsRest[0] -eq "gui") {
-    & "$Raiz\gradlew.bat" :thz-gui-jvm:gui
+    if ($ArgsRest.Count -ge 2) {
+        $fileArgs = ($ArgsRest[1..($ArgsRest.Count - 1)] -join " ")
+        & "$Raiz\gradlew.bat" :thz-gui-jvm:run --args="$fileArgs"
+    } else {
+        & "$Raiz\gradlew.bat" :thz-gui-jvm:gui
+    }
 } else {
     & "$Raiz\gradlew.bat" :thz-cli-jvm:run --args="$joined"
 }

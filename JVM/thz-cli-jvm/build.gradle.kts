@@ -29,6 +29,7 @@ java {
 
 dependencies {
     implementation("thz.lang:thz-core:2.3.3")
+    implementation("thz.lang:thz-gui-jvm:2.3.3")
 
     // Testes Automatizados
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")

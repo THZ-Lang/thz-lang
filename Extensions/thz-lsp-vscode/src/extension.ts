@@ -107,14 +107,14 @@ export function activate(context: vscode.ExtensionContext): void {
       if (fs.existsSync(cliShadowJar)) {
         return { comando: `java -jar "${cliShadowJar}" ${fullArgs}`, cwd: root };
       }
-      if (isWin && fs.existsSync(thzCmd)) {
-        return { comando: `"${thzCmd}" ${fullArgs}`, cwd: root };
-      }
       if (isWin && fs.existsSync(thzPs1)) {
-        return { comando: `powershell -ExecutionPolicy Bypass -File "${thzPs1}" ${fullArgs}`, cwd: root };
+        return { comando: `& "${thzPs1}" ${fullArgs}`, cwd: root };
+      }
+      if (isWin && fs.existsSync(thzCmd)) {
+        return { comando: `& "${thzCmd}" ${fullArgs}`, cwd: root };
       }
       if (isWin && fs.existsSync(gradlewBat)) {
-        return { comando: `"${gradlewBat}" :thz-cli-jvm:run --args="${fullArgs.replace(/"/g, '\\"')}"`, cwd: root };
+        return { comando: `& "${gradlewBat}" :thz-cli-jvm:run --args="${fullArgs.replace(/"/g, '\\"')}"`, cwd: root };
       }
       if (!isWin && fs.existsSync(gradlewSh)) {
         return { comando: `"${gradlewSh}" :thz-cli-jvm:run --args="${fullArgs.replace(/"/g, '\\"')}"`, cwd: root };
@@ -249,19 +249,74 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   // ==========================================================================
-  // 3. LIVE PREVIEW DE ARQUITETURA VIVA & DIAGRAMAS MERMAID
+  // 3. LIVE PREVIEW DE ARQUITETURA VIVA & DIAGRAMAS MERMAID (UX & ACESSIBILIDADE)
   // ==========================================================================
 
   let architecturePanel: vscode.WebviewPanel | undefined;
 
-  function gerarDiagramaMermaid(fonte: string): { mermaid: string; metadadosHtml: string } {
-    let nomeModulo = 'Programa THZ';
-    const matchMod = fonte.match(/(?:PROGRAMA(?:\s+VISUAL|\s+NEGOCIO|\s+ARQUITETURA)?|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE)\s+([A-Za-z0-9_]+)/);
-    if (matchMod) nomeModulo = matchMod[1];
+  interface ElementoArquitetura {
+    id: string;
+    tipo: 'MODULO' | 'ESTRUTURA' | 'ENUMERACAO' | 'REGRA' | 'OPERACAO' | 'PROCEDIMENTO' | 'PIPELINE' | 'CONTRATO' | 'INVARIANTE';
+    nome: string;
+    linha?: number;
+    detalhes: {
+      dominio?: string;
+      camada?: string;
+      slo?: string;
+      autor?: string;
+      criticidade?: string;
+      versao?: string;
+      requisito?: string;
+      idRegra?: string;
+      idempotente?: boolean;
+      chaveIdempotencia?: string;
+      layoutSoa?: boolean;
+      campos?: { nome: string; tipo: string }[];
+      valoresEnum?: string[];
+      preCondicoes?: string[];
+      posCondicoes?: string[];
+      invariantes?: string[];
+      operacoes?: { nome: string; params: string; retorno?: string; idempotente?: boolean }[];
+      origemPipeline?: string;
+      transformacaoPipeline?: string;
+      destinoPipeline?: string;
+    };
+  }
 
-    let dominio = 'N/A', camada = 'N/A', slo = 'N/A', autor = 'N/A', criticidade = 'N/A', versao = '1.0.0';
+  interface DadosArquiteturaCompleta {
+    nomeModulo: string;
+    tipoModulo: string;
+    dominio: string;
+    subdominio: string;
+    camada: string;
+    versao: string;
+    autor: string;
+    slo: string;
+    criticidade: string;
+    conformidade: string;
+    elementos: ElementoArquitetura[];
+    diagramas: {
+      geral: string;
+      entidades: string;
+      regras: string;
+      fluxo: string;
+    };
+  }
+
+  function extrairDadosArquitetura(fonte: string): DadosArquiteturaCompleta {
+    let nomeModulo = 'Programa THZ';
+    let tipoModulo = 'PROGRAMA';
+    const matchMod = fonte.match(/(?:(PROGRAMA(?:\s+VISUAL|\s+NEGOCIO|\s+ARQUITETURA)?|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE))\s+([A-Za-z0-9_]+)/);
+    if (matchMod) {
+      tipoModulo = matchMod[1];
+      nomeModulo = matchMod[2];
+    }
+
+    let dominio = 'Geral', subdominio = 'Principal', camada = 'Domínio', slo = 'N/A', autor = 'Não especificado', criticidade = 'Média', versao = '1.0.0', conformidade = 'Nenhuma';
     const matchDom = fonte.match(/DOMINIO\s*:\s*"([^"]+)"/);
     if (matchDom) dominio = matchDom[1];
+    const matchSubDom = fonte.match(/SUBDOMINIO\s*:\s*"([^"]+)"/);
+    if (matchSubDom) subdominio = matchSubDom[1];
     const matchCam = fonte.match(/CAMADA\s*:\s*"([^"]+)"/);
     if (matchCam) camada = matchCam[1];
     const matchSlo = fonte.match(/SLO_LATENCIA_MAXIMA\s*:\s*"([^"]+)"/);
@@ -272,139 +327,846 @@ export function activate(context: vscode.ExtensionContext): void {
     if (matchCrit) criticidade = matchCrit[1];
     const matchVer = fonte.match(/VERSAO\s*:\s*"([^"]+)"/);
     if (matchVer) versao = matchVer[1];
+    const matchConf = fonte.match(/CONFORMIDADE\s*:\s*"([^"]+)"/);
+    if (matchConf) conformidade = matchConf[1];
 
-    // Extrai regras, operações e estruturas
-    const regras: { nome: string; req?: string; br?: string; ops: string[] }[] = [];
-    const estruturas: string[] = [];
-    const procedimentos: string[] = [];
-
+    const elementos: ElementoArquitetura[] = [];
     const linhas = fonte.split(/\r?\n/);
-    let regraAtual: { nome: string; req?: string; br?: string; ops: string[] } | null = null;
 
-    for (const l of linhas) {
-      const mEstrutura = l.match(/^\s*ESTRUTURA\s+([A-Za-z0-9_]+)/);
-      if (mEstrutura) estruturas.push(mEstrutura[1]);
+    elementos.push({
+      id: 'MOD_' + nomeModulo,
+      tipo: 'MODULO',
+      nome: nomeModulo,
+      linha: 1,
+      detalhes: { dominio, camada, slo, autor, criticidade, versao }
+    });
 
-      const mProc = l.match(/^\s*PROCEDIMENTO\s+([A-Za-z0-9_]+)/);
-      if (mProc) procedimentos.push(mProc[1]);
+    let estAtual: ElementoArquitetura | null = null;
+    let regraAtual: ElementoArquitetura | null = null;
+    let pipeAtual: ElementoArquitetura | null = null;
 
+    for (let i = 0; i < linhas.length; i++) {
+      const l = linhas[i];
+      const numLinha = i + 1;
+
+      // ESTRUTURA
+      const mEstrutura = l.match(/^\s*ESTRUTURA\s+([A-Za-z0-9_]+)(?:\s+(LAYOUT_COLUNAR))?/);
+      if (mEstrutura) {
+        estAtual = {
+          id: 'EST_' + mEstrutura[1],
+          tipo: 'ESTRUTURA',
+          nome: mEstrutura[1],
+          linha: numLinha,
+          detalhes: {
+            layoutSoa: !!mEstrutura[2],
+            campos: [],
+            invariantes: []
+          }
+        };
+        elementos.push(estAtual);
+      }
+      if (estAtual) {
+        const mCampo = l.match(/^\s*([A-Za-z0-9_]+)\s*:\s*([A-Za-z0-9_<>[\]]+)/);
+        if (mCampo && !l.includes('ESTRUTURA') && !l.includes('INVARIANTE')) {
+          estAtual.detalhes.campos?.push({ nome: mCampo[1], tipo: mCampo[2] });
+        }
+        const mInv = l.match(/^\s*INVARIANTE\s+(.+)/);
+        if (mInv) {
+          estAtual.detalhes.invariantes?.push(mInv[1].trim());
+        }
+        if (l.match(/^\s*FIM_ESTRUTURA/)) {
+          estAtual = null;
+        }
+      }
+
+      // ENUMERACAO
+      const mEnum = l.match(/^\s*ENUMERACAO\s+([A-Za-z0-9_]+)/);
+      if (mEnum) {
+        const valores = l.includes(':') ? l.split(':')[1].split(',').map(s => s.trim()) : [];
+        elementos.push({
+          id: 'ENUM_' + mEnum[1],
+          tipo: 'ENUMERACAO',
+          nome: mEnum[1],
+          linha: numLinha,
+          detalhes: { valoresEnum: valores }
+        });
+      }
+
+      // REGRA_NEGOCIO
       const mRegra = l.match(/^\s*REGRA_NEGOCIO\s+([A-Za-z0-9_]+)/);
       if (mRegra) {
-        regraAtual = { nome: mRegra[1], ops: [] };
-        regras.push(regraAtual);
+        regraAtual = {
+          id: 'RN_' + mRegra[1],
+          tipo: 'REGRA',
+          nome: mRegra[1],
+          linha: numLinha,
+          detalhes: {
+            preCondicoes: [],
+            posCondicoes: [],
+            operacoes: []
+          }
+        };
+        elementos.push(regraAtual);
       }
       if (regraAtual) {
         const mBr = l.match(/IDENTIFICADOR_REGRA\s*:\s*"([^"]+)"/);
-        if (mBr) regraAtual.br = mBr[1];
+        if (mBr) regraAtual.detalhes.idRegra = mBr[1];
         const mReq = l.match(/RASTREIO_REQUISITO\s*:\s*"([^"]+)"/);
-        if (mReq) regraAtual.req = mReq[1];
-        const mOp = l.match(/^\s*OPERACAO\s+([A-Za-z0-9_]+)/);
-        if (mOp) regraAtual.ops.push(mOp[1]);
+        if (mReq) regraAtual.detalhes.requisito = mReq[1];
+        const mIdemp = l.match(/IDEMPOTENTE(?:\s*\(\s*CHAVE\s*:\s*"([^"]+)"\s*\))?/);
+        if (mIdemp) {
+          regraAtual.detalhes.idempotente = true;
+          if (mIdemp[1]) regraAtual.detalhes.chaveIdempotencia = mIdemp[1];
+        }
+        const mExige = l.match(/^\s*EXIGE\s+(.+)/);
+        if (mExige) regraAtual.detalhes.preCondicoes?.push(mExige[1].trim());
+        const mGarante = l.match(/^\s*GARANTE\s+(.+)/);
+        if (mGarante) regraAtual.detalhes.posCondicoes?.push(mGarante[1].trim());
+
+        const mOp = l.match(/^\s*OPERACAO\s+(?:(IDEMPOTENTE)\s+)?([A-Za-z0-9_]+)\s*\((.*?)\)(?:\s*:\s*([A-Za-z0-9_<>[\]]+))?/);
+        if (mOp) {
+          const opObj = {
+            nome: mOp[2],
+            params: mOp[3] || 'vazio',
+            retorno: mOp[4] || 'Nenhum',
+            idempotente: !!mOp[1]
+          };
+          regraAtual.detalhes.operacoes?.push(opObj);
+          elementos.push({
+            id: 'OP_' + regraAtual.nome + '_' + mOp[2],
+            tipo: 'OPERACAO',
+            nome: mOp[2],
+            linha: numLinha,
+            detalhes: {
+              idRegra: regraAtual.detalhes.idRegra,
+              operacoes: [opObj]
+            }
+          });
+        }
+        if (l.match(/^\s*FIM_REGRA_NEGOCIO/)) {
+          regraAtual = null;
+        }
       }
-      if (l.match(/^\s*FIM_REGRA_NEGOCIO/)) {
-        regraAtual = null;
+
+      // PIPELINE_DADOS
+      const mPipe = l.match(/^\s*PIPELINE_DADOS\s+([A-Za-z0-9_]+)/);
+      if (mPipe) {
+        pipeAtual = {
+          id: 'PIPE_' + mPipe[1],
+          tipo: 'PIPELINE',
+          nome: mPipe[1],
+          linha: numLinha,
+          detalhes: {}
+        };
+        elementos.push(pipeAtual);
+      }
+      if (pipeAtual) {
+        const mFonte = l.match(/FONTE_ENTRADA\s*:\s*(.+)/);
+        if (mFonte) pipeAtual.detalhes.origemPipeline = mFonte[1].trim();
+        const mTransf = l.match(/TRANSFORMACAO\s*:\s*(.+)/);
+        if (mTransf) pipeAtual.detalhes.transformacaoPipeline = mTransf[1].trim();
+        const mDest = l.match(/DESTINO_SAIDA\s*:\s*(.+)/);
+        if (mDest) pipeAtual.detalhes.destinoPipeline = mDest[1].trim();
+        if (l.match(/^\s*FIM_PIPELINE/)) {
+          pipeAtual = null;
+        }
+      }
+
+      // PROCEDIMENTO
+      const mProc = l.match(/^\s*PROCEDIMENTO\s+(?:(IDEMPOTENTE)\s+)?([A-Za-z0-9_]+)\s*\((.*?)\)/);
+      if (mProc) {
+        elementos.push({
+          id: 'PROC_' + mProc[2],
+          tipo: 'PROCEDIMENTO',
+          nome: mProc[2],
+          linha: numLinha,
+          detalhes: {
+            idempotente: !!mProc[1],
+            operacoes: [{ nome: mProc[2], params: mProc[3] || 'vazio' }]
+          }
+        });
       }
     }
 
-    let mm = 'graph TD\n';
-    mm += `    subgraph Modulo["🏛️ ${nomeModulo} (${camada})"]\n`;
-    mm += `        direction TB\n`;
+    // 1. Diagrama Geral (Hierárquico com classes de estilo de alto contraste)
+    let diagGeral = 'graph TD\\n';
+    diagGeral += '    classDef entity fill:#1e3a8a,stroke:#60a5fa,stroke-width:2px,color:#eff6ff;\\n';
+    diagGeral += '    classDef rule fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#ecfdf5;\\n';
+    diagGeral += '    classDef op fill:#78350f,stroke:#fbbf24,stroke-width:2px,color:#fffbeb;\\n';
+    diagGeral += '    classDef req fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#f5f3ff;\\n';
+    diagGeral += '    classDef pipe fill:#134e4a,stroke:#2dd4bf,stroke-width:2px,color:#f0fdf4;\\n';
+    diagGeral += '    classDef gate fill:#881337,stroke:#f43f5e,stroke-width:2px,color:#fff1f2;\\n';
 
-    if (estruturas.length > 0) {
-      mm += `        subgraph Entidades["📦 Entidades & Estruturas"]\n`;
-      for (const e of estruturas) {
-        mm += `            E_${e}["${e}"]\n`;
+    diagGeral += `    subgraph Modulo["🏛️ ${nomeModulo} (${camada})"]\\n`;
+    diagGeral += `        direction TB\\n`;
+
+    const ests = elementos.filter(e => e.tipo === 'ESTRUTURA');
+    if (ests.length > 0) {
+      diagGeral += `        subgraph Entidades["📦 Entidades & Modelos de Dados"]\\n`;
+      for (const e of ests) {
+        const flagSoa = e.detalhes.layoutSoa ? ' (SoA/SIMD)' : '';
+        diagGeral += `            ${e.id}["📦 ${e.nome}${flagSoa}"]:::entity\\n`;
       }
-      mm += `        end\n`;
+      diagGeral += `        end\\n`;
     }
 
+    const regras = elementos.filter(e => e.tipo === 'REGRA');
     if (regras.length > 0) {
-      mm += `        subgraph Regras["🛡️ Regras de Negócio (DDD)"]\n`;
+      diagGeral += `        subgraph RegrasDDD["🛡️ Regras de Negócio & Contratos"]\\n`;
       for (const r of regras) {
-        const tituloRegra = r.br ? `[${r.br}] ${r.nome}` : r.nome;
-        mm += `            R_${r.nome}["${tituloRegra}"]\n`;
-        if (r.req) {
-          mm += `            REQ_${r.nome}["📋 ${r.req}"] --> R_${r.nome}\n`;
+        const idLabel = r.detalhes.idRegra ? `[${r.detalhes.idRegra}] ` : '';
+        const idempIcon = r.detalhes.idempotente ? ' 🛡️' : '';
+        diagGeral += `            ${r.id}["⚖️ ${idLabel}${r.nome}${idempIcon}"]:::rule\\n`;
+
+        if (r.detalhes.requisito) {
+          const reqId = `REQ_${r.nome}`;
+          diagGeral += `            ${reqId}["📋 Req: ${r.detalhes.requisito}"]:::req --> ${r.id}\\n`;
         }
-        for (const op of r.ops) {
-          mm += `            R_${r.nome} --> OP_${r.nome}_${op}["⚡ ${op}()"]\n`;
+
+        if (r.detalhes.preCondicoes && r.detalhes.preCondicoes.length > 0) {
+          const preId = `PRE_${r.nome}`;
+          diagGeral += `            ${preId}["🛡️ EXIGE: ${r.detalhes.preCondicoes.length} cláusula(s)"]:::gate -.-> ${r.id}\\n`;
+        }
+
+        if (r.detalhes.operacoes) {
+          for (const op of r.detalhes.operacoes) {
+            const opId = `OP_${r.nome}_${op.nome}`;
+            const opIdemp = op.idempotente ? ' ⚡(Idemp)' : ' ⚡';
+            diagGeral += `            ${r.id} ==> ${opId}["${opIdemp} ${op.nome}()"]:::op\\n`;
+          }
+        }
+
+        if (r.detalhes.posCondicoes && r.detalhes.posCondicoes.length > 0) {
+          const posId = `POS_${r.nome}`;
+          diagGeral += `            ${r.id} -.-> ${posId}["✅ GARANTE: ${r.detalhes.posCondicoes.length} cláusula(s)"]:::gate\\n`;
         }
       }
-      mm += `        end\n`;
+      diagGeral += `        end\\n`;
     }
 
-    if (procedimentos.length > 0) {
-      mm += `        subgraph Execucao["🚀 Procedimentos"]\n`;
-      for (const p of procedimentos) {
-        mm += `            P_${p}["${p}()"]\n`;
+    const pipes = elementos.filter(e => e.tipo === 'PIPELINE');
+    if (pipes.length > 0) {
+      diagGeral += `        subgraph Pipelines["🚀 Pipelines de Dados"]\\n`;
+      for (const p of pipes) {
+        diagGeral += `            ${p.id}["🔄 Pipeline: ${p.nome}"]:::pipe\\n`;
       }
-      mm += `        end\n`;
+      diagGeral += `        end\\n`;
     }
 
-    mm += `    end\n`;
+    diagGeral += `    end\\n`;
 
-    const metadadosHtml = `
-      <div class="meta-grid">
-        <div class="meta-card"><div class="label">Módulo</div><div class="val">${nomeModulo}</div></div>
-        <div class="meta-card"><div class="label">Domínio</div><div class="val">${dominio}</div></div>
-        <div class="meta-card"><div class="label">Camada</div><div class="val">${camada}</div></div>
-        <div class="meta-card"><div class="label">SLO Máximo</div><div class="val highlight">${slo}</div></div>
-        <div class="meta-card"><div class="label">Criticidade</div><div class="val">${criticidade}</div></div>
-        <div class="meta-card"><div class="label">Versão</div><div class="val">${versao}</div></div>
-      </div>
-    `;
+    // 2. Diagrama de Entidades (Class Diagram)
+    let diagEntidades = 'classDiagram\\n';
+    for (const e of ests) {
+      diagEntidades += `    class ${e.nome} {\\n`;
+      if (e.detalhes.layoutSoa) diagEntidades += `        <<LAYOUT_COLUNAR_SoA>>\\n`;
+      if (e.detalhes.campos) {
+        for (const c of e.detalhes.campos) {
+          diagEntidades += `        +${c.tipo} ${c.nome}\\n`;
+        }
+      }
+      if (e.detalhes.invariantes) {
+        for (const inv of e.detalhes.invariantes) {
+          diagEntidades += `        *INVARIANTE ${inv.replace(/"/g, "'")}\\n`;
+        }
+      }
+      diagEntidades += `    }\\n`;
+    }
+    if (ests.length === 0) diagEntidades += '    class Vazio["Nenhuma Estrutura Declarada"]\\n';
 
-    return { mermaid: mm, metadadosHtml };
+    // 3. Diagrama de Regras
+    let diagRegras = 'graph TD\\n';
+    diagRegras += '    classDef rule fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#ecfdf5;\\n';
+    diagRegras += '    classDef req fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#f5f3ff;\\n';
+    diagRegras += '    classDef op fill:#78350f,stroke:#fbbf24,stroke-width:2px,color:#fffbeb;\\n';
+    diagRegras += '    classDef gate fill:#881337,stroke:#f43f5e,stroke-width:2px,color:#fff1f2;\\n';
+    for (const r of regras) {
+      diagRegras += `    ${r.id}["⚖️ Regra: ${r.nome}"]:::rule\\n`;
+      if (r.detalhes.requisito) {
+        diagRegras += `    REQ_${r.nome}["📌 Requisito: ${r.detalhes.requisito}"]:::req --> ${r.id}\\n`;
+      }
+      if (r.detalhes.preCondicoes) {
+        for (let i = 0; i < r.detalhes.preCondicoes.length; i++) {
+          diagRegras += `    ${r.id} --> EX_${r.nome}_${i}["🛡️ EXIGE: ${r.detalhes.preCondicoes[i].replace(/"/g, "'")}"]:::gate\\n`;
+        }
+      }
+      if (r.detalhes.operacoes) {
+        for (const op of r.detalhes.operacoes) {
+          diagRegras += `    ${r.id} ==> OP_${r.nome}_${op.nome}["⚡ Operação: ${op.nome}()"]:::op\\n`;
+        }
+      }
+      if (r.detalhes.posCondicoes) {
+        for (let i = 0; i < r.detalhes.posCondicoes.length; i++) {
+          diagRegras += `    ${r.id} --> GA_${r.nome}_${i}["✅ GARANTE: ${r.detalhes.posCondicoes[i].replace(/"/g, "'")}"]:::gate\\n`;
+        }
+      }
+    }
+    if (regras.length === 0) diagRegras += '    SemRegras["Nenhuma Regra Declarada"]\\n';
+
+    // 4. Diagrama de Fluxo e Pipelines
+    let diagFluxo = 'graph LR\\n';
+    diagFluxo += '    classDef pipe fill:#134e4a,stroke:#2dd4bf,stroke-width:2px,color:#f0fdf4;\\n';
+    diagFluxo += '    classDef proc fill:#1e3a8a,stroke:#60a5fa,stroke-width:2px,color:#eff6ff;\\n';
+    for (const p of pipes) {
+      const org = p.detalhes.origemPipeline ? `Fonte: ${p.detalhes.origemPipeline}` : 'Entrada';
+      const trf = p.detalhes.transformacaoPipeline ? `Transformação: ${p.detalhes.transformacaoPipeline}` : 'Processamento';
+      const dst = p.detalhes.destinoPipeline ? `Destino: ${p.detalhes.destinoPipeline}` : 'Saída';
+      diagFluxo += `    ${p.id}_IN["📥 ${org}"] --> ${p.id}["🔄 Pipeline: ${p.nome}<br><i>${trf}</i>"]:::pipe --> ${p.id}_OUT["📤 ${dst}"]\\n`;
+    }
+    const procs = elementos.filter(e => e.tipo === 'PROCEDIMENTO');
+    for (const pr of procs) {
+      diagFluxo += `    ${pr.id}["🚀 Procedimento: ${pr.nome}()"]:::proc\\n`;
+    }
+    if (pipes.length === 0 && procs.length === 0) diagFluxo += '    SemFluxo["Nenhum Pipeline ou Procedimento"]\\n';
+
+    return {
+      nomeModulo,
+      tipoModulo,
+      dominio,
+      subdominio,
+      camada,
+      versao,
+      autor,
+      slo,
+      criticidade,
+      conformidade,
+      elementos,
+      diagramas: {
+        geral: diagGeral,
+        entidades: diagEntidades,
+        regras: diagRegras,
+        fluxo: diagFluxo
+      }
+    };
   }
 
   function renderizarHtmlArquitetura(fonte: string): string {
-    const { mermaid, metadadosHtml } = gerarDiagramaMermaid(fonte);
+    const dados = extrairDadosArquitetura(fonte);
+    const dadosJson = JSON.stringify(dados).replace(/</g, '\\u003c');
+
     return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>THZ Living Architecture</title>
+  <title>THZ Living Architecture — ${dados.nomeModulo}</title>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     :root {
-      --bg: #0d1117;
-      --card-bg: rgba(22, 27, 34, 0.85);
-      --border: rgba(240, 246, 252, 0.1);
-      --text: #e6edf3;
-      --muted: #8b949e;
-      --primary: #58a6ff;
-      --accent: #238636;
+      --bg: var(--vscode-editor-background, #0d1117);
+      --card-bg: var(--vscode-sideBar-background, #161b22);
+      --border: var(--vscode-panel-border, rgba(240, 246, 252, 0.15));
+      --text: var(--vscode-editor-foreground, #e6edf3);
+      --muted: var(--vscode-descriptionForeground, #8b949e);
+      --primary: var(--vscode-button-background, #238636);
+      --primary-hover: var(--vscode-button-hoverBackground, #2ea043);
+      --accent: var(--vscode-textLink-foreground, #58a6ff);
+      --highlight: #f0883e;
+      --badge-bg: rgba(88, 166, 255, 0.12);
+      --badge-border: rgba(88, 166, 255, 0.3);
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
+
+    body.high-contrast {
+      --bg: #000000;
+      --card-bg: #121212;
+      --border: #ffffff;
+      --text: #ffffff;
+      --muted: #cccccc;
+      --accent: #ffff00;
+      --primary: #00ff00;
+      --highlight: #ff00ff;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); }
-    body { background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
-    header { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-    header h1 { font-size: 1.3rem; display: flex; align-items: center; gap: 8px; color: var(--primary); }
-    header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
-    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .meta-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; backdrop-filter: blur(8px); }
-    .meta-card .label { font-size: 0.72rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; }
-    .meta-card .val { font-size: 0.95rem; font-weight: 600; margin-top: 2px; color: var(--text); }
-    .meta-card .val.highlight { color: #f0883e; }
-    .diagram-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; overflow-x: auto; display: flex; justify-content: center; }
-    .footer { margin-top: 20px; font-size: 0.75rem; color: var(--muted); text-align: center; }
+    body { background: var(--bg); color: var(--text); padding: 16px; line-height: 1.5; overflow-x: hidden; height: 100vh; display: flex; flex-direction: column; }
+
+    /* Header e Metadados */
+    header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
+    .header-info h1 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; color: var(--accent); font-weight: 700; }
+    .header-info p { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; display: inline-block; }
+
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease; }
+    .btn:hover, .btn:focus-visible { background: var(--border); border-color: var(--accent); outline: 2px solid var(--accent); }
+    .btn-primary { background: var(--primary); color: #ffffff; border-color: transparent; }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    /* Grid de Metadados ISO 42010 */
+    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 12px; }
+    .meta-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; }
+    .meta-card .label { font-size: 0.68rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; font-weight: 600; }
+    .meta-card .val { font-size: 0.88rem; font-weight: 600; margin-top: 1px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meta-card .val.highlight { color: var(--highlight); }
+
+    /* Barra de Navegação de Visualizações & Busca */
+    .controls-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; background: var(--card-bg); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); }
+    .tabs { display: flex; gap: 4px; overflow-x: auto; }
+    .tab-btn { background: transparent; border: none; color: var(--muted); padding: 5px 10px; border-radius: 5px; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; }
+    .tab-btn:hover, .tab-btn:focus-visible { color: var(--text); background: var(--border); outline: 1px solid var(--accent); }
+    .tab-btn.active { color: #ffffff; background: var(--accent); }
+
+    .search-box { display: flex; align-items: center; gap: 6px; background: var(--bg); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; flex: 1; max-width: 280px; }
+    .search-box input { background: transparent; border: none; color: var(--text); font-size: 0.8rem; outline: none; width: 100%; }
+    .search-box input::placeholder { color: var(--muted); }
+
+    /* Viewport Interativo do Diagrama com Grid Canvas */
+    .viewport-container { position: relative; flex: 1; min-height: 380px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; cursor: grab; user-select: none; }
+    .viewport-container:active { cursor: grabbing; }
+    .viewport-container::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.4; pointer-events: none; }
+
+    #canvas { position: absolute; transform-origin: 0 0; transition: transform 0.05s linear; will-change: transform; display: flex; justify-content: center; align-items: center; padding: 40px; }
+    #canvas svg { max-width: none !important; }
+
+    /* Barra Flutuante de HUD (Pan / Zoom / Fit) */
+    .hud-controls { position: absolute; bottom: 16px; right: 16px; display: flex; gap: 4px; background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(8px); border: 1px solid var(--border); padding: 4px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10; }
+    .hud-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; color: var(--text); border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: bold; transition: all 0.15s ease; }
+    .hud-btn:hover, .hud-btn:focus-visible { background: var(--border); border-color: var(--accent); outline: 2px solid var(--accent); }
+
+    /* Destaque de Busca */
+    .node-highlighted rect, .node-highlighted circle, .node-highlighted polygon { stroke: #fbbf24 !important; stroke-width: 4px !important; filter: drop-shadow(0 0 10px #fbbf24); }
+    .node-dimmed { opacity: 0.25; filter: grayscale(80%); }
+
+    /* Drawer de Detalhes do Elemento */
+    .drawer { position: fixed; top: 0; right: -400px; width: 380px; height: 100vh; background: var(--card-bg); border-left: 2px solid var(--accent); box-shadow: -6px 0 20px rgba(0,0,0,0.5); padding: 20px; z-index: 100; transition: right 0.25s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+    .drawer.open { right: 0; }
+    .drawer-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .drawer-header h3 { font-size: 1.1rem; color: var(--accent); }
+    .drawer-close { background: transparent; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .drawer-close:hover { color: var(--text); background: var(--border); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; background: var(--badge-bg); border: 1px solid var(--badge-border); color: var(--accent); }
+    .drawer-section { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 0.82rem; }
+    .drawer-section h4 { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+    /* Modo Árvore Acessível (Screen Reader / Outline) */
+    .accessible-tree { display: none; width: 100%; height: 100%; overflow-y: auto; padding: 16px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); }
+    .accessible-tree.active { display: block; }
+    .tree-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+    .tree-card:focus-within { border-color: var(--accent); outline: 2px solid var(--accent); }
+    .tree-card h3 { font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .tree-card ul { list-style: square inside; margin-top: 4px; font-size: 0.82rem; color: var(--text); }
+
+    /* Rodapé com Atalhos de Teclado */
+    footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 0.72rem; color: var(--muted); }
+    .kbd { background: var(--border); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 0.7rem; border: 1px solid var(--muted); }
   </style>
 </head>
 <body>
-  <header>
-    <h1>📐 THZ-LANG — Arquitetura Viva & DDD</h1>
-    <p>Visualização em tempo real de contratos, regras de negócio e fluxo do sistema</p>
+  <header role="banner">
+    <div class="header-info">
+      <h1>
+        <span class="status-dot" aria-hidden="true"></span>
+        📐 THZ-LANG — Arquitetura Viva & DDD
+        <span class="badge">${dados.tipoModulo}</span>
+      </h1>
+      <p>Módulo: <strong>${dados.nomeModulo}</strong> | Versão: ${dados.versao} | Conformidade: <strong>${dados.conformidade}</strong></p>
+    </div>
+    <div class="header-actions" role="toolbar" aria-label="Ações de Visualização">
+      <button class="btn" id="btnHighContrast" aria-pressed="false" title="Alternar Alto Contraste (WCAG AAA)">🌓 Alto Contraste</button>
+      <button class="btn" id="btnCopyMermaid" title="Copiar código Mermaid">📋 Mermaid</button>
+      <button class="btn" id="btnCopyMd" title="Copiar especificação em Markdown">📝 Markdown</button>
+      <button class="btn btn-primary" id="btnDownloadSvg" title="Baixar diagrama SVG">💾 Baixar SVG</button>
+    </div>
   </header>
-  ${metadadosHtml}
-  <div class="diagram-container">
-    <pre class="mermaid">
-${mermaid}
-    </pre>
-  </div>
-  <div class="footer">Sincronizado dinamicamente com o buffer ativo do editor THZ</div>
+
+  <section class="meta-grid" aria-label="Metadados Arquiteturais ISO 42010">
+    <div class="meta-card"><div class="label">Domínio</div><div class="val">${dados.dominio}</div></div>
+    <div class="meta-card"><div class="label">Subdomínio</div><div class="val">${dados.subdominio}</div></div>
+    <div class="meta-card"><div class="label">Camada</div><div class="val">${dados.camada}</div></div>
+    <div class="meta-card"><div class="label">SLO Máximo</div><div class="val highlight">${dados.slo}</div></div>
+    <div class="meta-card"><div class="label">Criticidade</div><div class="val">${dados.criticidade}</div></div>
+    <div class="meta-card"><div class="label">Autor / Time</div><div class="val">${dados.autor}</div></div>
+  </section>
+
+  <nav class="controls-bar" aria-label="Controles e Filtros de Arquitetura">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="geral">🌐 Arquitetura Geral</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="entidades">📦 Entidades (${dados.elementos.filter(e => e.tipo === 'ESTRUTURA').length})</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="regras">🛡️ Regras DDD (${dados.elementos.filter(e => e.tipo === 'REGRA').length})</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="fluxo">🚀 Pipelines & Fluxo</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="acessivel">📑 Árvore Semântica (A11y)</button>
+    </div>
+    <div class="search-box" role="search">
+      <span aria-hidden="true">🔍</span>
+      <input type="text" id="searchInput" placeholder="Buscar entidades, regras, contratos... ( / )" aria-label="Buscar elementos na arquitetura">
+      <button id="clearSearch" style="background:none; border:none; color:var(--muted); cursor:pointer;" aria-label="Limpar busca">✕</button>
+    </div>
+  </nav>
+
+  <!-- Viewport Interativo do Diagrama -->
+  <main class="viewport-container" id="viewport" tabindex="0" role="region" aria-label="Visualizador Interativo de Diagramas (Arraste para mover, use roda do mouse ou botões para zoom)">
+    <div id="canvas">
+      <pre class="mermaid" id="mermaidGraph">${dados.diagramas.geral}</pre>
+    </div>
+
+    <!-- HUD de Navegação Acessível -->
+    <div class="hud-controls" role="toolbar" aria-label="Navegação e Zoom do Diagrama">
+      <button class="hud-btn" id="btnZoomIn" title="Aumentar Zoom ( + )" aria-label="Aumentar Zoom">＋</button>
+      <button class="hud-btn" id="btnZoomOut" title="Diminuir Zoom ( - )" aria-label="Diminuir Zoom">－</button>
+      <button class="hud-btn" id="btnResetZoom" title="Tamanho Real 100% ( 0 )" aria-label="Tamanho 100%">1:1</button>
+      <button class="hud-btn" id="btnFitScreen" title="Ajustar à Tela ( F )" aria-label="Ajustar à Tela">⛶</button>
+      <button class="hud-btn" id="btnCenter" title="Centralizar Posição" aria-label="Centralizar Posição">⟲</button>
+    </div>
+
+    <!-- Árvore Acessível Textual -->
+    <div class="accessible-tree" id="accessibleTree" role="tabpanel" aria-label="Visualização em Árvore Acessível">
+      <h2 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--accent);">📋 Estrutura Semântica e Rastreabilidade Completa</h2>
+      ${dados.elementos.map(el => `
+        <article class="tree-card" tabindex="0">
+          <h3>
+            <span>${el.tipo === 'ESTRUTURA' ? '📦' : el.tipo === 'REGRA' ? '⚖️' : el.tipo === 'PIPELINE' ? '🔄' : '🚀'} ${el.nome}</span>
+            <span class="badge">${el.tipo}</span>
+          </h3>
+          ${el.linha ? `<p style="font-size:0.75rem; color:var(--muted); margin-bottom:4px;">Declarado na Linha <strong>${el.linha}</strong></p>` : ''}
+          ${el.detalhes.requisito ? `<p><strong>Rastreio Requisito:</strong> <code>${el.detalhes.requisito}</code></p>` : ''}
+          ${el.detalhes.idRegra ? `<p><strong>ID da Regra:</strong> <code>${el.detalhes.idRegra}</code></p>` : ''}
+          ${el.detalhes.idempotente ? `<p><strong>Garantia:</strong> 🛡️ IDEMPOTENTE</p>` : ''}
+          ${el.detalhes.campos && el.detalhes.campos.length > 0 ? `
+            <div style="margin-top:6px;"><strong>Campos:</strong>
+              <ul>${el.detalhes.campos.map(c => `<li><code>${c.nome}: ${c.tipo}</code></li>`).join('')}</ul>
+            </div>` : ''}
+          ${el.detalhes.invariantes && el.detalhes.invariantes.length > 0 ? `
+            <div style="margin-top:6px; color:#f43f5e;"><strong>Invariantes de Domínio:</strong>
+              <ul>${el.detalhes.invariantes.map(inv => `<li><code>INVARIANTE ${inv}</code></li>`).join('')}</ul>
+            </div>` : ''}
+          ${el.detalhes.preCondicoes && el.detalhes.preCondicoes.length > 0 ? `
+            <div style="margin-top:6px; color:#a78bfa;"><strong>Contrato de Entrada (EXIGE):</strong>
+              <ul>${el.detalhes.preCondicoes.map(ex => `<li><code>EXIGE ${ex}</code></li>`).join('')}</ul>
+            </div>` : ''}
+          ${el.detalhes.posCondicoes && el.detalhes.posCondicoes.length > 0 ? `
+            <div style="margin-top:6px; color:#34d399;"><strong>Contrato de Saída (GARANTE):</strong>
+              <ul>${el.detalhes.posCondicoes.map(ga => `<li><code>GARANTE ${ga}</code></li>`).join('')}</ul>
+            </div>` : ''}
+          ${el.linha ? `<button class="btn" style="margin-top:8px;" onclick="irParaLinha(${el.linha})">🎯 Ir para o Código-Fonte (Linha ${el.linha})</button>` : ''}
+        </article>
+      `).join('')}
+    </div>
+  </main>
+
+  <!-- Drawer Lateral de Detalhes do Elemento -->
+  <aside class="drawer" id="elementDrawer" role="dialog" aria-labelledby="drawerTitle" aria-modal="true" aria-hidden="true">
+    <div class="drawer-header">
+      <h3 id="drawerTitle">Detalhes da Arquitetura</h3>
+      <button class="drawer-close" id="drawerClose" aria-label="Fechar Detalhes">✕</button>
+    </div>
+    <div id="drawerContent"></div>
+  </aside>
+
+  <footer role="contentinfo">
+    <div>Sincronizado em tempo real com o buffer ativo do THZ Engine</div>
+    <div>Atalhos: <span class="kbd">+</span>/<span class="kbd">-</span> Zoom | <span class="kbd">0</span> 100% | <span class="kbd">F</span> Ajustar | <span class="kbd">W,A,S,D</span> Mover | <span class="kbd">/</span> Buscar | <span class="kbd">Esc</span> Fechar</div>
+  </footer>
+
   <script>
-    mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+    const vscode = acquireVsCodeApi();
+    const DADOS_ARQUITETURA = ${dadosJson};
+
+    // Estado do Viewport (Pan & Zoom)
+    let scale = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let tabAtual = 'geral';
+
+    const canvas = document.getElementById('canvas');
+    const viewport = document.getElementById('viewport');
+    const drawer = document.getElementById('elementDrawer');
+    const drawerContent = document.getElementById('drawerContent');
+    const drawerTitle = document.getElementById('drawerTitle');
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      securityLevel: 'loose',
+      fontFamily: 'var(--font)'
+    });
+
+    function aplicarTransform() {
+      canvas.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + scale + ')';
+    }
+
+    function zoom(delta, clientX, clientY) {
+      const oldScale = scale;
+      scale = Math.min(Math.max(0.15, scale + delta), 4.0);
+
+      if (clientX !== undefined && clientY !== undefined) {
+        const rect = viewport.getBoundingClientRect();
+        const mouseX = clientX - rect.left;
+        const mouseY = clientY - rect.top;
+        panX -= (mouseX - panX) * (scale / oldScale - 1);
+        panY -= (mouseY - panY) * (scale / oldScale - 1);
+      }
+      aplicarTransform();
+    }
+
+    function fitToScreen() {
+      const svg = canvas.querySelector('svg');
+      if (!svg) return;
+      const vRect = viewport.getBoundingClientRect();
+      const sRect = svg.getBoundingClientRect();
+      if (sRect.width === 0 || sRect.height === 0) return;
+
+      const currentW = sRect.width / scale;
+      const currentH = sRect.height / scale;
+      const scaleX = (vRect.width - 60) / currentW;
+      const scaleY = (vRect.height - 60) / currentH;
+      scale = Math.min(Math.max(0.2, Math.min(scaleX, scaleY)), 2.5);
+      panX = (vRect.width - currentW * scale) / 2;
+      panY = (vRect.height - currentH * scale) / 2;
+      aplicarTransform();
+    }
+
+    function resetView() {
+      scale = 1;
+      panX = 0;
+      panY = 0;
+      aplicarTransform();
+    }
+
+    // Eventos do Mouse / Pointer no Viewport
+    viewport.addEventListener('pointerdown', e => {
+      if (e.target.closest('.hud-controls') || e.target.closest('.accessible-tree')) return;
+      isDragging = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+      viewport.setPointerCapture(e.pointerId);
+    });
+
+    viewport.addEventListener('pointermove', e => {
+      if (!isDragging) return;
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      aplicarTransform();
+    });
+
+    viewport.addEventListener('pointerup', e => {
+      isDragging = false;
+      try { viewport.releasePointerCapture(e.pointerId); } catch (_) {}
+    });
+
+    viewport.addEventListener('wheel', e => {
+      if (tabAtual === 'acessivel') return;
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.15 : -0.15;
+      zoom(delta, e.clientX, e.clientY);
+    }, { passive: false });
+
+    // HUD Buttons
+    document.getElementById('btnZoomIn').addEventListener('click', () => zoom(0.2));
+    document.getElementById('btnZoomOut').addEventListener('click', () => zoom(-0.2));
+    document.getElementById('btnResetZoom').addEventListener('click', () => { scale = 1; aplicarTransform(); });
+    document.getElementById('btnFitScreen').addEventListener('click', fitToScreen);
+    document.getElementById('btnCenter').addEventListener('click', resetView);
+
+    // Alternar Visualizações (Tabs)
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        tabAtual = btn.dataset.tab;
+
+        const accessibleTree = document.getElementById('accessibleTree');
+        if (tabAtual === 'acessivel') {
+          canvas.style.display = 'none';
+          accessibleTree.classList.add('active');
+          document.querySelector('.hud-controls').style.display = 'none';
+          return;
+        } else {
+          canvas.style.display = 'flex';
+          accessibleTree.classList.remove('active');
+          document.querySelector('.hud-controls').style.display = 'flex';
+        }
+
+        const diagramSrc = DADOS_ARQUITETURA.diagramas[tabAtual] || DADOS_ARQUITETURA.diagramas.geral;
+        canvas.innerHTML = '<pre class="mermaid">' + diagramSrc + '</pre>';
+        await mermaid.run();
+        atribuirEventosNos();
+        setTimeout(fitToScreen, 100);
+      });
+    });
+
+    // Clique em Nós do Diagrama -> Abrir Drawer de Detalhes
+    function atribuirEventosNos() {
+      const nodes = canvas.querySelectorAll('.node');
+      nodes.forEach(node => {
+        node.style.cursor = 'pointer';
+        node.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const nodeText = node.textContent || '';
+          const encontrado = DADOS_ARQUITETURA.elementos.find(el => nodeText.includes(el.nome) || node.id.includes(el.nome));
+          if (encontrado) {
+            abrirDrawer(encontrado);
+          } else {
+            abrirDrawer({
+              id: node.id,
+              tipo: 'ELEMENTO',
+              nome: nodeText.trim(),
+              detalhes: {}
+            });
+          }
+        });
+      });
+    }
+
+    function abrirDrawer(el) {
+      drawerTitle.textContent = el.nome;
+      let html = '<div style="display:flex; justify-content:space-between; align-items:center;">';
+      html += '<span class="badge">' + el.tipo + '</span>';
+      if (el.linha) html += '<span style="font-size:0.75rem; color:var(--muted);">Linha ' + el.linha + '</span>';
+      html += '</div>';
+
+      if (el.detalhes.requisito) {
+        html += '<div class="drawer-section"><h4>📋 Rastreio de Requisito</h4><p><code>' + el.detalhes.requisito + '</code></p></div>';
+      }
+      if (el.detalhes.idRegra) {
+        html += '<div class="drawer-section"><h4>⚖️ Identificador da Regra</h4><p><code>' + el.detalhes.idRegra + '</code></p></div>';
+      }
+      if (el.detalhes.idempotente) {
+        html += '<div class="drawer-section"><h4>🛡️ Garantia de Idempotência</h4><p>Sim — Operação com tolerância total a repetições sem efeitos colaterais.</p></div>';
+      }
+      if (el.detalhes.campos && el.detalhes.campos.length > 0) {
+        html += '<div class="drawer-section"><h4>📦 Campos da Estrutura</h4><ul>';
+        el.detalhes.campos.forEach(c => { html += '<li><code>' + c.nome + ': ' + c.tipo + '</code></li>'; });
+        html += '</ul></div>';
+      }
+      if (el.detalhes.invariantes && el.detalhes.invariantes.length > 0) {
+        html += '<div class="drawer-section" style="border-left:3px solid #f43f5e;"><h4>⚠️ Invariantes Formais</h4><ul>';
+        el.detalhes.invariantes.forEach(inv => { html += '<li><code>INVARIANTE ' + inv + '</code></li>'; });
+        html += '</ul></div>';
+      }
+      if (el.detalhes.preCondicoes && el.detalhes.preCondicoes.length > 0) {
+        html += '<div class="drawer-section" style="border-left:3px solid #a78bfa;"><h4>🛡️ Pré-Condições (EXIGE)</h4><ul>';
+        el.detalhes.preCondicoes.forEach(ex => { html += '<li><code>EXIGE ' + ex + '</code></li>'; });
+        html += '</ul></div>';
+      }
+      if (el.detalhes.posCondicoes && el.detalhes.posCondicoes.length > 0) {
+        html += '<div class="drawer-section" style="border-left:3px solid #34d399;"><h4>✅ Pós-Condições (GARANTE)</h4><ul>';
+        el.detalhes.posCondicoes.forEach(ga => { html += '<li><code>GARANTE ' + ga + '</code></li>'; });
+        html += '</ul></div>';
+      }
+      if (el.detalhes.operacoes && el.detalhes.operacoes.length > 0) {
+        html += '<div class="drawer-section"><h4>⚡ Operações</h4><ul>';
+        el.detalhes.operacoes.forEach(op => {
+          html += '<li><code>' + (op.idempotente ? 'IDEMPOTENTE ' : '') + op.nome + '(' + op.params + ')' + (op.retorno ? ' : ' + op.retorno : '') + '</code></li>';
+        });
+        html += '</ul></div>';
+      }
+
+      if (el.linha) {
+        html += '<button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:10px;" onclick="irParaLinha(' + el.linha + ')">🎯 Navegar para Linha ' + el.linha + ' no Editor</button>';
+      }
+
+      drawerContent.innerHTML = html;
+      drawer.classList.add('open');
+      drawer.setAttribute('aria-hidden', 'false');
+    }
+
+    document.getElementById('drawerClose').addEventListener('click', () => {
+      drawer.classList.remove('open');
+      drawer.setAttribute('aria-hidden', 'true');
+    });
+
+    window.irParaLinha = function(linha) {
+      vscode.postMessage({ command: 'goToLine', line: linha });
+    };
+
+    // Busca com Destaque
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const nodes = canvas.querySelectorAll('.node');
+      nodes.forEach(n => {
+        const txt = (n.textContent || '').toLowerCase();
+        if (!q) {
+          n.classList.remove('node-highlighted', 'node-dimmed');
+        } else if (txt.includes(q)) {
+          n.classList.add('node-highlighted');
+          n.classList.remove('node-dimmed');
+        } else {
+          n.classList.remove('node-highlighted');
+          n.classList.add('node-dimmed');
+        }
+      });
+    });
+
+    document.getElementById('clearSearch').addEventListener('click', () => {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+    });
+
+    // Alto Contraste
+    const btnHighContrast = document.getElementById('btnHighContrast');
+    btnHighContrast.addEventListener('click', () => {
+      const isHc = document.body.classList.toggle('high-contrast');
+      btnHighContrast.setAttribute('aria-pressed', String(isHc));
+    });
+
+    // Copiar Mermaid
+    document.getElementById('btnCopyMermaid').addEventListener('click', () => {
+      const src = DADOS_ARQUITETURA.diagramas[tabAtual] || DADOS_ARQUITETURA.diagramas.geral;
+      vscode.postMessage({ command: 'copyToClipboard', text: src, feedback: 'Diagrama Mermaid copiado com sucesso!' });
+    });
+
+    // Copiar Markdown
+    document.getElementById('btnCopyMd').addEventListener('click', () => {
+      let md = '# Arquitetura Viva — ' + DADOS_ARQUITETURA.nomeModulo + '\n\n';
+      md += '> **Domínio:** ' + DADOS_ARQUITETURA.dominio + ' | **Camada:** ' + DADOS_ARQUITETURA.camada + ' | **SLO:** ' + DADOS_ARQUITETURA.slo + '\n\n';
+      md += '\`\`\`mermaid\n' + (DADOS_ARQUITETURA.diagramas[tabAtual] || DADOS_ARQUITETURA.diagramas.geral) + '\n\`\`\`\n';
+      vscode.postMessage({ command: 'copyToClipboard', text: md, feedback: 'Markdown Arquitetural copiado com sucesso!' });
+    });
+
+    // Baixar SVG
+    document.getElementById('btnDownloadSvg').addEventListener('click', () => {
+      const svg = canvas.querySelector('svg');
+      if (!svg) return;
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svg);
+      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'arquitetura_' + DADOS_ARQUITETURA.nomeModulo + '.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // Atalhos de Teclado Globais
+    window.addEventListener('keydown', (e) => {
+      if (document.activeElement === searchInput) {
+        if (e.key === 'Escape') searchInput.blur();
+        return;
+      }
+      if (e.key === '+' || e.key === '=') zoom(0.2);
+      else if (e.key === '-' || e.key === '_') zoom(-0.2);
+      else if (e.key === '0') { scale = 1; aplicarTransform(); }
+      else if (e.key === 'f' || e.key === 'F') fitToScreen();
+      else if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') { panY += 40; aplicarTransform(); }
+      else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') { panY -= 40; aplicarTransform(); }
+      else if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') { panX += 40; aplicarTransform(); }
+      else if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') { panX -= 40; aplicarTransform(); }
+      else if (e.key === '/' || (e.ctrlKey && e.key === 'f')) {
+        e.preventDefault();
+        searchInput.focus();
+      } else if (e.key === 'Escape') {
+        drawer.classList.remove('open');
+        drawer.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    // Inicialização
+    setTimeout(() => {
+      atribuirEventosNos();
+      fitToScreen();
+    }, 300);
   </script>
 </body>
 </html>`;
@@ -429,6 +1191,24 @@ ${mermaid}
         );
         architecturePanel.onDidDispose(() => {
           architecturePanel = undefined;
+        });
+
+        // Receptor de Mensagens do Webview (Navegação ao código, cópia, etc)
+        architecturePanel.webview.onDidReceiveMessage(message => {
+          if (message.command === 'goToLine') {
+            const linha = message.line;
+            const editorAtivo = vscode.window.activeTextEditor;
+            if (editorAtivo && linha > 0) {
+              const pos = new vscode.Position(linha - 1, 0);
+              editorAtivo.selection = new vscode.Selection(pos, pos);
+              editorAtivo.revealRange(new vscode.Range(pos, pos), vscode.TextEditorRevealType.InCenter);
+            }
+          } else if (message.command === 'copyToClipboard') {
+            vscode.env.clipboard.writeText(message.text || '');
+            if (message.feedback) {
+              vscode.window.showInformationMessage(message.feedback);
+            }
+          }
         });
       }
 
@@ -572,113 +1352,515 @@ ${mermaid}
   });
 
   // ==========================================================================
-  // 5. SIDEBAR DE GOVERNANÇA & ARQUITETURA (ACTIVITY BAR)
+  // 5. COCKPIT THZ — SUÍTE DE COMANDO & ARQUITETURA VIVA (ACTIVITY BAR)
   // ==========================================================================
 
-  class ThzTreeItem extends vscode.TreeItem {
+  class ThzCockpitItem extends vscode.TreeItem {
     constructor(
       public readonly label: string,
       public readonly collapsibleState: vscode.TreeItemCollapsibleState,
       public readonly description?: string,
-      public readonly children?: ThzTreeItem[]
+      public readonly iconThemeName?: string,
+      public readonly commandAction?: vscode.Command,
+      public readonly tooltipText?: string | vscode.MarkdownString,
+      public readonly children?: ThzCockpitItem[]
     ) {
       super(label, collapsibleState);
       this.description = description;
+      if (iconThemeName) {
+        this.iconPath = new vscode.ThemeIcon(iconThemeName);
+      }
+      this.command = commandAction;
+      if (tooltipText) {
+        this.tooltip = tooltipText;
+      }
     }
   }
 
-  class ThzGovernanceTreeDataProvider implements vscode.TreeDataProvider<ThzTreeItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<ThzTreeItem | undefined | null | void> = new vscode.EventEmitter<ThzTreeItem | undefined | null | void>();
-    readonly onDidChangeTreeData: vscode.Event<ThzTreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+  // 5.1 Provider de Ações Rápidas do Cockpit
+  class ThzCockpitActionsProvider implements vscode.TreeDataProvider<ThzCockpitItem> {
+    private _onDidChangeTreeData = new vscode.EventEmitter<ThzCockpitItem | undefined | null | void>();
+    readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     refresh(): void {
       this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: ThzTreeItem): vscode.TreeItem {
+    getTreeItem(element: ThzCockpitItem): vscode.TreeItem {
       return element;
     }
 
-    getChildren(element?: ThzTreeItem): Thenable<ThzTreeItem[]> {
+    getChildren(element?: ThzCockpitItem): Thenable<ThzCockpitItem[]> {
+      if (element) return Promise.resolve(element.children || []);
+
+      const items: ThzCockpitItem[] = [
+        new ThzCockpitItem(
+          'Executar Programa Atual',
+          vscode.TreeItemCollapsibleState.None,
+          'thz run',
+          'play',
+          { command: 'thz.run', title: 'Executar Programa' },
+          'Executa o arquivo .thz ativo no terminal integrado'
+        ),
+        new ThzCockpitItem(
+          'Verificar Código & Contratos',
+          vscode.TreeItemCollapsibleState.None,
+          'thz check',
+          'check',
+          { command: 'thz.check', title: 'Verificar Código' },
+          'Executa análise sintática, semântica e verificação formal de contratos'
+        ),
+        new ThzCockpitItem(
+          'Live Preview de Arquitetura Viva',
+          vscode.TreeItemCollapsibleState.None,
+          'Mermaid / DDD',
+          'graph',
+          { command: 'thz.previewArchitecture', title: 'Live Preview de Arquitetura' },
+          'Abre visualizador interativo com Pan, Zoom e Diagramas C4/DDD'
+        ),
+        new ThzCockpitItem(
+          'Live Preview de Tela Declarativa',
+          vscode.TreeItemCollapsibleState.None,
+          '.thzui / GUI',
+          'browser',
+          { command: 'thz.previewUi', title: 'Live Preview de Tela' },
+          'Abre pré-visualização em tempo real de interfaces declarativas'
+        ),
+        new ThzCockpitItem(
+          'Auditoria de Governança',
+          vscode.TreeItemCollapsibleState.None,
+          'ISO 42010 / SOX',
+          'shield',
+          { command: 'thz.showAudit', title: 'Auditoria de Governança' },
+          'Gera relatório completo de rastreabilidade, SLOs e conformidade'
+        ),
+        new ThzCockpitItem(
+          'Inspecionar IR Intermediário',
+          vscode.TreeItemCollapsibleState.None,
+          'thz-ir/1 JSON',
+          'symbol-structure',
+          { command: 'thz.showIr', title: 'Mostrar IR' },
+          'Exibe a representação intermediária formal (IR) da compilação'
+        ),
+        new ThzCockpitItem(
+          'Inspecionar LLVM IR',
+          vscode.TreeItemCollapsibleState.None,
+          'Clang AOT',
+          'file-binary',
+          { command: 'thz.showLlvm', title: 'Mostrar LLVM IR' },
+          'Exibe o código LLVM nativo de alta performance gerado pelo compilador'
+        ),
+        new ThzCockpitItem(
+          'Abrir Desktop IDE Oficial',
+          vscode.TreeItemCollapsibleState.None,
+          'Swing FlatLaf',
+          'window',
+          { command: 'thz.openGui', title: 'Abrir Desktop IDE' },
+          'Inicia a IDE desktop nativa universal THZ-LANG'
+        ),
+        new ThzCockpitItem(
+          'Iniciar REPL Interativo',
+          vscode.TreeItemCollapsibleState.None,
+          'Console REPL',
+          'terminal',
+          { command: 'thz.openRepl', title: 'Abrir REPL' },
+          'Abre ambiente interativo linha a linha no terminal'
+        )
+      ];
+
+      return Promise.resolve(items);
+    }
+  }
+
+  // 5.2 Provider de Outline Interativo de Governança & Arquitetura
+  class ThzOutlineTreeDataProvider implements vscode.TreeDataProvider<ThzCockpitItem> {
+    private _onDidChangeTreeData = new vscode.EventEmitter<ThzCockpitItem | undefined | null | void>();
+    readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+    refresh(): void {
+      this._onDidChangeTreeData.fire();
+    }
+
+    getTreeItem(element: ThzCockpitItem): vscode.TreeItem {
+      return element;
+    }
+
+    getChildren(element?: ThzCockpitItem): Thenable<ThzCockpitItem[]> {
       if (element) {
         return Promise.resolve(element.children || []);
       }
 
       const ed = vscode.window.activeTextEditor;
-      if (!ed || ed.document.languageId !== 'thz') {
-        return Promise.resolve([new ThzTreeItem('Abra um arquivo .thz para ver governança', vscode.TreeItemCollapsibleState.None)]);
+      const isThzFile = ed && (
+        ed.document.languageId === 'thz' ||
+        ed.document.fileName.endsWith('.thz') ||
+        ed.document.fileName.endsWith('.thzui')
+      );
+
+      if (!ed || !isThzFile) {
+        return Promise.resolve([
+          new ThzCockpitItem(
+            'Nenhum arquivo .thz ativo',
+            vscode.TreeItemCollapsibleState.None,
+            'Abra um arquivo .thz para ver o outline',
+            'info',
+            undefined,
+            'Abra um arquivo .thz ou escolha um exemplo na Galeria abaixo.'
+          )
+        ]);
       }
 
       const fonte = ed.document.getText();
-      const items: ThzTreeItem[] = [];
-
-      // 1. Metadados
-      const metaChildren: ThzTreeItem[] = [];
-      const mDom = fonte.match(/DOMINIO\s*:\s*"([^"]+)"/);
-      if (mDom) metaChildren.push(new ThzTreeItem('Domínio', vscode.TreeItemCollapsibleState.None, mDom[1]));
-      const mSlo = fonte.match(/SLO_LATENCIA_MAXIMA\s*:\s*"([^"]+)"/);
-      if (mSlo) metaChildren.push(new ThzTreeItem('SLO de Latência', vscode.TreeItemCollapsibleState.None, mSlo[1]));
-      const mCrit = fonte.match(/CRITICIDADE\s*:\s*"([^"]+)"/);
-      if (mCrit) metaChildren.push(new ThzTreeItem('Criticidade', vscode.TreeItemCollapsibleState.None, mCrit[1]));
-
-      items.push(new ThzTreeItem('🏛️ Metadados de Arquitetura', vscode.TreeItemCollapsibleState.Expanded, undefined, metaChildren));
-
-      // 2. Regras e Contratos
-      const regrasChildren: ThzTreeItem[] = [];
+      const filePath = ed.document.uri.fsPath;
       const linhas = fonte.split(/\r?\n/);
-      let regraAtual: string | null = null;
-      let reqAtual: string | null = null;
-      let contratos: string[] = [];
+      const items: ThzCockpitItem[] = [];
 
-      for (const l of linhas) {
-        const mR = l.match(/^\s*REGRA_NEGOCIO\s+([A-Za-z0-9_]+)/);
-        if (mR) {
-          regraAtual = mR[1];
-          reqAtual = null;
-          contratos = [];
-        }
-        const mReq = l.match(/RASTREIO_REQUISITO\s*:\s*"([^"]+)"/);
-        if (mReq) reqAtual = mReq[1];
-        const mExige = l.match(/^\s*EXIGE\s+(.+)/);
-        if (mExige) contratos.push(`EXIGE: ${mExige[1]}`);
-        const mGarante = l.match(/^\s*GARANTE\s+(.+)/);
-        if (mGarante) contratos.push(`GARANTE: ${mGarante[1]}`);
+      // Extração de Metadados
+      const metaChildren: ThzCockpitItem[] = [];
+      const mMod = fonte.match(/(?:(PROGRAMA(?:\s+VISUAL|\s+NEGOCIO|\s+ARQUITETURA)?|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE))\s+([A-Za-z0-9_]+)/);
+      if (mMod) metaChildren.push(new ThzCockpitItem('Módulo', vscode.TreeItemCollapsibleState.None, mMod[2] + ` (${mMod[1]})`, 'package', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [1, filePath] }));
+      const mDom = fonte.match(/DOMINIO\s*:\s*"([^"]+)"/);
+      if (mDom) metaChildren.push(new ThzCockpitItem('Domínio', vscode.TreeItemCollapsibleState.None, mDom[1], 'organization'));
+      const mCam = fonte.match(/CAMADA\s*:\s*"([^"]+)"/);
+      if (mCam) metaChildren.push(new ThzCockpitItem('Camada', vscode.TreeItemCollapsibleState.None, mCam[1], 'layers'));
+      const mSlo = fonte.match(/SLO_LATENCIA_MAXIMA\s*:\s*"([^"]+)"/);
+      if (mSlo) metaChildren.push(new ThzCockpitItem('SLO de Latência', vscode.TreeItemCollapsibleState.None, mSlo[1], 'watch'));
+      const mCrit = fonte.match(/CRITICIDADE\s*:\s*"([^"]+)"/);
+      if (mCrit) metaChildren.push(new ThzCockpitItem('Criticidade', vscode.TreeItemCollapsibleState.None, mCrit[1], 'alert'));
+      const mAut = fonte.match(/AUTOR\s*:\s*"([^"]+)"/);
+      if (mAut) metaChildren.push(new ThzCockpitItem('Autor', vscode.TreeItemCollapsibleState.None, mAut[1], 'person'));
+      const mConf = fonte.match(/CONFORMIDADE\s*:\s*"([^"]+)"/);
+      if (mConf) metaChildren.push(new ThzCockpitItem('Conformidade', vscode.TreeItemCollapsibleState.None, mConf[1], 'verified'));
 
-        if (l.match(/^\s*FIM_REGRA_NEGOCIO/) && regraAtual) {
-          const cItems = contratos.map(c => new ThzTreeItem(`  🛡️ ${c}`, vscode.TreeItemCollapsibleState.None));
-          regrasChildren.push(new ThzTreeItem(`⚖️ ${regraAtual}`, cItems.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None, reqAtual ? `[${reqAtual}]` : undefined, cItems));
-          regraAtual = null;
-        }
+      if (metaChildren.length > 0) {
+        items.push(new ThzCockpitItem('🏛️ Metadados de Arquitetura (ISO 42010)', vscode.TreeItemCollapsibleState.Expanded, `${metaChildren.length} atributo(s)`, 'circuit-board', undefined, undefined, metaChildren));
       }
 
-      if (regrasChildren.length > 0) {
-        items.push(new ThzTreeItem('📋 Regras & Contratos DDD', vscode.TreeItemCollapsibleState.Expanded, `${regrasChildren.length} regra(s)`, regrasChildren));
-      }
+      // Extração de Estruturas
+      const estrChildren: ThzCockpitItem[] = [];
+      let estAtual: { nome: string; linha: number; soa: boolean; campos: ThzCockpitItem[]; invariantes: ThzCockpitItem[] } | null = null;
 
-      // 3. Estruturas
-      const estrChildren: ThzTreeItem[] = [];
-      for (const l of linhas) {
+      for (let i = 0; i < linhas.length; i++) {
+        const l = linhas[i];
+        const numLinha = i + 1;
+
         const mE = l.match(/^\s*ESTRUTURA\s+([A-Za-z0-9_]+)(?:\s+(LAYOUT_COLUNAR))?/);
         if (mE) {
-          estrChildren.push(new ThzTreeItem(`📦 ${mE[1]}`, vscode.TreeItemCollapsibleState.None, mE[2] ? 'SIMD / SoA' : 'Padrão'));
+          estAtual = { nome: mE[1], linha: numLinha, soa: !!mE[2], campos: [], invariantes: [] };
+        }
+        if (estAtual) {
+          const mCampo = l.match(/^\s*([A-Za-z0-9_]+)\s*:\s*([A-Za-z0-9_<>[\]]+)/);
+          if (mCampo && !l.includes('ESTRUTURA') && !l.includes('INVARIANTE')) {
+            estAtual.campos.push(new ThzCockpitItem(mCampo[1], vscode.TreeItemCollapsibleState.None, mCampo[2], 'symbol-field', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }));
+          }
+          const mInv = l.match(/^\s*INVARIANTE\s+(.+)/);
+          if (mInv) {
+            estAtual.invariantes.push(new ThzCockpitItem(`INVARIANTE ${mInv[1].trim()}`, vscode.TreeItemCollapsibleState.None, 'Regra de Validade', 'shield', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }));
+          }
+          if (l.match(/^\s*FIM_ESTRUTURA/)) {
+            const subItens = [...estAtual.campos, ...estAtual.invariantes];
+            const tag = estAtual.soa ? 'SoA / SIMD' : `${estAtual.campos.length} campo(s)`;
+            estrChildren.push(new ThzCockpitItem(
+              `📦 ${estAtual.nome}`,
+              subItens.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
+              tag,
+              'symbol-structure',
+              { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [estAtual.linha, filePath] },
+              `Estrutura de dados ${estAtual.nome} (${estAtual.soa ? 'Layout Colunar SIMD' : 'Layout Padrão'})`,
+              subItens
+            ));
+            estAtual = null;
+          }
         }
       }
       if (estrChildren.length > 0) {
-        items.push(new ThzTreeItem('📦 Estruturas de Dados', vscode.TreeItemCollapsibleState.Collapsed, `${estrChildren.length} estrutura(s)`, estrChildren));
+        items.push(new ThzCockpitItem('📦 Entidades & Estruturas de Dados', vscode.TreeItemCollapsibleState.Expanded, `${estrChildren.length} modelo(s)`, 'database', undefined, undefined, estrChildren));
+      }
+
+      // Extração de Regras e Contratos DDD
+      const regrasChildren: ThzCockpitItem[] = [];
+      let regraAtual: { nome: string; linha: number; req?: string; idRegra?: string; idemp?: boolean; subItens: ThzCockpitItem[] } | null = null;
+
+      for (let i = 0; i < linhas.length; i++) {
+        const l = linhas[i];
+        const numLinha = i + 1;
+
+        const mR = l.match(/^\s*REGRA_NEGOCIO\s+([A-Za-z0-9_]+)/);
+        if (mR) {
+          regraAtual = { nome: mR[1], linha: numLinha, subItens: [] };
+        }
+        if (regraAtual) {
+          const mBr = l.match(/IDENTIFICADOR_REGRA\s*:\s*"([^"]+)"/);
+          if (mBr) regraAtual.idRegra = mBr[1];
+          const mReq = l.match(/RASTREIO_REQUISITO\s*:\s*"([^"]+)"/);
+          if (mReq) {
+            regraAtual.req = mReq[1];
+            regraAtual.subItens.push(new ThzCockpitItem(`📋 Requisito: ${mReq[1]}`, vscode.TreeItemCollapsibleState.None, 'Rastreabilidade', 'bookmark', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }));
+          }
+          const mIdemp = l.match(/IDEMPOTENTE/);
+          if (mIdemp) {
+            regraAtual.idemp = true;
+            regraAtual.subItens.push(new ThzCockpitItem('🛡️ Garantia: IDEMPOTENTE', vscode.TreeItemCollapsibleState.None, 'Tolerância a Repetições', 'shield', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }));
+          }
+          const mExige = l.match(/^\s*EXIGE\s+(.+)/);
+          if (mExige) {
+            regraAtual.subItens.push(new ThzCockpitItem(`🛡️ EXIGE ${mExige[1].trim()}`, vscode.TreeItemCollapsibleState.None, 'Pré-Condição', 'lock', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }));
+          }
+          const mGarante = l.match(/^\s*GARANTE\s+(.+)/);
+          if (mGarante) {
+            regraAtual.subItens.push(new ThzCockpitItem(`✅ GARANTE ${mGarante[1].trim()}`, vscode.TreeItemCollapsibleState.None, 'Pós-Condição', 'pass-filled', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }));
+          }
+          const mOp = l.match(/^\s*OPERACAO\s+(?:(IDEMPOTENTE)\s+)?([A-Za-z0-9_]+)\s*\((.*?)\)(?:\s*:\s*([A-Za-z0-9_<>[\]]+))?/);
+          if (mOp) {
+            regraAtual.subItens.push(new ThzCockpitItem(`⚡ ${mOp[2]}(${mOp[3] || ''})`, vscode.TreeItemCollapsibleState.None, mOp[4] || 'void', 'symbol-method', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }));
+          }
+
+          if (l.match(/^\s*FIM_REGRA_NEGOCIO/)) {
+            const desc = [regraAtual.idRegra, regraAtual.req].filter(Boolean).join(' | ') || `${regraAtual.subItens.length} contrato(s)`;
+            regrasChildren.push(new ThzCockpitItem(
+              `⚖️ ${regraAtual.nome}`,
+              regraAtual.subItens.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None,
+              desc,
+              'law',
+              { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [regraAtual.linha, filePath] },
+              `Regra de Negócio DDD ${regraAtual.nome}`,
+              regraAtual.subItens
+            ));
+            regraAtual = null;
+          }
+        }
+      }
+      if (regrasChildren.length > 0) {
+        items.push(new ThzCockpitItem('⚖️ Regras de Negócio & Contratos (DDD)', vscode.TreeItemCollapsibleState.Expanded, `${regrasChildren.length} regra(s)`, 'shield', undefined, undefined, regrasChildren));
+      }
+
+      // Extração de Procedimentos Globais
+      const procsChildren: ThzCockpitItem[] = [];
+      for (let i = 0; i < linhas.length; i++) {
+        const l = linhas[i];
+        const numLinha = i + 1;
+        const mProc = l.match(/^\s*PROCEDIMENTO\s+(?:(IDEMPOTENTE)\s+)?([A-Za-z0-9_]+)\s*\((.*?)\)/);
+        if (mProc) {
+          procsChildren.push(new ThzCockpitItem(
+            `🚀 ${mProc[2]}(${mProc[3] || ''})`,
+            vscode.TreeItemCollapsibleState.None,
+            mProc[1] ? '🛡️ IDEMPOTENTE' : 'Procedimento',
+            'symbol-method',
+            { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }
+          ));
+        }
+      }
+      if (procsChildren.length > 0) {
+        items.push(new ThzCockpitItem('🚀 Procedimentos de Execução', vscode.TreeItemCollapsibleState.Expanded, `${procsChildren.length} procedimento(s)`, 'run', undefined, undefined, procsChildren));
+      }
+
+      // Extração de Pipelines
+      const pipeChildren: ThzCockpitItem[] = [];
+      let pipeAtual: { nome: string; linha: number; subItens: ThzCockpitItem[] } | null = null;
+      for (let i = 0; i < linhas.length; i++) {
+        const l = linhas[i];
+        const numLinha = i + 1;
+        const mPipe = l.match(/^\s*PIPELINE_DADOS\s+([A-Za-z0-9_]+)/);
+        if (mPipe) {
+          pipeAtual = { nome: mPipe[1], linha: numLinha, subItens: [] };
+        }
+        if (pipeAtual) {
+          const mFonte = l.match(/FONTE_ENTRADA\s*:\s*(.+)/);
+          if (mFonte) pipeAtual.subItens.push(new ThzCockpitItem(`📥 Entrada: ${mFonte[1].trim()}`, vscode.TreeItemCollapsibleState.None, undefined, 'arrow-down'));
+          const mTransf = l.match(/TRANSFORMACAO\s*:\s*(.+)/);
+          if (mTransf) pipeAtual.subItens.push(new ThzCockpitItem(`⚙️ Transform: ${mTransf[1].trim()}`, vscode.TreeItemCollapsibleState.None, undefined, 'gear'));
+          const mDest = l.match(/DESTINO_SAIDA\s*:\s*(.+)/);
+          if (mDest) pipeAtual.subItens.push(new ThzCockpitItem(`📤 Saída: ${mDest[1].trim()}`, vscode.TreeItemCollapsibleState.None, undefined, 'arrow-up'));
+          if (l.match(/^\s*FIM_PIPELINE/)) {
+            pipeChildren.push(new ThzCockpitItem(
+              `🔄 Pipeline: ${pipeAtual.nome}`,
+              pipeAtual.subItens.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None,
+              undefined,
+              'sync',
+              { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [pipeAtual.linha, filePath] },
+              undefined,
+              pipeAtual.subItens
+            ));
+            pipeAtual = null;
+          }
+        }
+      }
+      if (pipeChildren.length > 0) {
+        items.push(new ThzCockpitItem('🔄 Pipelines de Dados', vscode.TreeItemCollapsibleState.Expanded, `${pipeChildren.length} pipeline(s)`, 'sync', undefined, undefined, pipeChildren));
+      }
+
+      // Extração de Enumerações
+      const enumChildren: ThzCockpitItem[] = [];
+      for (let i = 0; i < linhas.length; i++) {
+        const l = linhas[i];
+        const numLinha = i + 1;
+        const mEnum = l.match(/^\s*ENUMERACAO\s+([A-Za-z0-9_]+)/);
+        if (mEnum) {
+          const vals = l.includes(':') ? l.split(':')[1].split(',').map(s => s.trim()).join(' | ') : '';
+          enumChildren.push(new ThzCockpitItem(
+            `📑 ${mEnum[1]}`,
+            vscode.TreeItemCollapsibleState.None,
+            vals,
+            'symbol-enum',
+            { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }
+          ));
+        }
+      }
+      if (enumChildren.length > 0) {
+        items.push(new ThzCockpitItem('📑 Enumerações de Domínio', vscode.TreeItemCollapsibleState.Collapsed, `${enumChildren.length} enum(s)`, 'symbol-enum', undefined, undefined, enumChildren));
+      }
+
+      // Extração de Telas (.thzui / PROGRAMA VISUAL)
+      const uiChildren: ThzCockpitItem[] = [];
+      for (let i = 0; i < linhas.length; i++) {
+        const l = linhas[i];
+        const numLinha = i + 1;
+        const mBtn = l.match(/^\s*(?:BOTAO|botao|btn)\s*\(\s*"([^"]+)"/i);
+        if (mBtn) uiChildren.push(new ThzCockpitItem(`🔘 Botão "${mBtn[1]}"`, vscode.TreeItemCollapsibleState.None, undefined, 'symbol-event', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }));
+        const mTela = l.match(/^\s*(?:TELA|PROGRAMA VISUAL)\s+([A-Za-z0-9_]+)/);
+        if (mTela) uiChildren.push(new ThzCockpitItem(`🖼️ Tela: ${mTela[1]}`, vscode.TreeItemCollapsibleState.None, undefined, 'browser', { command: 'thz.gotoLine', title: 'Ir para Linha', arguments: [numLinha, filePath] }));
+      }
+      if (uiChildren.length > 0) {
+        items.push(new ThzCockpitItem('🎨 Interfaces Declarativas (UI)', vscode.TreeItemCollapsibleState.Expanded, `${uiChildren.length} componente(s)`, 'browser', undefined, undefined, uiChildren));
       }
 
       return Promise.resolve(items);
     }
   }
 
-  const governanceProvider = new ThzGovernanceTreeDataProvider();
-  vscode.window.registerTreeDataProvider('thz-governance-view', governanceProvider);
-  vscode.window.onDidChangeActiveTextEditor(() => governanceProvider.refresh());
+  // 5.3 Provider de Galeria de Exemplos
+  class ThzGalleryTreeDataProvider implements vscode.TreeDataProvider<ThzCockpitItem> {
+    getTreeItem(element: ThzCockpitItem): vscode.TreeItem {
+      return element;
+    }
+
+    getChildren(): Thenable<ThzCockpitItem[]> {
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (!workspaceFolder) {
+        return Promise.resolve([new ThzCockpitItem('Nenhum workspace aberto', vscode.TreeItemCollapsibleState.None)]);
+      }
+
+      const exemplosDefinidos = [
+        { label: '💼 Faturamento em Lote (SoA/SIMD)', path: path.join(workspaceFolder, 'exemplos', 'faturamento.thz'), desc: 'faturamento.thz' },
+        { label: '🛒 Gestão de Pedidos & DDD', path: path.join(workspaceFolder, 'exemplos', 'pedidos.thz'), desc: 'pedidos.thz' },
+        { label: '🎨 Showcase de Widgets GUI', path: path.join(workspaceFolder, 'exemplos', 'showcase_widgets_gui.thz'), desc: 'showcase_widgets_gui.thz' },
+        { label: '💳 Simulador de Crédito & Finanças', path: path.join(workspaceFolder, 'exemplos', 'simulador_credito_gui.thz'), desc: 'simulador_credito_gui.thz' },
+        { label: '🏷️ THZ Studio IDE Declarativo', path: path.join(workspaceFolder, 'exemplos', 'thz_studio_ide.thzui'), desc: 'thz_studio_ide.thzui' },
+        { label: '📦 Padrão Result DDD', path: path.join(workspaceFolder, 'exemplos', 'colecao', '07-resultado-ddd.thz'), desc: '07-resultado-ddd.thz' },
+        { label: '⚡ Vetorização SIMD (AVX2/512)', path: path.join(workspaceFolder, 'exemplos', 'colecao', '08-vetorizado-simd.thz'), desc: '08-vetorizado-simd.thz' },
+        { label: '🛡️ Idempotência em Larga Escala', path: path.join(workspaceFolder, 'exemplos', 'colecao', '11-idempotencia-larga-escala.thz'), desc: '11-idempotencia-larga-escala.thz' }
+      ];
+
+      const items = exemplosDefinidos.map(ex => {
+        const existe = fs.existsSync(ex.path);
+        return new ThzCockpitItem(
+          ex.label,
+          vscode.TreeItemCollapsibleState.None,
+          existe ? ex.desc : '(não encontrado)',
+          'file-code',
+          existe ? { command: 'thz.openFile', title: 'Abrir Exemplo', arguments: [ex.path] } : undefined,
+          `Clique para abrir ${ex.desc} no editor`
+        );
+      });
+
+      return Promise.resolve(items);
+    }
+  }
+
+  // 5.4 Provider de Status do Ambiente & Runtime
+  class ThzEnvironmentTreeDataProvider implements vscode.TreeDataProvider<ThzCockpitItem> {
+    private _onDidChangeTreeData = new vscode.EventEmitter<ThzCockpitItem | undefined | null | void>();
+    readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+    refresh(): void {
+      this._onDidChangeTreeData.fire();
+    }
+
+    getTreeItem(element: ThzCockpitItem): vscode.TreeItem {
+      return element;
+    }
+
+    getChildren(): Thenable<ThzCockpitItem[]> {
+      const isEstrito = vscode.workspace.getConfiguration('thz-lang').get<boolean>('lintEstrito', false);
+
+      const items: ThzCockpitItem[] = [
+        new ThzCockpitItem('Versão do Engine', vscode.TreeItemCollapsibleState.None, 'THZ-LANG 2.4.0', 'tag'),
+        new ThzCockpitItem('Language Server (LSP)', vscode.TreeItemCollapsibleState.None, client ? 'Conectado (Java 25)' : 'Inativo', 'server-process'),
+        new ThzCockpitItem('Backend de Compilação', vscode.TreeItemCollapsibleState.None, 'LLVM Clang AOT / GraalVM', 'zap'),
+        new ThzCockpitItem('Gerenciamento de Memória', vscode.TreeItemCollapsibleState.None, 'Arena Contígua O(1) (ISO TR 24772)', 'layers'),
+        new ThzCockpitItem('Aritmética Decimais', vscode.TreeItemCollapsibleState.None, 'ISO/IEC 10967 (DecimalFixo Half-Even)', 'shield'),
+        new ThzCockpitItem(
+          'Modo Estrito (Lint Restritivo)',
+          vscode.TreeItemCollapsibleState.None,
+          isEstrito ? 'Ativado 🛡️' : 'Desativado (Clique para alternar)',
+          isEstrito ? 'pass-filled' : 'circle-outline',
+          { command: 'thz.toggleLintEstrito', title: 'Alternar Modo Estrito' },
+          'Exige metadados ISO 42010, SLO de latência, contratos EXIGE/GARANTE e rastreabilidade'
+        )
+      ];
+
+      return Promise.resolve(items);
+    }
+  }
+
+  // Registro das Árvores e Atualizações
+  const cockpitActionsProvider = new ThzCockpitActionsProvider();
+  const outlineProvider = new ThzOutlineTreeDataProvider();
+  const galleryProvider = new ThzGalleryTreeDataProvider();
+  const environmentProvider = new ThzEnvironmentTreeDataProvider();
+
+  vscode.window.registerTreeDataProvider('thz-cockpit-view', cockpitActionsProvider);
+  vscode.window.registerTreeDataProvider('thz-governance-view', outlineProvider);
+  vscode.window.registerTreeDataProvider('thz-gallery-view', galleryProvider);
+  vscode.window.registerTreeDataProvider('thz-environment-view', environmentProvider);
+
+  function atualizarCockpit(): void {
+    cockpitActionsProvider.refresh();
+    outlineProvider.refresh();
+    environmentProvider.refresh();
+  }
+
+  vscode.window.onDidChangeActiveTextEditor(() => atualizarCockpit());
   vscode.workspace.onDidChangeTextDocument(e => {
     if (e.document === vscode.window.activeTextEditor?.document) {
-      governanceProvider.refresh();
+      outlineProvider.refresh();
     }
   });
+
+  // Comandos auxiliares de navegação do Cockpit
+  context.subscriptions.push(
+    vscode.commands.registerCommand('thz.refreshCockpit', () => atualizarCockpit()),
+
+    vscode.commands.registerCommand('thz.gotoLine', async (linha: number, filePath?: string) => {
+      let ed = vscode.window.activeTextEditor;
+      if (filePath && (!ed || ed.document.uri.fsPath !== filePath)) {
+        const doc = await vscode.workspace.openTextDocument(filePath);
+        ed = await vscode.window.showTextDocument(doc);
+      }
+      if (ed && linha > 0) {
+        const pos = new vscode.Position(linha - 1, 0);
+        ed.selection = new vscode.Selection(pos, pos);
+        ed.revealRange(new vscode.Range(pos, pos), vscode.TextEditorRevealType.InCenter);
+      }
+    }),
+
+    vscode.commands.registerCommand('thz.openFile', async (filePath: string) => {
+      if (fs.existsSync(filePath)) {
+        const doc = await vscode.workspace.openTextDocument(filePath);
+        await vscode.window.showTextDocument(doc);
+      } else {
+        vscode.window.showWarningMessage('Arquivo não encontrado: ' + filePath);
+      }
+    }),
+
+    vscode.commands.registerCommand('thz.toggleLintEstrito', async () => {
+      const cfg = vscode.workspace.getConfiguration('thz-lang');
+      const atual = cfg.get<boolean>('lintEstrito', false);
+      await cfg.update('lintEstrito', !atual, vscode.ConfigurationTarget.Global);
+      vscode.window.showInformationMessage(`Modo Estrito THZ-LANG: ${!atual ? 'ATIVADO 🛡️' : 'DESATIVADO'}`);
+      environmentProvider.refresh();
+    })
+  );
 
   // ==========================================================================
   // 6. ENDPOINTS CUSTOMIZADOS LSP (Auditoria / IR / LLVM)

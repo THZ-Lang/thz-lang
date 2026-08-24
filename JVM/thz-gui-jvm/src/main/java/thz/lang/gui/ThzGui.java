@@ -177,7 +177,16 @@ public final class ThzGui extends JFrame implements BarraMenuGui.AcoesGui {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception ignore) {}
         }
-        SwingUtilities.invokeLater(() -> new ThzGui().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            ThzGui gui = new ThzGui();
+            if (args != null && args.length > 0) {
+                File f = new File(args[0]);
+                if (f.exists() && f.isFile()) {
+                    gui.carregarArquivo(f);
+                }
+            }
+            gui.setVisible(true);
+        });
     }
 
     private void configurarDimensoesJanela() {
