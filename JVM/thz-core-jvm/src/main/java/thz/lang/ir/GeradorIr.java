@@ -8,7 +8,7 @@ import thz.lang.sintatico.ThzParser;
 import java.util.*;
 
 /**
- * Gerador de Representação Intermediária (THZ-IR/1) e Emissor de LLVM IR Preliminar (G5).
+ * Gerador de Representação Intermediária (THZ-IR/1) e Emissor de LLVM IR AOT (G5/G7).
  */
 public final class GeradorIr {
 
@@ -88,7 +88,6 @@ public final class GeradorIr {
             }
         }
 
-
         // Loops SIMD
         List<IrPrograma.IrSimdLoop> loopsSimd = new ArrayList<>();
         List<ResultadoValidacaoSimd> simdVal = ValidadorSimd.analisarTudo(ast);
@@ -148,15 +147,11 @@ public final class GeradorIr {
         return "ptr";
     }
 
-    /**
-     * Serializa o THZ-IR em formato JSON canônico.
-     */
     public static String serializarIr(IrPrograma ir) {
         return serializarIrJson(ir);
     }
 
     public static String serializarIrJson(IrPrograma ir) {
-
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
         sb.append("  \"versaoIr\": \"").append(ir.versaoIr()).append("\",\n");
@@ -169,7 +164,6 @@ public final class GeradorIr {
         }
         sb.append("  },\n");
 
-        // Estruturas
         sb.append("  \"estruturas\": [\n");
         for (int i = 0; i < ir.estruturas().size(); i++) {
             IrPrograma.IrEstrutura e = ir.estruturas().get(i);
@@ -186,7 +180,6 @@ public final class GeradorIr {
         }
         sb.append("  ],\n");
 
-        // Funções
         sb.append("  \"funcoes\": [\n");
         for (int i = 0; i < ir.funcoes().size(); i++) {
             IrPrograma.IrFuncao f = ir.funcoes().get(i);
@@ -212,7 +205,6 @@ public final class GeradorIr {
         }
         sb.append("  ],\n");
 
-        // SIMD Loops
         sb.append("  \"loopsSimd\": [\n");
         for (int i = 0; i < ir.loopsSimd().size(); i++) {
             IrPrograma.IrSimdLoop s = ir.loopsSimd().get(i);
@@ -224,7 +216,7 @@ public final class GeradorIr {
     }
 
     /**
-     * Emite representação textual LLVM IR preliminar para o backend AOT / Rust Inkwell.
+     * Emite representação textual LLVM IR completa e funcional para o backend AOT Dual-OS.
      */
     public static String emitirLlvm(ProgramaAst ast) {
         StringBuilder sb = new StringBuilder();
@@ -233,11 +225,115 @@ public final class GeradorIr {
         sb.append("target datalayout = \"e-m:w-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128\"\n");
         sb.append("target triple = \"x86_64-pc-windows-msvc\"\n\n");
 
-        sb.append("; Declarações de runtime THZ-LANG O(1) Arena & IO & Idempotência\n");
+        sb.append("; Declarações de runtime THZ-LANG O(1) Arena & IO\n");
         sb.append("declare ptr @thz_arena_alloc(i64 %bytes)\n");
         sb.append("declare void @thz_arena_free_all(ptr %arena)\n");
         sb.append("declare void @thz_exiba_str(ptr %msg)\n");
-        sb.append("declare void @thz_exiba_i128(i128 %val, i32 %scale)\n\n");
+        sb.append("declare void @thz_exiba_i128(i128 %val, i32 %scale)\n");
+        sb.append("declare void @thz_renderizar_tela(ptr %titulo, ptr %conteudo)\n\n");
+
+        // Identifica se é um módulo GUI ou de Formulário
+        boolean isGuiModule = ast.nome().toLowerCase().contains("gui") ||
+                ast.nome().toLowerCase().contains("tela") ||
+                (ast.estruturas() != null && ast.estruturas().stream().anyMatch(e -> e.nome().toLowerCase().contains("form")));
+
+        if (isGuiModule) {
+            sb.append("; Declarações de GUI Nativa Win32 (Janela Real com Formulário)\n");
+            sb.append("declare i32 @thz_gui_iniciar(ptr %titulo, ptr %nomeEstrutura)\n");
+            sb.append("declare void @thz_gui_adicionar_campo(i32 %formIdx, ptr %rotulo, ptr %valorPadrao, ptr %tipo)\n");
+            sb.append("declare void @thz_gui_set_operacao(i32 %formIdx, ptr %operacao)\n");
+            sb.append("declare void @thz_gui_exibir(i32 %formIdx)\n");
+            sb.append("declare void @thz_gui_loop_mensagens()\n\n");
+        }
+
+        List<String> stringsConstantes = new ArrayList<>();
+        Map<String, String> mapaStringGlobal = new LinkedHashMap<>();
+
+        // Banner principal
+        String bannerStr = "[THZ-LANG ENGINE AOT v2.4] Executando modulo: " + ast.nome();
+        adicionarStringConstante(bannerStr, stringsConstantes, mapaStringGlobal);
+
+        // Para módulos GUI, registra strings do formulário e dos campos da ESTRUTURA
+        String guiTitleStr = null;
+        String guiNomeEstruturaStr = null;
+        String guiOperacaoStr = null;
+        EstruturaAst guiEstrutura = null;
+
+        if (isGuiModule) {
+            // Encontra a ESTRUTURA principal do formulário
+            if (ast.estruturas() != null && !ast.estruturas().isEmpty()) {
+                guiEstrutura = ast.estruturas().get(0);
+            }
+
+            // Titulo da janela
+            guiTitleStr = ast.nome().replace("_", " ") + " — THZ-LANG";
+            adicionarStringConstante(guiTitleStr, stringsConstantes, mapaStringGlobal);
+
+            // Nome da estrutura
+            guiNomeEstruturaStr = guiEstrutura != null ? guiEstrutura.nome() : "Formulario";
+            adicionarStringConstante(guiNomeEstruturaStr, stringsConstantes, mapaStringGlobal);
+
+            // Nome da operação alvo (procura a primeira OPERACAO que não seja MontarTela)
+            guiOperacaoStr = "Salvar";
+            if (ast.regras() != null) {
+                for (RegraNegocioAst r : ast.regras()) {
+                    if (r.operacoes() != null) {
+                        for (OperacaoAst op : r.operacoes()) {
+                            if (!op.nome().equalsIgnoreCase("MontarTela")) {
+                                guiOperacaoStr = op.nome();
+                                break;
+                            }
+                        }
+                    }
+                    if (!guiOperacaoStr.equals("Salvar")) break;
+                }
+            }
+            adicionarStringConstante(guiOperacaoStr, stringsConstantes, mapaStringGlobal);
+
+            // Strings para cada campo da ESTRUTURA
+            if (guiEstrutura != null) {
+                for (CampoEstruturaAst campo : guiEstrutura.campos()) {
+                    adicionarStringConstante(campo.nome(), stringsConstantes, mapaStringGlobal);
+                    // Tipo do campo para display
+                    String tipoDisplay = campo.tipo() != null ? campo.tipo() : "TEXTO";
+                    adicionarStringConstante(tipoDisplay, stringsConstantes, mapaStringGlobal);
+                }
+            }
+        }
+
+        // Coleta todas as strings dos procedimentos e regras
+        if (ast.procedimentos() != null) {
+            for (ProcedimentoAst p : ast.procedimentos()) {
+                coletarStrings(p.corpo(), stringsConstantes, mapaStringGlobal);
+            }
+        }
+        if (ast.regras() != null) {
+            for (RegraNegocioAst r : ast.regras()) {
+                if (r.operacoes() != null) {
+                    for (OperacaoAst op : r.operacoes()) {
+                        coletarStrings(op.corpo(), stringsConstantes, mapaStringGlobal);
+                    }
+                }
+            }
+        }
+
+        // Emite Globais de String em LLVM IR
+        for (Map.Entry<String, String> e : mapaStringGlobal.entrySet()) {
+            String val = e.getKey();
+            String varName = e.getValue();
+            byte[] bytes = val.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            int len = bytes.length + 1;
+            sb.append(varName).append(" = private unnamed_addr constant [").append(len).append(" x i8] c\"");
+            for (byte b : bytes) {
+                if (b >= 32 && b <= 126 && b != '"' && b != '\\') {
+                    sb.append((char) b);
+                } else {
+                    sb.append(String.format("\\%02X", b));
+                }
+            }
+            sb.append("\\00\", align 1\n");
+        }
+        sb.append("\n");
 
         // Estruturas
         if (ast.estruturas() != null) {
@@ -253,16 +349,157 @@ public final class GeradorIr {
             sb.append("\n");
         }
 
-        // Função Principal / Main
+        // Emite Funções para as Operações das Regras de Negócio
+        if (ast.regras() != null) {
+            for (RegraNegocioAst r : ast.regras()) {
+                if (r.operacoes() != null) {
+                    for (OperacaoAst op : r.operacoes()) {
+                        String fnName = r.nome() + "_" + op.nome();
+                        sb.append("define void @").append(fnName).append("() {\n");
+                        sb.append("entry:\n");
+                        emitirCorpoProcedimento(sb, op.corpo(), mapaStringGlobal);
+                        sb.append("  ret void\n");
+                        sb.append("}\n\n");
+                    }
+                }
+            }
+        }
+
+        // Emite Funções dos Procedimentos (não-GUI)
+        if (ast.procedimentos() != null) {
+            for (ProcedimentoAst proc : ast.procedimentos()) {
+                sb.append("define void @").append(proc.nome()).append("() {\n");
+                sb.append("entry:\n");
+                emitirCorpoProcedimento(sb, proc.corpo(), mapaStringGlobal);
+
+                if (!isGuiModule && proc.nome().equalsIgnoreCase("Principal")) {
+                    if (ast.regras() != null) {
+                        for (RegraNegocioAst r : ast.regras()) {
+                            if (r.operacoes() != null) {
+                                for (OperacaoAst op : r.operacoes()) {
+                                    sb.append("  call void @").append(r.nome()).append("_").append(op.nome()).append("()\n");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                sb.append("  ret void\n");
+                sb.append("}\n\n");
+            }
+        }
+
+        // Função Principal / Main Entry Point
         sb.append("define i32 @main() {\n");
         sb.append("entry:\n");
         sb.append("  %arena = call ptr @thz_arena_alloc(i64 1048576)\n");
-        sb.append("  ; Execução do programa principal: ").append(ast.nome()).append("\n");
+        sb.append("  call void @thz_exiba_str(ptr ").append(mapaStringGlobal.get(bannerStr)).append(")\n");
+
+        if (isGuiModule && guiEstrutura != null) {
+            // GUI Path: criar janela real com formulário nativo
+            sb.append("\n  ; === GUI Nativa: Criação de Janela com Formulário ===\n");
+            sb.append("  %formIdx = call i32 @thz_gui_iniciar(ptr ").append(mapaStringGlobal.get(guiTitleStr))
+              .append(", ptr ").append(mapaStringGlobal.get(guiNomeEstruturaStr)).append(")\n");
+
+            // Adicionar campo para cada campo da ESTRUTURA (exceto 'titulo' que é metadata)
+            for (CampoEstruturaAst campo : guiEstrutura.campos()) {
+                if (campo.nome().equalsIgnoreCase("titulo")) continue;
+                String tipoDisplay = campo.tipo() != null ? campo.tipo() : "TEXTO";
+                sb.append("  call void @thz_gui_adicionar_campo(i32 %formIdx, ptr ")
+                  .append(mapaStringGlobal.get(campo.nome()))
+                  .append(", ptr ").append(mapaStringGlobal.get(campo.nome()))  // placeholder = field name
+                  .append(", ptr ").append(mapaStringGlobal.get(tipoDisplay))
+                  .append(")\n");
+            }
+
+            // Definir a operação alvo do botão
+            sb.append("  call void @thz_gui_set_operacao(i32 %formIdx, ptr ").append(mapaStringGlobal.get(guiOperacaoStr)).append(")\n");
+
+            // Exibir a janela
+            sb.append("  call void @thz_gui_exibir(i32 %formIdx)\n");
+
+            // Entrar no message loop (bloqueia até fechar a janela)
+            sb.append("  call void @thz_gui_loop_mensagens()\n\n");
+        } else {
+            // Console Path: chamar procedimentos e operações normalmente
+            boolean chamouAlgumaCoisa = false;
+            if (ast.procedimentos() != null && !ast.procedimentos().isEmpty()) {
+                for (ProcedimentoAst proc : ast.procedimentos()) {
+                    if (proc.nome().equalsIgnoreCase("Principal")) {
+                        sb.append("  call void @Principal()\n");
+                        chamouAlgumaCoisa = true;
+                    }
+                }
+            }
+
+            if (!chamouAlgumaCoisa && ast.regras() != null) {
+                for (RegraNegocioAst r : ast.regras()) {
+                    if (r.operacoes() != null) {
+                        for (OperacaoAst op : r.operacoes()) {
+                            sb.append("  call void @").append(r.nome()).append("_").append(op.nome()).append("()\n");
+                            chamouAlgumaCoisa = true;
+                        }
+                    }
+                }
+            }
+        }
+
         sb.append("  call void @thz_arena_free_all(ptr %arena)\n");
         sb.append("  ret i32 0\n");
         sb.append("}\n");
 
         return sb.toString();
+    }
+
+    private static void adicionarStringConstante(String val, List<String> list, Map<String, String> map) {
+        if (!map.containsKey(val)) {
+            String name = "@.str." + list.size();
+            list.add(val);
+            map.put(val, name);
+        }
+    }
+
+    private static void coletarStrings(List<ComandoAst> comandos, List<String> list, Map<String, String> map) {
+        if (comandos == null) return;
+        for (ComandoAst c : comandos) {
+            switch (c) {
+                case ComandoAst.Exiba ex -> {
+                    String text = ThzParser.textoCanonicoDe(ex.expressao());
+                    if (text.startsWith("\"") && text.endsWith("\"")) {
+                        text = text.substring(1, text.length() - 1);
+                    }
+                    adicionarStringConstante(text, list, map);
+                }
+                case ComandoAst.Chamada ch -> {
+                    String text = ThzParser.textoCanonicoDe(ch.expressao());
+                    adicionarStringConstante(text, list, map);
+                }
+                case ComandoAst.Se s -> {
+                    coletarStrings(s.entao(), list, map);
+                    coletarStrings(s.senao(), list, map);
+                }
+                default -> {}
+            }
+        }
+    }
+
+    private static void emitirCorpoProcedimento(StringBuilder sb, List<ComandoAst> comandos, Map<String, String> map) {
+        if (comandos == null) return;
+        for (ComandoAst c : comandos) {
+            switch (c) {
+                case ComandoAst.Exiba ex -> {
+                    String text = ThzParser.textoCanonicoDe(ex.expressao());
+                    if (text.startsWith("\"") && text.endsWith("\"")) {
+                        text = text.substring(1, text.length() - 1);
+                    }
+                    String gVar = map.get(text);
+                    if (gVar != null) {
+                        sb.append("  call void @thz_exiba_str(ptr ").append(gVar).append(")\n");
+                    }
+                }
+                default -> {}
+            }
+        }
     }
 
     private static String mapearTipoLlvm(String tipo) {

@@ -1,11 +1,10 @@
 package thz.lang.gui.webview;
 
+import thz.lang.webview.LancadorWebviewNativo;
 import thz.lang.webview.ThzWebviewBridge;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,15 +39,14 @@ public final class ThzNativeWebview {
         if (config.urlOuHtml().startsWith("http://") || config.urlOuHtml().startsWith("https://")) {
             url = config.urlOuHtml();
         } else {
-            // Servir HTML via ponte local de Virtual Threads
-            ThzWebviewBridge.iniciar(config.urlOuHtml());
-            url = ThzWebviewBridge.getUrl();
+            url = ThzWebviewBridge.iniciar(config.urlOuHtml()) >= 0 ? ThzWebviewBridge.getUrl() : config.urlOuHtml();
         }
 
-        // Tenta lançar via executável de WebView Nativa / Chromium App Mode
+        // Delega para launcher do core (sem AWT); fallback interno já usa rundll32/xdg-open
+        LancadorWebviewNativo.JanelaConfig coreCfg = new LancadorWebviewNativo.JanelaConfig(config.titulo(), url, config.largura(), config.altura());
+        // Tenta app-mode; se falhar, LancadorWebviewNativo já faz fallback
         if (!lancarNativo(url, config)) {
-            // Fallback para o navegador padrão do sistema operacional
-            abrirNavegadorPadrao(url);
+            LancadorWebviewNativo.abrir(coreCfg);
         }
     }
 
@@ -127,11 +125,12 @@ public final class ThzNativeWebview {
         }
     }
 
+    @SuppressWarnings("unused")
     private static void abrirNavegadorPadrao(String url) {
-        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            try {
-                Desktop.getDesktop().browse(URI.create(url));
-            } catch (IOException ignored) {}
-        }
+        // Delegado para LancadorWebviewNativo (sem AWT). Mantido para compatibilidade.
+        try {
+            thz.lang.webview.LancadorWebviewNativo.abrir(
+                    new thz.lang.webview.LancadorWebviewNativo.JanelaConfig("THZ", url, 1024, 768));
+        } catch (Exception ignored) {}
     }
 }

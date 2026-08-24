@@ -5,7 +5,17 @@
 # Node.js & TypeScript
 node_modules/
 dist/
+dist/bin/*.exe
 out/
+
+# THZ-LANG build artifacts espurios
+JVM/**/target/
+JVM/**/dist/
+**/*.ll
+
+# Agents / AI tooling
+.agents/
+.opencode/
 .pnpm-store/
 *.tsbuildinfo
 npm-debug.log*

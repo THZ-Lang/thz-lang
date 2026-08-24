@@ -1,0 +1,107 @@
+PROGRAMA PedidoVendasGui
+
+METADADOS_ARQUITETURA
+    DOMINIO: "Comercial"
+    SUBDOMINIO: "Faturamento"
+    CAMADA: "InterfaceGrafica"
+    VERSAO: "2.3.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "40ms"
+    CONFORMIDADE: "SOX", "ISO-42010"
+FIM_METADADOS
+
+ENUMERACAO CanalVenda
+    ECOMMERCE
+    LOJA_FISICA
+    MARKETPLACE
+    CORPORATIVO_B2B
+FIM_ENUMERACAO
+
+ENUMERACAO CondicaoPagamento
+    PIX_A_VISTA
+    BOLETO_BANCARIO_30D
+    CARTAO_CREDITO_12X
+    FATURADO_60D
+FIM_ENUMERACAO
+
+ESTRUTURA ItemPedido
+    sku: TEXTO
+    descricao: TEXTO
+    quantidade: INTEIRO32
+    precoUnitario: DECIMAL(12, 2)
+FIM_ESTRUTURA
+
+ESTRUTURA FormularioPedido
+    titulo: TEXTO
+    cliente: TEXTO
+    canal: CanalVenda
+    condicao: CondicaoPagamento
+    entregaExpressa: LOGICO
+    itens: FATIA[ItemPedido]
+    observacoes: TEXTO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO ProcessamentoPedido
+    IDENTIFICADOR_REGRA: "RN-PED-001"
+    RASTREIO_REQUISITO: "REQ-CHECKOUT-200"
+    DESCRICAO: "Valida e calcula pedido de venda com itens em grid e canal"
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(cliente) >= 3
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO FecharPedido(cliente: TEXTO, canal: CanalVenda, entregaExpressa: LOGICO, itens: FATIA[ItemPedido], observacoes: TEXTO): TEXTO
+    INICIO
+        VARIAVEL frete : TEXTO <- "Padrão"
+        SE entregaExpressa
+            frete <- "Expresso (24h)"
+        FIM_SE
+
+        EXIBA "[PEDIDO] Cliente: " + cliente + " | Canal: " + canal + " | Frete: " + frete
+        RETORNE "Pedido fechado com sucesso para " + cliente + "! (Canal: " + canal + ", Frete: " + frete + ")."
+    FIM
+FIM_REGRA_NEGOCIO
+
+REGRA_NEGOCIO Inicializacao
+    IDENTIFICADOR_REGRA: "RN-INIT-002"
+    RASTREIO_REQUISITO: "REQ-UI-002"
+    DESCRICAO: "Constrói a tela de Pedido com Grid, Combos e Checkbox"
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO MontarTela(): TEXTO
+    INICIO
+        VARIAVEL item1 : ItemPedido <- CRIAR ItemPedido(sku: "PRD-101", descricao: "Notebook Enterprise 16GB", quantidade: 2, precoUnitario: 4500.00)
+        VARIAVEL item2 : ItemPedido <- CRIAR ItemPedido(sku: "PRD-202", descricao: "Monitor UltraWide 34 Pol", quantidade: 1, precoUnitario: 2800.00)
+        VARIAVEL item3 : ItemPedido <- CRIAR ItemPedido(sku: "PRD-303", descricao: "Docking Station Thunderbolt", quantidade: 2, precoUnitario: 650.00)
+
+        VARIAVEL gradeItens : FATIA[ItemPedido] <- [item1, item2, item3]
+
+        VARIAVEL form : FormularioPedido <- CRIAR FormularioPedido(
+            titulo: "Emissão de Pedido de Vendas — THZ GUI",
+            cliente: "Tech Corp Global S/A",
+            canal: CORPORATIVO_B2B,
+            condicao: FATURADO_60D,
+            entregaExpressa: VERDADEIRO,
+            itens: gradeItens,
+            observacoes: "Entregar na doca principal das 08h às 17h. Solicitar nota fiscal com retenção de impostos."
+        )
+
+        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "ProcessamentoPedido.FecharPedido")
+        EXIBA status
+        RETORNE status
+    FIM
+FIM_REGRA_NEGOCIO
+
+PROCEDIMENTO Principal()
+INICIO
+    Inicializacao.MontarTela()
+FIM
+
+FIM_PROGRAMA

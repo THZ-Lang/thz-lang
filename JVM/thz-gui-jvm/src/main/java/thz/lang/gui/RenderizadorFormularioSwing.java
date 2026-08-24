@@ -99,13 +99,19 @@ public class RenderizadorFormularioSwing {
     }
 
     public static String extrairTitulo(ValorThz.Registro reg) {
+        String raw;
         if (reg != null && reg.campos().containsKey("titulo")) {
             ValorThz t = reg.campos().get("titulo");
             if (t instanceof ValorThz.Texto txt && !txt.valor().isBlank()) {
-                return txt.valor();
+                raw = txt.valor();
+            } else {
+                raw = reg != null ? "Formulário THZ — " + reg.nomeEstrutura() : "Formulário THZ";
             }
+        } else {
+            raw = reg != null ? "Formulário THZ — " + reg.nomeEstrutura() : "Formulário THZ";
         }
-        return reg != null ? "Formulário THZ — " + reg.nomeEstrutura() : "Formulário THZ";
+        // Sanitiza caracteres que quebram title bar no Windows (em dash/cp1252)
+        return raw.replace("—", "-").replace("–", "-").replace("â€”", "-").replace("â€", "-");
     }
 
     public void exibir() {
@@ -176,11 +182,13 @@ public class RenderizadorFormularioSwing {
         scrollPane.getViewport().setOpaque(false);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setPreferredSize(new Dimension(800, 340));
         contentPane.add(scrollPane, BorderLayout.CENTER);
 
-        // ---- Footer (Status + Botões) ----
-        JPanel footerPanel = new JPanel(new BorderLayout(0, 12));
+        // ---- Footer (Status + Botões) — não pode ser cortado, reserva altura dinâmica ----
+        JPanel footerPanel = new JPanel(new BorderLayout(0, 8));
         footerPanel.setOpaque(false);
+        footerPanel.setBorder(new EmptyBorder(12, 0, 0, 0));
 
         painelStatus = new JPanel(new BorderLayout(8, 0));
         painelStatus.setBackground(new Color(39, 39, 42)); // Zinc 800
@@ -194,7 +202,7 @@ public class RenderizadorFormularioSwing {
         lblStatus.setForeground(new Color(212, 212, 216));
         painelStatus.add(lblStatus, BorderLayout.CENTER);
 
-        JPanel acoesPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel acoesPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
         acoesPanel.setOpaque(false);
 
         String rotuloBotao = extrairNomeSimplesOperacao(operacaoAlvo);
@@ -329,7 +337,8 @@ public class RenderizadorFormularioSwing {
                     new EmptyBorder(6, 8, 6, 8)
             ));
             JScrollPane spTa = new JScrollPane(ta);
-            spTa.setPreferredSize(new Dimension(750, 80));
+            spTa.setPreferredSize(new Dimension(520, 80));
+            spTa.setMaximumSize(new Dimension(Short.MAX_VALUE, 120));
             spTa.setBorder(BorderFactory.createEmptyBorder());
             camposEntrada.put(nomeCampo, ta);
             painel.add(spTa, BorderLayout.CENTER);
@@ -461,30 +470,41 @@ public class RenderizadorFormularioSwing {
 
     private void ajustarTamanhoECentralizar() {
         if (frame == null) return;
+        // Garante que o footer nunca seja cortado: pack mede preferido real
         frame.pack();
+        // Heurística: nome longo da operação exige largura extra para não truncar botão
+        String rotulo = extrairNomeSimplesOperacao(operacaoAlvo);
+        int extraLargura = Math.max(0, (rotulo.length() - 8) * 8);
 
         GraphicsConfiguration gc = frame.getGraphicsConfiguration();
         if (gc == null) {
             gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         }
-        Rectangle telaBounds = (gc != null) ? gc.getBounds() : new Rectangle(0, 0, 1024, 768);
+        Rectangle telaBounds = (gc != null) ? gc.getBounds() : new Rectangle(0, 0, 1280, 800);
         Insets insets = (gc != null) ? Toolkit.getDefaultToolkit().getScreenInsets(gc) : new Insets(0, 0, 0, 0);
 
-        int maxLarguraUtil = Math.max(400, telaBounds.width - insets.left - insets.right);
-        int maxAlturaUtil = Math.max(300, telaBounds.height - insets.top - insets.bottom);
+        int maxLarguraUtil = Math.max(520, telaBounds.width - insets.left - insets.right);
+        int maxAlturaUtil = Math.max(400, telaBounds.height - insets.top - insets.bottom);
 
         boolean temControlesAmplos = !fatiaModelos.isEmpty() || !listCampos.isEmpty() || !radioGrupos.isEmpty() || registro.campos().size() >= 4;
-        int larguraBase = temControlesAmplos ? 880 : 720;
-        int larguraCalculada = Math.max(frame.getWidth(), larguraBase);
-        int larguraDesejada = Math.min(larguraCalculada, (int) (maxLarguraUtil * 0.92));
-        int alturaDesejada = Math.min(frame.getHeight(), (int) (maxAlturaUtil * 0.85));
+        int larguraBase = (temControlesAmplos ? 960 : 820) + extraLargura;
+        int larguraPack = frame.getWidth();
+        int larguraDesejada = Math.max(larguraPack, larguraBase);
+        larguraDesejada = Math.min(larguraDesejada, (int) (maxLarguraUtil * 0.88));
+        // Altura: respeita pack, mas nunca menor que footer (status 42 + botoes 48 + header 80)
+        int alturaMinima = 420 + Math.min(registro.campos().size(), 6) * 40;
+        int alturaPack = frame.getHeight();
+        int alturaDesejada = Math.max(Math.max(alturaPack, alturaMinima), frame.getPreferredSize().height);
+        alturaDesejada = Math.min(alturaDesejada, (int) (maxAlturaUtil * 0.88));
 
         frame.setSize(larguraDesejada, alturaDesejada);
-        frame.setMinimumSize(new Dimension(Math.min(600, maxLarguraUtil), Math.min(380, maxAlturaUtil)));
+        frame.setMinimumSize(new Dimension(Math.min(860, maxLarguraUtil), Math.min(520, maxAlturaUtil)));
 
         int posX = telaBounds.x + insets.left + Math.max(0, (maxLarguraUtil - larguraDesejada) / 2);
         int posY = telaBounds.y + insets.top + Math.max(0, (maxAlturaUtil - alturaDesejada) / 2);
         frame.setLocation(posX, posY);
+        // RHSA: força relayout após setSize para FlowLayout do footer recalcular wrap
+        frame.revalidate();
     }
 
     private void mostrarStatusProcessando() {

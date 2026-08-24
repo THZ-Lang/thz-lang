@@ -1,137 +1,75 @@
-\# AGENTS.md — Diretrizes de Engenharia e Operação para Agentes de IA
+# AGENTS.md — Diretrizes de Engenharia e Operação para Agentes de IA
 
+Este documento define o contexto técnico, restrições arquiteturais e diretrizes de desenvolvimento para agentes de IA operando no repositório **THZ-LANG Engine**.
 
+---
 
-Este documento define o contexto técnico, restrições arquiteturais e diretrizes de desenvolvimento para agentes de IA operando no repositório \*\*THZ-LANG Engine\*\*.
+## 1. Visão Geral e Identidade do Projeto
 
+* **Nome do Projeto:** THZ-LANG (`.thz`, `.thzui`)
+* **Paradigma:** Linguagem Corporativa de Sistemas, Governança de Negócio (DDD), Arquitetura Viva e Processamento de Dados de Alta Performance.
+* **Sintaxe:** Estruturada em língua portuguesa com tipagem estática e *Design by Contract*.
 
+### Papéis do Ecossistema:
+1. **Core & Tooling Principal (JVM):** Multi-módulo Java 25 (`JVM/thz-core-jvm`, `thz-cli-jvm`, `thz-gui-jvm`, `thz-lsp-jvm`, `thz-bench-jvm`, `thz-api-jvm`).
+2. **Desktop IDE:** Interface gráfica moderna com paridade visual universal em todas as plataformas via Swing + FlatLaf (`JVM/thz-gui-jvm`).
+3. **Compilação AOT & Performance:** GraalVM Native Image para o CLI/GUI (`thz.exe`) + Backend nativo LLVM Clang AOT (`src/runtime/thz_runtime.c` / `scripts/build-llvm.ps1`) para binários de negócio.
+4. **Web / Tooling Visual:** TypeScript e Monaco Editor (`src/`, `playground/`, `Extensions/thz-lsp-vscode`).
 
-\---
+---
 
+## 2. Invariantes Técnicos e Normas Obrigatórias
 
+1. **Aritmética Financeira e Decimais (ISO/IEC 10967):**
+   * É terminantemente proibido o uso de ponto flutuante IEEE 754 binário (`float` / `double` / `number`) para operações monetárias e fiscais.
+   * Toda aritmética decimal utiliza inteiros escalados com `BigInt` (classe `DecimalFixo` no runtime TypeScript/Java) ou inteiros de 128 bits (`i128`) no codegen LLVM, com arredondamento bancário meio-par (*Half-Even*).
 
-\## 1. Visão Geral e Identidade do Projeto
+2. **Gerenciamento de Memória e Estrutura de Dados:**
+   * Processamento em lote deve respeitar alocação em Arena (`ArenaMemoria` / `BlocoMemoria`), permitindo descarte de memória contígua em $O(1)$.
+   * Estruturas com modificador `LAYOUT_COLUNAR` operam sob modelo *Structure of Arrays* (SoA) para viabilizar vetorização SIMD (AVX2/AVX-512).
 
-\* \*\*Nome do Projeto:\*\* THZ-LANG (`.thz`)
+3. **Arquitetura Viva e Contratos Formais (ISO/IEC/IEEE 42010 & ISO/IEC TR 24772):**
+   * O bloco `METADADOS_ARQUITETURA` é obrigatório em programas corporativos.
+   * Cláusulas `EXIGE` (pré-condições) e `GARANTE` (pós-condições) devem ser validadas em tempo de execução/compilação, gerando falhas explícitas em caso de violação.
 
-\* \*\*Paradigma:\*\* Linguagem Corporativa de Sistemas, Governança de Negócio, Arquitetura Viva e Processamento de Dados de Alta Performance.
+---
 
-\* \*\*Sintaxe:\*\* Estruturada em língua portuguesa com tipagem estática e \*Design by Contract\*.
+## 3. Mapa de Estrutura do Projeto
 
-\* \*\*Status Atual:\*\* Protótipo funcional em \*\*Node.js (v20+) + TypeScript (v5+)\*\* com transpilador `tsx`.
+* `JVM/thz-core-jvm/`: Núcleo da linguagem em Java 25 (Léxico, Sintático, AST, Semântico, Runtime de Arena, DecimalFixo, Interpretador, IR, Governança, DocGen).
+* `JVM/thz-cli-jvm/`: Interface de linha de comando (`ThzCli`), REPL e servidor de desenvolvimento.
+* `JVM/thz-gui-jvm/`: Desktop IDE completa em Swing + FlatLaf (`ThzGui`, Editor com syntax highlighting, gutter, toolbar, formulários visuais).
+* `JVM/thz-lsp-jvm/`: Servidor de protocolo de linguagem (LSP) para IDEs.
+* `JVM/thz-bench-jvm/`: Suíte de benchmarks JMH para micro-otimizações.
+* `src/`: Implementação de referência em TypeScript e servidor de serviços de linguagem.
+* `playground/`: Playground Web Monaco + Monarch para execução interativa no navegador.
+* `Extensions/thz-lsp-vscode/`: Extensão oficial do VS Code (TextMate Grammar + Language Client).
+* `src/runtime/thz_runtime.c`: Runtime nativo C Dual-OS (Win32/POSIX) para executáveis gerados via LLVM Clang.
+* `compilador/`: Compilador self-hosted escrito na própria linguagem THZ (`driver.thz`, `lexer.thz`, `parser.thz`, `codegen.thz`).
+* `scripts/`: Scripts PowerShell de automação (`build-llvm.ps1`, `build-native.ps1`, `gui.ps1`, `test-all.ps1`).
+* `exemplos/`: Programas canônicos de teste e demonstração (`faturamento.thz`, `pedidos.thz`, `showcase_widgets_gui.thz`).
 
-\* \*\*Alvo de Produção:\*\* Compilador AOT nativo em \*\*Rust + Inkwell / LLVM 17+\*\* gerando binários estáticos (ELF no Linux e PE no Windows).
+---
 
+## 4. Regras de Conduta e Diretrizes de Engenharia
 
-
-\---
-
-
-
-\## 2. Invariantes Técnicos e Normas Obrigatórias
-
-
-
-1\. \*\*Aritmética Financeira e Decimais (ISO/IEC 10967):\*\*
-
-&#x20;  \* É terminantemente proibido o uso de ponto flutuante IEEE 754 binário (`number` float) para operações monetárias e fiscais.
-
-&#x20;  \* Toda aritmética decimal deve utilizar inteiros escalados com `BigInt` (classe `DecimalFixo` no runtime TypeScript) ou inteiros de 128 bits (`i128`) no codegen LLVM.
-
-
-
-2\. \*\*Gerenciamento de Memória e Estrutura de Dados:\*\*
-
-&#x20;  \* Processamento em lote deve respeitar alocação em Arena (`ArenaMemoria` / `ArrayBuffer`), permitindo descarte de memória contígua em $O(1)$.
-
-&#x20;  \* Estruturas com modificador `LAYOUT\_COLUNAR` operam sob modelo \*Structure of Arrays\* (SoA) para viabilizar vetorização SIMD (AVX2/AVX-512).
-
-
-
-3\. \*\*Arquitetura Viva e Contratos Formais (ISO/IEC/IEEE 42010 \& ISO/IEC TR 24772):\*\*
-
-&#x20;  \* O bloco `METADADOS\_ARQUITETURA` é obrigatório em programas corporativos.
-
-&#x20;  \* Cláusulas `EXIGE` (pré-condições) e `GARANTE` (pós-condições) devem ser validadas em tempo de execução/compilação, gerando falhas explícitas em caso de violação.
-
-
-
-\---
-
-
-
-\## 3. Mapa de Arquivos do Projeto (`Node/thz-lang-base/`)
-
-\* `src/keywords.ts`: Fonte da verdade léxica — todas as palavras reservadas (proibido literal fora daqui).
-\* `src/types.ts`: Tokens (`TokenType`), AST (`ProgramaAST`, `EstruturaAST`, `RegraNegocioAST`, `OperacaoAST`, `ComandoAST`, `ExprAST`) e nós de governança.
-\* `src/lexer.ts`: Léxico determinístico com linha/coluna.
-\* `src/parser.ts`: Sintático → AST (precedência, contratos como árvore, `textoCanonicoDe`/`formatarEscalado`).
-\* `src/analisador.ts`: `AnalisadorSemantico` — tipos, escopos, lint `--estrito` (pragma, rastreio, SLO, contratos).
-\* `src/errors.ts`: `formatarDiagnosticos`/`formatarErroComCaret` — trecho + caret `[Linha L:C]`.
-\* `src/runtime.ts`: `DecimalFixo`/`Monetario` (`BigInt` escalado) + `ArenaMemoria` (O(1)).
-\* `src/interpretador.ts`: Tree-walking + validação `EXIGE`/`GARANTE`/`INVARIANTE` + `RESULTADO`/`FALHAR_COM`.
-\* `src/docgen.ts`: `ThzDocGen` (Markdown + Mermaid) a partir da AST.
-\* `src/language-service.ts`: **G1** — pipeline único `analisar()` + `obterHover()` + símbolos; re-exports `auditarFonte`, `baixarIrFonte`, `formatarFonte`; base de Playground/LSP.
-\* `src/governanca.ts`: **G4** — `auditar()` + `gerarMarkdownGovernanca()` (matriz `RASTREIO→Regra→Contrato`).
-\* `src/ir.ts`: **G5** — `VERSAO_IR='thz-ir/1'`, `baixarParaIr()`, `serializarIr()`, `emitirLlvm()`.
-\* `src/simd.ts`: **G5** — regras R1-R5, `verificarVetorizado()` + `passoParaLlvm()`.
-\* `src/fmt.ts`: **G6** — `formatar()` canônico idempotente (descarta `#` — AST sem trivia).
-\* `src/lsp/server.ts`: **G3** — LSP stdio (diagnostics/hover/symbols/completion/definition/formatting + `thz/audit|ir|llvm`).
-\* `src/cli.ts`: `thz <check|ast|doc|audit|ir|fmt|run|repl>` (`resolverArquivo` trata `--saida` em qualquer ordem).
-\* `src/repl.ts`: REPL multi-linha (`.ajuda`, `.codigo`, `.limpar`, `.sair`).
-\* `playground/`: **G2** — Vite + Monaco + `thz-monarch.ts`, execução browser (`InterpretadorThz`/`ArenaMemoria`), botões `Audit/IR/LLVM/Fmt`.
-\* `Extensions/thz-lsp-vscode/` (raiz do workspace): **G3** — TextMate `thz.tmLanguage.json`, `language-configuration.json`, `src/extension.ts` (`LanguageClient`).
-\* `bench/`: **G6** — `helpers.ts` (`medir`), `decimal.bench.ts`, `fatia.bench.ts`, `simd.bench.ts`, `run.ts`.
-\* `test/`: 14 suites (`keywords`, `lexer`, `parser`, `expressoes`, `interpretador`, `decimal`, `analisador`, `ddd`, `golden`, `language-service`, `governanca`, `ir`, `simd`, `fmt`) — golden em `__snapshots__`.
-\* `docs/GRAMATICA.md`: EBNF canônica v2.2; `docs/*_arquitetura.md` gerados por `thz doc`.
-\* `exemplos/faturamento.thz` + `pedidos.thz`: canônicos (SoA/SIMD e DDD `ENUMERACAO`/`RESULTADO`).
-
-
-
-\---
-
-
-
-\## 4. Regras de Conduta para o Agente de IA
-
-
-
-\* \*\*Manutenção da Sintaxe Canônica:\*\* Não altere a nomenclatura das palavras-chave em português (`PROGRAMA`, `METADADOS\_ARQUITETURA`, `ESTRUTURA`, `REGRA\_NEGOCIO`, `EXIGE`, `GARANTE`, `VETORIZAR\_PARA`, `USAR\_BLOCO\_MEMORIA`).
-
-\* \*\*Tratamento de Erros:\*\* Todo erro sintático ou semântico deve reportar linha e coluna exatas no formato `\[Erro Sintático]\[Linha L:C]`.
-
-\* \*\*Extensibilidade:\*\* Antes de adicionar novas palavras-chave, registre o token em `types.ts`, adicione o reconhecimento léxico em `lexer.ts`, a regra sintática em `parser.ts` e o suporte no `runtime.ts` e `docgen.ts`.
-
-\* \*\*Semântica Dual-OS:\*\* Mantenha compatibilidade estrita de caminhos de arquivos e comandos tanto no Windows PowerShell quanto no Arch Linux.
+* **Branch para Self-Hosting e Autonomia LLVM:** Quando for trabalhar em tarefas relacionadas ao compilador self-hosted (`compilador/`), codegen LLVM, runtime C (`thz_runtime.c`) ou autonomia total (Zero JVM), **SEMPRE alterne para a branch `feat/self-hosting-llvm-autonomy`**.
+* **Manutenção da Sintaxe Canônica:** Não altere a nomenclatura das palavras-chave em português (`PROGRAMA`, `METADADOS_ARQUITETURA`, `ESTRUTURA`, `REGRA_NEGOCIO`, `EXIGE`, `GARANTE`, `VETORIZAR_PARA`, `USAR_BLOCO_MEMORIA`).
+* **Tratamento de Erros:** Todo erro sintático ou semântico deve reportar linha e coluna exatas no formato `[Erro Sintático][Linha L:C]`.
+* **Idioma:** Toda documentação, mensagens e testes DEVEM estar em português do Brasil (PT-BR).
+* **Semântica Dual-OS:** Mantenha compatibilidade estrita de caminhos de arquivos e comandos tanto no Windows quanto no Linux.
 
 
 ---
 
-## 5. Adendo v2.2 - Estado Atual e Politica de Extensao
+## 5. Conformidade Normativa 1 a 1
 
-* **Fonte da verdade lexica:** todas as palavras reservadas vivem em `src/keywords.ts`. Proibido reconhecer keywords por literal em `lexer.ts`, `parser.ts`, `interpretador.ts` ou `docgen.ts`.
-* **Diagnosticos com caret:** erros sintaticos/semantico/tipos sao renderizados com trecho de fonte e apontador via `src/errors.ts` (`formatarDiagnosticos`). O formato `[Erro Sintatico][Linha L:C]` permanece obrigatorio na mensagem.
-* **Analisador semantico:** `src/analisador.ts` (`AnalisadorSemantico`) executa verificacao de tipos, resolucao de escopos e lint `--estrito` (pragma `VERSAO_LINGUAGEM`, rastreabilidade, SLO e contratos). Integrado ao CLI (`thz check`) e ao REPL.
-* **REPL:** `npm run thz:repl` - buffer multi-linha ate linha vazia; comandos `.ajuda`, `.codigo`, `.limpar`, `.sair`.
-* **Testes:** suuite Node test runner com 149 testes verdes (`npm test`). Golden snapshots da AST em `test/golden.test.ts`; exemplos canonicos: `exemplos/faturamento.thz` e `exemplos/pedidos.thz`.
-* **Gramatica:** EBNF canonica em `docs/GRAMATICA.md`; toda nova construcao DEVE atualizar a gramatica, os golden tests e o docgen.
-* **Language Service Core (G1):** `src/language-service.ts` — pipeline unico `analisar()` + `obterHover()` + simbolos, base do Playground e do LSP.
-* **Playground Web (G2):** `playground/` — Vite + Monaco + Monarch (`thz-monarch.ts`), execucao no browser via `InterpretadorThz` e `ArenaMemoria` (`npm run playground`).
-* **LSP + VS Code (G3):** `src/lsp/server.ts` (stdio, diagnostics/hover/symbols/completion/definition/formatting) + extensão VS Code em `Extensions/thz-lsp-vscode/` (TextMate, `language-configuration.json`, client `extension.ts`) — `npm run lsp` / `npm run extension:compile`.
-* **Governança Auditável (G4):** `src/governanca.ts` — matriz `RASTREIO_REQUISITO → Regra → Contrato`; `src/language-service.ts:auditarFonte()`; CLI `thz audit` (--json, --saida, --estrito); LSP `thz/audit` + VS Code `THZ: Mostrar Auditoria`; Playground botão `🛡️ Audit`.
-* **THZ-IR + SIMD Formal (G5):** `src/ir.ts` (`VERSAO_IR='thz-ir/1'`, `baixarParaIr()`, `emitirLlvm()`) + `src/simd.ts` (regras R1-R5, `verificarVetorizado()`) — CLI `thz ir` (`--llvm`, `--saida`), LSP `thz/ir`/`thz/llvm` e Playground `🧩 IR`/`⚡ LLVM`.
-* **Bench + fmt (G6):** `src/fmt.ts` (`formatar()` canônico, idempotente) — CLI `thz fmt` (`--check`, `--escrever`, `--saida`), LSP `textDocument/formatting`, Playground `✨ Fmt` (Ctrl+S); `bench/` — `tsx bench/run.ts` (`npm run bench`) com Decimal/Arena/SoA/SIMD.
-* **Prioridade pos-v2.2:** trilha Padrao Ouro G1-G6 definida na secao 5 do `../docs/PROJECT.md` (expressividade DDD primeiro, tooling depois).
+* **ISO/IEC 10967:** Proibição de float binário para decimais/moedas. Aritmética 100% exata via `DecimalFixo` com arredondamento bancário meio-par (*Half-Even*).
+* **ISO 4217:** Validação rigorosa de códigos de moedas alfa-3 e proibição de operações monetárias diretas entre moedas distintas sem conversão explícita.
+* **ISO/IEC/IEEE 42010:** Preservação obrigatória de metadados de arquitetura no nó `METADADOS_ARQUITETURA` da AST.
+* **ISO/IEC TR 24772:** Mitigação de vulnerabilidades de linguagem via alocação contígua em arena (`USAR_BLOCO_MEMORIA`) com checagem rigorosa de limites.
+* **RFC 4122 / RFC 8259 / SemVer 2.0.0:** Conformidade universal de UUID v4, JSON UTF-8 e versionamento semântico.
 
----
-
-## 6. Verificação, Validação e Conformidade Normativa 1 a 1 (v2.4.0)
-
-* **Checklist de Conformidade 1 a 1:** Todo desenvolvimento no repositório DEVE obrigatoriamente manter 100% de adesão às seguintes especificações:
-  - **ISO/IEC 10967:** Proibição estrita de float binário (`float`/`double` IEEE 754) para decimais/moedas. Aritmética 100% exata via `DecimalFixo` com arredondamento bancário meio-par (*Half-Even*).
-  - **ISO 4217:** Validação rigorosa de códigos de moedas alfa-3 e proibição de operações monetárias diretas entre moedas distintas sem conversão explícita.
-  - **ISO/IEC/IEEE 42010:** Preservação obrigatória de metadados de arquitetura no nó `METADADOS_ARQUITETURA` da AST.
-  - **ISO/IEC TR 24772:** Mitigação de vulnerabilidades de linguagem via alocação contígua em arena (`USAR_BLOCO_MEMORIA`) com checagem rigorosa de limites.
-  - **RFC 4122 / RFC 8259 / SemVer 2.0.0:** Conformidade universal de UUID v4, JSON UTF-8 e versionamento semântico.
-  - **JSR 305 / JSR 380:** Validação de integridade e verificação contra nulos (`Objects.requireNonNull`).
-* **Suíte de Testes Automatizada:** Alterações no código JVM DEVEM ser validadas pela suíte `ValidadorConformidadeNormasTest.java` e passar 100% no `./gradlew test`.
+## 6. Diretrizes de Testes e Documentação
+* Todos os arquivos de documentação DEVEM estar em português do Brasil (PT-BR).
+* Todos os arquivos de código-fonte e testes DEVEM seguir as diretrizes do AGENTS.md.
