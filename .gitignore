@@ -26,8 +26,8 @@ surefire-reports/
 
 # VS Code Extension Packaging
 *.vsix
-thz-lang-engine/extension/dist/
-thz-lang-engine/extension/out/
+thz-lsp-vscode/dist/
+thz-lsp-vscode/out/
 
 # IDEs and Editors
 .idea/

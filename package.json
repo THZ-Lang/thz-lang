@@ -17,7 +17,11 @@
     "// === CLI / REPL / IDE ===": "",
     "thz": "node scripts/thz.js",
     "repl": "node scripts/thz.js repl",
-    "ide": "cd thz-lang-jvm && gradlew gui",
+    "ide": "cd thz-gui-jvm && gradlew gui",
+
+    "// === Extensão VS Code ===": "",
+    "ext:compile": "npm run extension:compile --prefix thz-lang-engine",
+    "ext:package": "npm run extension:package --prefix thz-lang-engine",
 
     "// === Módulos JVM individuais ===": "",
     "core:publish": "cd thz-lang-jvm && gradlew :thz-core:publishToMavenLocal",

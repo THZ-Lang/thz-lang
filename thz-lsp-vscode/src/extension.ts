@@ -12,12 +12,14 @@ let client: LanguageClient | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   const candidatos = [
+    // Empacotado (vsix): servidor embutido na pasta da extensão
     context.asAbsolutePath(path.join('server', 'lsp', 'server.js')),
     context.asAbsolutePath(path.join('server', 'server.js')),
     context.asAbsolutePath(path.join('dist', 'lsp', 'server.js')),
     context.asAbsolutePath(path.join('dist', 'server', 'server.js')),
-    context.asAbsolutePath(path.join('..', 'dist', 'lsp', 'server.js')),
-    context.asAbsolutePath(path.join('..', 'dist', 'src', 'lsp', 'server.js')),
+    // Desenvolvimento: motor TS vizinho na raiz do workspace
+    context.asAbsolutePath(path.join('..', 'thz-lang-engine', 'dist', 'lsp', 'server.js')),
+    context.asAbsolutePath(path.join('..', 'thz-lang-engine', 'dist', 'src', 'lsp', 'server.js')),
   ];
 
   let serverModule = candidatos[0];

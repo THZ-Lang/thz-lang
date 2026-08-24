@@ -26,8 +26,8 @@
     "playground:preview": "vite preview --config vite.config.ts",
     "lsp": "node dist/lsp/server.js --stdio",
     "lsp:build": "tsc",
-    "extension:compile": "tsc -p extension/tsconfig.json",
-    "extension:package": "npx @vscode/vsce package --out thz-lang.vsix --baseContentUrl https://github.com/thz-lang/thz-lang --baseImagesUrl https://github.com/thz-lang/thz-lang"
+    "extension:compile": "npm run compile --prefix ../thz-lsp-vscode",
+    "extension:package": "cd ../thz-lsp-vscode && npx @vscode/vsce package --out ../thz-lang.vsix --baseContentUrl https://github.com/thz-lang/thz-lang --baseImagesUrl https://github.com/thz-lang/thz-lang"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

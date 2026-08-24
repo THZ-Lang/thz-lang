@@ -25,15 +25,18 @@ Gramática TextMate: `syntaxes/thz.tmLanguage.json`. Configurações: `thz-lang.
 ## Dev
 
 ```bash
-# na raiz do engine (thz-lang-engine/)
+# 1) motor TS — servidor LSP (thz-lang-engine/)
 npm install
 npm run lsp:build          # compila src/lsp/server.ts → dist/lsp/server.js
-npm run extension:compile  # compila extension/src/extension.ts → extension/dist/extension.js
+
+# 2) extensão (esta pasta, thz-lsp-vscode/)
+npm install
+npm run compile            # compila src/extension.ts → dist/extension.js
 
 # abrir a extensão como Extension Development Host (F5)
-code --extensionDevelopmentPath=extension thz-lang-engine
+code --extensionDevelopmentPath=<raiz>/thz-lsp-vscode <raiz>/thz-lang-engine
 # ou
-npm run playground         # alternativa web (Vite + Monaco) em http://localhost:5173
+cd thz-lang-engine && npm run playground   # alternativa web (Vite + Monaco)
 ```
 
 Servidor em `stdio`: `npm run lsp` → `node dist/lsp/server.js --stdio`.

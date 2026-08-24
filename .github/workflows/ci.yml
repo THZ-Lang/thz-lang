@@ -38,8 +38,10 @@ jobs:
         run: npm run playground:build
 
       - name: Compile VS Code Extension
-        working-directory: thz-lang-engine
-        run: npm run extension:compile
+        working-directory: thz-lsp-vscode
+        run: |
+          npm install
+          npm run compile
 
   # Motor JVM (Java 25): movido para repos independentes thz-core / thz-cli / thz-gui.
   # Cada um possui seu próprio workflow de CI (.github/workflows/ci.yml).

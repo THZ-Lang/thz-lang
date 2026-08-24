@@ -80,7 +80,7 @@ Este documento define o contexto técnico, restrições arquiteturais e diretriz
 \* `src/cli.ts`: `thz <check|ast|doc|audit|ir|fmt|run|repl>` (`resolverArquivo` trata `--saida` em qualquer ordem).
 \* `src/repl.ts`: REPL multi-linha (`.ajuda`, `.codigo`, `.limpar`, `.sair`).
 \* `playground/`: **G2** — Vite + Monaco + `thz-monarch.ts`, execução browser (`InterpretadorThz`/`ArenaMemoria`), botões `Audit/IR/LLVM/Fmt`.
-\* `extension/`: **G3** — TextMate `thz.tmLanguage.json`, `language-configuration.json`, `src/extension.ts` (`LanguageClient`).
+\* `../thz-lsp-vscode/` (raiz do workspace): **G3** — TextMate `thz.tmLanguage.json`, `language-configuration.json`, `src/extension.ts` (`LanguageClient`).
 \* `bench/`: **G6** — `helpers.ts` (`medir`), `decimal.bench.ts`, `fatia.bench.ts`, `simd.bench.ts`, `run.ts`.
 \* `test/`: 14 suites (`keywords`, `lexer`, `parser`, `expressoes`, `interpretador`, `decimal`, `analisador`, `ddd`, `golden`, `language-service`, `governanca`, `ir`, `simd`, `fmt`) — golden em `__snapshots__`.
 \* `docs/GRAMATICA.md`: EBNF canônica v2.2; `docs/*_arquitetura.md` gerados por `thz doc`.
@@ -117,7 +117,7 @@ Este documento define o contexto técnico, restrições arquiteturais e diretriz
 * **Gramatica:** EBNF canonica em `docs/GRAMATICA.md`; toda nova construcao DEVE atualizar a gramatica, os golden tests e o docgen.
 * **Language Service Core (G1):** `src/language-service.ts` — pipeline unico `analisar()` + `obterHover()` + simbolos, base do Playground e do LSP.
 * **Playground Web (G2):** `playground/` — Vite + Monaco + Monarch (`thz-monarch.ts`), execucao no browser via `InterpretadorThz` e `ArenaMemoria` (`npm run playground`).
-* **LSP + VS Code (G3):** `src/lsp/server.ts` (stdio, diagnostics/hover/symbols/completion/definition/formatting) + `extension/` (TextMate `thz.tmLanguage.json`, `language-configuration.json`, client `extension.ts`) — `npm run lsp` / `npm run extension:compile`.
+* **LSP + VS Code (G3):** `src/lsp/server.ts` (stdio, diagnostics/hover/symbols/completion/definition/formatting) + extensão VS Code em `../thz-lsp-vscode/` (TextMate, `language-configuration.json`, client `extension.ts`) — `npm run lsp` / `npm run extension:compile`.
 * **Governança Auditável (G4):** `src/governanca.ts` — matriz `RASTREIO_REQUISITO → Regra → Contrato`; `src/language-service.ts:auditarFonte()`; CLI `thz audit` (--json, --saida, --estrito); LSP `thz/audit` + VS Code `THZ: Mostrar Auditoria`; Playground botão `🛡️ Audit`.
 * **THZ-IR + SIMD Formal (G5):** `src/ir.ts` (`VERSAO_IR='thz-ir/1'`, `baixarParaIr()`, `emitirLlvm()`) + `src/simd.ts` (regras R1-R5, `verificarVetorizado()`) — CLI `thz ir` (`--llvm`, `--saida`), LSP `thz/ir`/`thz/llvm` e Playground `🧩 IR`/`⚡ LLVM`.
 * **Bench + fmt (G6):** `src/fmt.ts` (`formatar()` canônico, idempotente) — CLI `thz fmt` (`--check`, `--escrever`, `--saida`), LSP `textDocument/formatting`, Playground `✨ Fmt` (Ctrl+S); `bench/` — `tsx bench/run.ts` (`npm run bench`) com Decimal/Arena/SoA/SIMD.

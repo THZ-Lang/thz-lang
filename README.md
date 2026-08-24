@@ -105,10 +105,11 @@ thz-lang/
 ├── CONTRIBUTING.md             # Guia de contribuição
 ├── LICENSE                     # Licença MIT
 │
-├── thz-lang-engine/            # Motor TypeScript / Node.js (v2.2+)
+├── thz-lsp-vscode/              # Extensão VS Code (TextMate + LanguageClient; servidor via thz-lang-engine)
+│
+├── thz-lang-engine/             # Motor TypeScript / Node.js (v2.2+)
 │   ├── src/                    # Lexer, Parser, Semântico, Runtime, IR, SIMD, LSP
 │   ├── playground/             # Playground Web (Vite + Monaco Editor + Monarch)
-│   ├── extension/              # Extensão VS Code (TextMate + Language Server)
 │   ├── bench/                  # Benchmarks (Decimal, Fatia, SIMD)
 │   ├── docs/                   # Gramática EBNF canônica e docs de arquitetura
 │   ├── exemplos/               # Programas canônicos (faturamento, pedidos, agenda)
@@ -218,7 +219,7 @@ java -jar target/thz-jvm-2.3.0.jar repl
 - **Documentação do Motor JVM:** [`thz-lang-jvm/`](thz-lang-jvm/) — READMEs por módulo em `thz-core/`, `thz-cli/` e `thz-gui/`
 - **Visão Arquitetural e Roadmap:** [`PROJECT.md`](PROJECT.md)
 - **Diretrizes para Agentes de IA:** [`AGENTS.md`](AGENTS.md)
-- **Extensão VS Code:** [`thz-lang-engine/extension/README.md`](thz-lang-engine/extension/README.md)
+- **Extensão VS Code:** [`thz-lsp-vscode/README.md`](thz-lsp-vscode/README.md)
 
 ---
 
