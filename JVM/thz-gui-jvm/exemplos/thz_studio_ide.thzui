@@ -1,0 +1,26 @@
+TELA ThzStudioIde
+
+METADADOS_ARQUITETURA
+    DOMINIO: "EngenhariaFerramentas"
+    SUBDOMINIO: "IdeCorporativa"
+    CAMADA: "Interface"
+    AUTOR: "THZ-LANG Team"
+    SLO_LATENCIA_MAXIMA: "15ms"
+    CONFORMIDADE: "DOGFOODING-IDE"
+FIM_METADADOS
+
+ESTRUTURA PainelIde LAYOUT_COLUNAR
+    projetoAtual: TEXTO
+    arquivoAberto: TEXTO
+    statusCompilacao: TEXTO
+    errosSemanticos: INTEIRO
+    branchGit: TEXTO
+FIM_ESTRUTURA
+
+PROCEDIMENTO Principal()
+    INICIO
+        EXIBA "[THZ-STUDIO] Inicializando IDE Corporativa em THZ-UI..."
+        EXIBA "[THZ-STUDIO] Árvore de arquivos, editor Glassmorphism e governança Git ativos."
+    FIM
+
+FIM_TELA

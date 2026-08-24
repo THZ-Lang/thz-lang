@@ -50,6 +50,12 @@ public class ThzCli {
             System.err.println("[ERRO] Nenhum arquivo .thz ou .thzui especificado. Use: thz " + comando + " <caminho.thz|caminho.thzui>");
             System.exit(1);
         }
+        if (comando.equals("dev") || comando.equals("serve")) {
+            String arquivoDev = resolverArquivo(argumentos);
+            int porta = 8080;
+            ThzDevServer.iniciar(arquivoDev, porta);
+            return;
+        }
         if (comando.equals("check") || comando.equals("ast") || comando.equals("fmt") || comando.equals("run") || comando.equals("audit") || comando.equals("doc") || comando.equals("ir") || comando.equals("ui")) {
             if (!Files.exists(Path.of(arquivo))) { System.err.println("[ERRO] Arquivo não encontrado: " + arquivo); System.exit(1); }
             String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
@@ -114,6 +120,7 @@ public class ThzCli {
                 }
                 if (comando.equals("audit")) {
                     boolean emJson = argumentos.contains("--json");
+                    boolean auditGit = argumentos.contains("--git");
                     String idxSaida = null;
                     int idx = argumentos.indexOf("--saida");
                     if (idx >= 0 && idx + 1 < argumentos.size()) idxSaida = argumentos.get(idx + 1);
@@ -122,6 +129,14 @@ public class ThzCli {
                     String resultado = emJson
                             ? thz.lang.governanca.AuditorGovernanca.gerarJsonGovernanca(rel)
                             : thz.lang.governanca.AuditorGovernanca.gerarMarkdownGovernanca(rel);
+
+                    if (auditGit) {
+                        var gitRel = thz.lang.governanca.ThzGitAuditEngine.auditarGit(ast, ".");
+                        resultado += "\n\n### 🌿 Auditoria de Governança Git\n"
+                                + "- **Branch:** " + gitRel.branchAtual() + "\n"
+                                + "- **Requisitos Impactados:** " + gitRel.requisitosImpactados() + "\n"
+                                + "- **Alertas:** " + gitRel.alertasGovernanca() + "\n";
+                    }
 
                     if (idxSaida != null) {
                         Path alvo = idxSaida.contains(".") ? Path.of(idxSaida) : Path.of(idxSaida, ast.nome() + "_auditoria." + (emJson ? "json" : "md"));
