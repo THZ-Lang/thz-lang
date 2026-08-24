@@ -1,0 +1,50 @@
+BIBLIOTECA CompiladorAST
+
+METADADOS_ARQUITETURA
+    DOMINIO: "Compiladores"
+    SUBDOMINIO: "Sintatico"
+    CAMADA: "Core"
+    VERSAO: "1.0.0"
+    AUTOR: "THZ Self-Hosting Project"
+    SLO_LATENCIA_MAXIMA: "2ms"
+    CRITICIDADE: "ALTA"
+FIM_METADADOS
+
+ESTRUTURA NoAST
+    tipo_no : TEXTO
+    nome    : TEXTO
+    linha   : INTEIRO32
+    coluna  : INTEIRO32
+FIM_ESTRUTURA
+
+ESTRUTURA MetadadosAST
+    dominio    : TEXTO
+    subdominio : TEXTO
+    camada     : TEXTO
+    versao     : TEXTO
+    autor      : TEXTO
+FIM_ESTRUTURA
+
+ESTRUTURA DeclEstruturaAST
+    nome       : TEXTO
+    is_colunar : LOGICO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO CriarNoAST
+    IDENTIFICADOR_REGRA: "BR-COMP-002"
+    RASTREIO_REQUISITO: "REQ-COMP-002"
+    DESCRICAO: "Instancia um no de arvore de sintaxe abstrata."
+
+    CONTRATO_ENTRADA
+        EXIGE linha > 0
+        EXIGE coluna > 0
+    FIM_CONTRATO_ENTRADA
+
+    OPERACAO NovoNo(tipo_no: TEXTO, nome: TEXTO, linha: INTEIRO32, coluna: INTEIRO32) : NoAST
+    INICIO
+        VARIAVEL n : NoAST <- CRIAR NoAST(tipo_no: tipo_no, nome: nome, linha: linha, coluna: coluna)
+        RETORNE n
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_BIBLIOTECA

@@ -7,7 +7,7 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-$Raiz = Resolve-Path "$PSScriptRoot\.."
+$Raiz = Resolve-Path "$PSScriptRoot\..\..\.."
 Set-Location $Raiz
 
 Write-Host "=================================================" -ForegroundColor Cyan
@@ -108,7 +108,11 @@ $DistBin = "$Raiz\dist\bin"
 if (-not (Test-Path $DistBin)) { New-Item -ItemType Directory -Path $DistBin | Out-Null }
 $TargetExe = "$DistBin\thz.exe"
 
-& native-image.cmd --no-fallback -jar $JarPath -o "$DistBin\thz"
+if ($VcVarsPath) {
+    cmd.exe /c "call `"$VcVarsPath`" && native-image.cmd --no-fallback -jar `"$JarPath`" -o `"$DistBin\thz`""
+} else {
+    & native-image.cmd --no-fallback -jar $JarPath -o "$DistBin\thz"
+}
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Falha na compilacao com native-image."
 }

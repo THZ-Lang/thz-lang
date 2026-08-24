@@ -103,3 +103,30 @@ No ambiente de desenvolvimento, você pode utilizar os wrappers Gradle da raiz:
 # Iniciar o servidor LSP via stdio
 ./gradlew :thz-lsp-jvm:run
 ```
+
+---
+
+## ⚡ 5. Compilação Nativa AOT (Zero JVM Runtime)
+
+O THZ-LANG disponibiliza automação para compilação AOT nativa de programas `.thz` diretamente para binários executáveis `.exe` (PE no Windows / ELF no Linux):
+
+### 5.1 Compilação Nativa via LLVM IR + Clang Dual-OS (`scripts/build-llvm.ps1`)
+Compila qualquer arquivo `.thz` gerando **automaticamente ambos os binários nativos** (Windows `.exe` e Linux `.elf`) em um único comando usando LLVM Clang + MinGW GCC + Runtime C Dual-OS (`src/runtime/thz_runtime.c`):
+
+```powershell
+# Gera automaticamente AMBOS os binários (.exe para Windows e .elf para Linux):
+powershell.exe -ExecutionPolicy Bypass -File scripts/build-llvm.ps1 -ArquivoThz JVM/thz-core-jvm/exemplos/compilador/driver.thz
+```
+
+**Resultados Gerados Simultaneamente em `dist/bin/`:**
+- **Windows Executável:** `dist/bin/driver.exe`
+- **Linux Executável:** `dist/bin/driver.elf`
+
+### 5.2 Compilação Nativa via GraalVM Native Image (`JVM/thz-cli-jvm/scripts/build-native.ps1`)
+Compila a CLI inteira em um binário nativo estático pré-compilado:
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File JVM/thz-cli-jvm/scripts/build-native.ps1 -PularTestes
+```
+
+> **Nota de Toolchain:** A compilação nativa AOT do THZ-LANG via LLVM utiliza 100% **LLVM Clang + MinGW-w64** (instaláveis via Scoop), eliminando completamente a necessidade de instalar pacotes pesados de Visual Studio MSVC.

@@ -8,7 +8,7 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-$Raiz = Resolve-Path "$PSScriptRoot\.."
+$Raiz = Resolve-Path "$PSScriptRoot\..\..\.."
 Set-Location $Raiz
 
 Write-Host "=================================================" -ForegroundColor Cyan
@@ -53,7 +53,8 @@ Write-Host "[OK] Usando JDK 25: $JavaHome" -ForegroundColor Green
 # 2. Build Gradle
 Write-Host "`n[1/3] Compilando Shaded JAR com Gradle..." -ForegroundColor Yellow
 $Gradlew = if (Test-Path "$Raiz\gradlew.bat") { "$Raiz\gradlew.bat" } else { "gradle" }
-$GradleArgs = @("shadowJar")
+$GradleArgs = @(":thz-cli-jvm:shadowJar")
+
 if ($PularTestes.IsPresent) {
     $GradleArgs += "-x"
     $GradleArgs += "test"
@@ -118,7 +119,6 @@ if ($LASTEXITCODE -ne 0) {
     Write-Error "Falha na execucao do jpackage."
 }
 
-# Sincronizar dist/thz-desktop com o runtime Java 25 atualizado
 $LegacyDestDir = "$DistDir\thz-desktop"
 if (Test-Path $LegacyDestDir) {
     Remove-Item -Recurse -Force $LegacyDestDir
@@ -142,5 +142,6 @@ Write-Host " Executavel GUI:        $DestDir\thz-gui.exe" -ForegroundColor White
 Write-Host " Executavel Desktop:    $DestDir\thz-desktop.exe" -ForegroundColor White
 Write-Host " Pasta Legada/Alias:    $LegacyDestDir" -ForegroundColor White
 Write-Host "=================================================" -ForegroundColor Green
+
 
 

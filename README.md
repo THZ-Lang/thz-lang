@@ -152,6 +152,15 @@ cd thz-lang
 ./gradlew :thz-cli-jvm:run --args="ui exemplos/faturamento_dashboard.thzui --html"
 ```
 
+### 4. Compilação Nativa AOT (Zero Dependência de JVM)
+```bash
+# Compilar qualquer fonte .thz em binário nativo .exe via LLVM Clang + GCC Dual-OS:
+powershell.exe -ExecutionPolicy Bypass -File scripts/build-llvm.ps1 -ArquivoThz JVM/thz-core-jvm/exemplos/compilador/driver.thz
+
+# Executar o binário nativo autônomo gerado:
+./dist/bin/driver.exe
+```
+
 ---
 
 ## 📖 Documentação Oficial
@@ -171,17 +180,17 @@ Explore os guias detalhados da documentação:
 
 ```
 thz-lang/
-├── JVM/                        # Monorepo de motores e ferramentas Java 25
-│   ├── thz-core-jvm/           # Núcleo: Léxico, Parser, Semântico, Interpretador, UI & IR
-│   ├── thz-cli-jvm/            # Ferramenta de linha de comando (`thz`)
-│   ├── thz-gui-jvm/            # Swing FlatLaf Desktop & Native Webview
-│   ├── thz-lsp-jvm/            # Servidor LSP (Language Server Protocol)
-│   ├── thz-api-jvm/            # Biblioteca HTTP / Rest API
-│   └── thz-bench-jvm/          # Benchmarks JMH (SIMD, Arenas, Decimais)
+├── compilador/                 # 🚀 Compilador Self-Hosted em .thz (driver, lexer, parser, codegen, ast, tokens)
+├── exemplos/                   # 💡 Códigos de exemplo canônicos em .thz e .thzui
+├── scripts/                    # 🛠️ Scripts de automação de build AOT (.exe / .elf)
+├── src/
+│   └── runtime/
+│       └── thz_runtime.c       # 🌐 Runtime Nativo C Dual-OS (Windows Win32 / Linux POSIX)
+├── JVM/                        # ☕ Monorepo do Engine JVM (thz-core, thz-cli, thz-gui, thz-lsp, etc.)
 ├── Extensions/
-│   └── thz-lsp-vscode/         # Extensão oficial para o Visual Studio Code
-├── docs/                       # Documentação técnica e manuais
-└── exemplos/                   # Códigos de exemplo em `.thz` e `.thzui`
+│   └── thz-lsp-vscode/         # 🔌 Extensão oficial para o Visual Studio Code
+├── docs/                       # 📖 Documentação técnica formal e manuais
+└── dist/                       # 📦 Binários nativos executáveis gerados (.exe, .elf)
 ```
 
 ---

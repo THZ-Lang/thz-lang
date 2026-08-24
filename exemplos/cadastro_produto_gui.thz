@@ -1,0 +1,115 @@
+PROGRAMA CadastroProdutoGui
+
+METADADOS_ARQUITETURA
+    DOMINIO: "LogisticaEstoque"
+    SUBDOMINIO: "CatalogoProdutos"
+    CAMADA: "InterfaceGrafica"
+    VERSAO: "2.3.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "30ms"
+    CONFORMIDADE: "SPED-Fiscal", "ISO-42010"
+FIM_METADADOS
+
+ENUMERACAO CategoriaProduto
+    HARDWARE_TI
+    INFRAESTRUTURA_REDE
+    DISPOSITIVOS_IOT
+    COMPONENTES_ELETRONICOS
+    SERVICOS_CLOUD
+FIM_ENUMERACAO
+
+ENUMERACAO UnidadeMedida
+    UNIDADE
+    PACOTE_10UN
+    KIT_COMPLETO
+    METRO_LINEAR
+FIM_ENUMERACAO
+
+ESTRUTURA LoteEstoque
+    numeroLote: TEXTO
+    quantidade: INTEIRO32
+    deposito: TEXTO
+FIM_ESTRUTURA
+
+ESTRUTURA FormularioProduto
+    titulo: TEXTO
+    sku: TEXTO
+    nomeProduto: TEXTO
+    categoria: CategoriaProduto
+    unidade: UnidadeMedida
+    precoCusto: DECIMAL(12, 2)
+    margemLucroPercentual: DECIMAL(5, 2)
+    controladoPorLote: LOGICO
+    isencaoIcmsSt: LOGICO
+    lotesDisponiveis: FATIA[LoteEstoque]
+    especificacoesTecnicas: TEXTO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO GestaoEstoque
+    IDENTIFICADOR_REGRA: "RN-ESTQ-500"
+    RASTREIO_REQUISITO: "REQ-CATALOGO-102"
+    DESCRICAO: "Valida regras de margem e precificação de produtos"
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(sku) >= 3
+        EXIGE TEXTO.comprimento(nomeProduto) >= 3
+        EXIGE precoCusto > 0.00
+        EXIGE margemLucroPercentual >= 5.00
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO SalvarProduto(sku: TEXTO, nomeProduto: TEXTO, categoria: CategoriaProduto, precoCusto: DECIMAL(12, 2), margemLucroPercentual: DECIMAL(5, 2), controladoPorLote: LOGICO, lotesDisponiveis: FATIA[LoteEstoque], especificacoesTecnicas: TEXTO): TEXTO
+    INICIO
+        VARIAVEL lucroUnitario : DECIMAL(12, 2) <- precoCusto * (margemLucroPercentual / 100.00)
+        VARIAVEL precoVendaSugerido : DECIMAL(12, 2) <- precoCusto + lucroUnitario
+
+        EXIBA "[PRODUTO] SKU: " + sku + " | Categoria: " + categoria + " | Venda Sugerida: R$ " + precoVendaSugerido
+        RETORNE "Produto [" + sku + "] cadastrado com sucesso! Preço Venda Sugerido: R$ " + precoVendaSugerido + " (Margem: " + margemLucroPercentual + "%)."
+    FIM
+FIM_REGRA_NEGOCIO
+
+REGRA_NEGOCIO Inicializacao
+    IDENTIFICADOR_REGRA: "RN-INIT-004"
+    RASTREIO_REQUISITO: "REQ-UI-004"
+    DESCRICAO: "Inicializa a tela de Catálogo de Produtos com Grid de Lotes e Controles"
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO MontarTela(): TEXTO
+    INICIO
+        VARIAVEL lote1 : LoteEstoque <- CRIAR LoteEstoque(numeroLote: "LOT-2026-A1", quantidade: 50, deposito: "Armazém Central SP")
+        VARIAVEL lote2 : LoteEstoque <- CRIAR LoteEstoque(numeroLote: "LOT-2026-B2", quantidade: 30, deposito: "Filial Sul Curitiba")
+
+        VARIAVEL fLotes : FATIA[LoteEstoque] <- [lote1, lote2]
+
+        VARIAVEL form : FormularioProduto <- CRIAR FormularioProduto(
+            titulo: "Ficha Cadastral de Produto & Estoque — THZ GUI",
+            sku: "SWT-CORE-10G",
+            nomeProduto: "Switch Gerenciável L3 48 Portas PoE+",
+            categoria: INFRAESTRUTURA_REDE,
+            unidade: UNIDADE,
+            precoCusto: 3200.00,
+            margemLucroPercentual: 35.00,
+            controladoPorLote: VERDADEIRO,
+            isencaoIcmsSt: FALSO,
+            lotesDisponiveis: fLotes,
+            especificacoesTecnicas: "Suporte a VLANs 802.1Q, roteamento estático/OSPF, 4 portas uplink SFP+ 10Gbps, fonte redundante hot-swap."
+        )
+
+        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "GestaoEstoque.SalvarProduto")
+        EXIBA status
+        RETORNE status
+    FIM
+FIM_REGRA_NEGOCIO
+
+PROCEDIMENTO Principal()
+INICIO
+    Inicializacao.MontarTela()
+FIM
+
+FIM_PROGRAMA

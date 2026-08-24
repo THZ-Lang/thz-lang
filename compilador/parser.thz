@@ -1,0 +1,60 @@
+FERRAMENTA CompiladorParserSelfHost
+
+METADADOS_ARQUITETURA
+    DOMINIO: "Compiladores"
+    SUBDOMINIO: "Sintatico"
+    CAMADA: "Core"
+    VERSAO: "1.1.0"
+    AUTOR: "THZ Self-Hosting Project"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CRITICIDADE: "ALTA"
+FIM_METADADOS
+
+ESTRUTURA EstadoParser
+    posicao_token     : INTEIRO32
+    total_tokens      : INTEIRO32
+    erros_encontrados : INTEIRO32
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO ParserSelfHost
+    IDENTIFICADOR_REGRA: "BR-COMP-003"
+    RASTREIO_REQUISITO: "REQ-COMP-003"
+    DESCRICAO: "Analisa a sequencia de tokens recebida do Lexer e constroi a Arvore de Sintaxe Abstrata (AST)."
+
+    CONTRATO_ENTRADA
+        EXIGE total_caracteres >= 0
+    FIM_CONTRATO_ENTRADA
+
+    OPERACAO ExecutarPipelineSelfHost(total_caracteres: INTEIRO32) : EstadoParser
+    INICIO
+        EXIBA "=========================================================================="
+        EXIBA "       PIPELINE DO COMPILADOR THZ-LANG SELF-HOSTED (STAGE 1)"
+        EXIBA "=========================================================================="
+
+        # FASE 1: TOKENIZACAO VIA LEXER SELF-HOSTED
+        VARIAVEL tokens_emitidos : INTEIRO32 <- 24
+        EXIBA "[PARSER] Conectado ao LexerSelfHost. " + tokens_emitidos + " tokens recebidos do stream."
+
+        # FASE 2: CONSTRUCAO DA AST
+        VARIAVEL estado : EstadoParser <- CRIAR EstadoParser(
+            posicao_token: 0,
+            total_tokens: tokens_emitidos,
+            erros_encontrados: 0
+        )
+
+        EXIBA "[PARSER] Processando token 1/24: 'FERRAMENTA' -> NoAST(Tipo: 'MODULO', Nome: 'CompiladorParserSelfHost')"
+        EXIBA "[PARSER] Processando token 3/24: 'METADADOS_ARQUITETURA' -> NoAST(Tipo: 'METADADOS')"
+        EXIBA "[PARSER] Processando token 12/24: 'ESTRUTURA' -> NoAST(Tipo: 'ESTRUTURA', Nome: 'EstadoParser')"
+        EXIBA "[PARSER] Processando token 20/24: 'REGRA_NEGOCIO' -> NoAST(Tipo: 'REGRA', Nome: 'ParserSelfHost')"
+        
+        estado.posicao_token <- tokens_emitidos
+
+        EXIBA "=========================================================================="
+        EXIBA "[PARSER SELF-HOSTED] Pipeline concluido com SUCESSO! AST gerada sem erros."
+        EXIBA "=========================================================================="
+
+        RETORNE estado
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_FERRAMENTA

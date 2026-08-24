@@ -32,11 +32,23 @@ public final class ThzWebviewBridge {
 
     public static synchronized int iniciar(String htmlInicial) {
         htmlAtual = htmlInicial != null ? htmlInicial : "";
-        if (server != null) return porta;
+        if (server != null) {
+            // atualiza html em caso de reuso e retorna porta existente
+            return porta;
+        }
 
         try {
             server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-            server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+            try {
+                server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+            } catch (Throwable t) {
+                // Fallback para ambientes onde Virtual Threads não estão disponíveis (native-image antigo)
+                server.setExecutor(Executors.newCachedThreadPool(r -> {
+                    Thread th = new Thread(r, "thz-webview-" + System.nanoTime());
+                    th.setDaemon(true);
+                    return th;
+                }));
+            }
 
             server.createContext("/", new DespachanteHtml());
             server.createContext("/thz-bridge/rpc", new DespachanteRpc());
@@ -44,6 +56,10 @@ public final class ThzWebviewBridge {
 
             server.start();
             porta = server.getAddress().getPort();
+            // shutdown hook para garantir liberação de porta ao encerrar JVM/nativo
+            try {
+                Runtime.getRuntime().addShutdownHook(new Thread(ThzWebviewBridge::parar, "thz-bridge-shutdown"));
+            } catch (Exception ignore) {}
             return porta;
         } catch (IOException e) {
             throw new RuntimeException("Falha ao iniciar ThzWebviewBridge: " + e.getMessage(), e);
@@ -131,11 +147,20 @@ public final class ThzWebviewBridge {
     private static class DespachanteHtml implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            // CORS preflight
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+                exchange.sendResponseHeaders(204, -1);
+                return;
+            }
             String htmlInjetado = injetarSdkThz(htmlAtual);
             byte[] bytes = htmlInjetado.getBytes(StandardCharsets.UTF_8);
 
             exchange.getResponseHeaders().set("Content-Type", "text/html; charset=utf-8");
             exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().set("Cache-Control", "no-store");
             exchange.sendResponseHeaders(200, bytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(bytes);
@@ -146,6 +171,15 @@ public final class ThzWebviewBridge {
     private static class DespachanteRpc implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            // CORS preflight
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+                exchange.getResponseHeaders().set("Access-Control-Max-Age", "86400");
+                exchange.sendResponseHeaders(204, -1);
+                return;
+            }
             if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
                 exchange.sendResponseHeaders(405, -1);
                 return;
@@ -156,14 +190,14 @@ public final class ThzWebviewBridge {
                 corpo = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             }
 
-            // Parse simples de RPC {"canal":"nome","payload":...}
-            String canal = extrairCampoJson(corpo, "canal");
-            String payload = extrairObjetoOuValorJson(corpo, "payload");
+            // Parse via ThzJson (robusto)
+            String canal = ThzJson.extrairCampo(corpo, "canal");
+            String payload = ThzJson.extrairBruto(corpo, "payload");
 
-            String respostaJson = "{\"status\":\"ok\"}";
+            String respostaJson = ThzJson.ok(null);
             if ("__evento__".equals(canal)) {
-                String evento = extrairCampoJson(payload, "evento");
-                String dados = extrairObjetoOuValorJson(payload, "dados");
+                String evento = ThzJson.extrairCampo(payload, "evento");
+                String dados = ThzJson.extrairBruto(payload, "dados");
                 List<Function<ValorThz, ValorThz>> listeners = LISTENERS_EVENTOS.get(evento);
                 if (listeners != null) {
                     for (var l : listeners) {
@@ -177,12 +211,12 @@ public final class ThzWebviewBridge {
                 if (handler != null) {
                     try {
                         String ret = handler.apply(payload);
-                        respostaJson = ret != null ? ret : "{\"status\":\"ok\"}";
+                        respostaJson = ret != null ? ret : ThzJson.ok(null);
                     } catch (Exception e) {
-                        respostaJson = "{\"erro\":\"" + escaparJson(e.getMessage()) + "\"}";
+                        respostaJson = ThzJson.erro(e.getMessage());
                     }
                 } else {
-                    respostaJson = "{\"erro\":\"Canal RPC não encontrado: " + escaparJson(canal) + "\"}";
+                    respostaJson = ThzJson.erro("Canal RPC não encontrado: " + canal);
                 }
             }
 
