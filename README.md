@@ -4,19 +4,19 @@
 
 [![CI](https://github.com/thz-lang/thz-lang/actions/workflows/ci.yml/badge.svg)](https://github.com/thz-lang/thz-lang/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/projects/jdk/25/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5%2B-blue.svg)](https://www.typescriptlang.org/)
-[![Status](https://img.shields.io/badge/Testes-188%20Verdes-brightgreen.svg)](#)
+[![Gradle](https://img.shields.io/badge/Gradle-8.x-blue.svg)](https://gradle.org/)
+[![Status](https://img.shields.io/badge/Testes-100%25%20PASSED-brightgreen.svg)](#-suíte-de-testes)
 
 **Linguagem Corporativa de Sistemas, Governança de Negócio, Arquitetura Viva e Processamento de Dados de Alta Performance.**
 
 [Visão Geral](#-visão-geral) •
 [Pilares](#-pilares-da-linguagem) •
+[Glossário Ubíquo](#-glossário-de-linguagem-ubíqua) •
+[Arquétipos](#-arquétipos-de-módulo) •
 [Exemplo Canônico](#-exemplo-canônico) •
-[Estrutura](#-estrutura-do-repositório) •
-[Quick Start](#-quick-start) •
-[Documentação](#-documentação)
+[Quick Start](#-quick-start-5-minutos) •
+[Documentação Completa](#-documentação-oficial)
 
 </div>
 
@@ -24,9 +24,9 @@
 
 ## 🌟 Visão Geral
 
-**THZ-LANG** (`.thz`) é uma linguagem de programação orientada a domínio (DDD) com sintaxe estruturada em língua portuguesa, tipagem estática forte e contratos formais de governança integrados. Ela foi projetada para unir a legibilidade executiva com a eficiência de processamento de dados contíguos e vetorização SIMD.
+**THZ-LANG** (`.thz`, `.thzui`) é uma linguagem de programação orientada a domínio (DDD) com sintaxe estruturada em língua portuguesa, tipagem estática forte e contratos formais de governança integrados. Ela foi projetada para unir a legibilidade executiva com a eficiência de processamento de dados contíguos e vetorização SIMD.
 
-O repositório unifica os motores de execução, tooling de desenvolvimento, serviços de linguagem (LSP), extensão para VS Code, Playground Web e IDE gráfica desktop.
+O repositório unifica os motores de execução em Java (JVM), ferramentas CLI, serviços de linguagem (LSP), extensão para VS Code e renderização gráfica de UI.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -40,7 +40,7 @@ O repositório unifica os motores de execução, tooling de desenvolvimento, ser
 │  E CONTRATOS  │        │   E METADADOS │               │    DE DADOS   │
 ├───────────────┤        ├───────────────┤               ├───────────────┤
 │ • DDD Nativo  │        │ • Doc Viva    │               │ • SIMD / AVX  │
-│ • Tipos Dec/Mo│        │ • C4 / Arch   │               │ • Layout SoA  │
+│ • Decimais    │        │ • C4 / Arch   │               │ • Layout SoA  │
 │ • ISO 4217    │        │ • OpenAPI/Spec│               │ • Zero-Copy   │
 │ • Invariantes │        │ • Rastreio Req│               │ • Arenas Mem  │
 └───────────────┘        └───────────────┘               └───────────────┘
@@ -50,22 +50,50 @@ O repositório unifica os motores de execução, tooling de desenvolvimento, ser
 
 ## 💎 Pilares da Linguagem
 
-1. **Aritmética Exata de Domínio (ISO/IEC 10967 & ISO 4217):**
-   Proibição estrita de ponto flutuante binário IEEE 754 para valores monetários e decimais. Todo cálculo utiliza inteiros escalados com representação decimal exata (`DECIMAL` e `MONETARIO`).
-2. **Design by Contract & Governança Integrada:**
-   Cláusulas formais de pré-condição (`EXIGE`), pós-condição (`GARANTE`) e invariantes de entidade (`INVARIANTE`) validadas em tempo de compilação e execução.
-3. **Engenharia Orientada a Dados (DoD):**
-   Suporte nativo a layout colunar (*Structure of Arrays* via `LAYOUT_COLUNAR`), laços vetorizados (`VETORIZAR_PARA ... PASSO_SIMD`) e gerenciamento de blocos em Arena contígua (`USAR_BLOCO_MEMORIA`).
-4. **Arquitetura Viva:**
-   Extração automática de metadados arquiteturais (`METADADOS_ARQUITETURA`), rastreabilidade de requisitos (`RASTREIO_REQUISITO`) e geração de documentação em Markdown com diagramas Mermaid.
+1. **Aritmética Exata de Domínio (ISO/IEC 10967 & ISO 4217):** Proibição estrita de ponto flutuante binário IEEE 754 para valores monetários e decimais. Todo cálculo utiliza inteiros escalados com representação decimal exata (`DECIMAL` e `MONETARIO`).
+2. **Design by Contract & Governança Integrada:** Cláusulas formais de pré-condição (`EXIGE`), pós-condição (`GARANTE`) e invariantes de entidade (`INVARIANTE`) validadas em tempo de compilação e execução.
+3. **Engenharia Orientada a Dados (DoD):** Suporte nativo a layout colunar (*Structure of Arrays* via `LAYOUT_COLUNAR`), laços vetorizados (`VETORIZAR_PARA ... PASSO_SIMD`) e gerenciamento de blocos em Arena contígua (`USAR_BLOCO_MEMORIA`).
+4. **Arquitetura Viva & UIs Declarativas:** Extração automática de metadados arquiteturais (`METADADOS_ARQUITETURA`), rastreabilidade de requisitos (`RASTREIO_REQUISITO`) e suporte nativo a arquivos de interface gráfica (`.thzui` e `TELA`).
+
+---
+
+## 📚 Glossário de Linguagem Ubíqua
+
+No THZ-LANG, a **Linguagem Ubíqua (DDD)** é compilável. O vocabulário alinha analistas de negócio e engenheiros:
+
+- **`REGRA_NEGOCIO`**: Unidade discreta de lógica corporativa auditável.
+- **`EXIGE` / `GARANTE`**: Pré e pós-condições executáveis de contratos de negócio.
+- **`INVARIANTE`**: Regra de integridade absoluta mantida por uma entidade de domínio.
+- **`RASTREIO_REQUISITO`**: Vínculo entre a especificação funcional (`"REQ-FIN-001"`) e a implementação.
+- **`DECIMAL` / `MONETARIO`**: Aritmética financeira exata sem aproximações de ponto flutuante.
+- **`LAYOUT_COLUNAR` / `PASSO_SIMD`**: Estruturas otimizadas para processamento colunar de alta performance.
+
+👉 [Consulte o Glossário Completo de Linguagem Ubíqua](file:///c:/Users/lucas/Projetos/thz-lang/docs/GLOSSARIO_LINGUAGEM_UBIQUA.md)
+
+---
+
+## 🏷️ Arquétipos de Módulo
+
+Em THZ-LANG v2.4, cada arquivo declara seu propósito arquitetural explícito com um terminador obrigatório pareado:
+
+| Arquétipo | Finalidade | Terminador |
+| :--- | :--- | :--- |
+| `PROGRAMA NEGOCIO` | Processamento de regras de negócio e serviços backend | `FIM_PROGRAMA` |
+| `PROGRAMA VISUAL` | Aplicações gráficas interativas | `FIM_PROGRAMA` |
+| `PROGRAMA ARQUITETURA` | Especificações e diagramação de arquitetura de software | `FIM_PROGRAMA` |
+| `BIBLIOTECA` | Módulos utilitários e funções reutilizáveis | `FIM_BIBLIOTECA` |
+| `EXTENSAO` | Módulos de extensão do ecossistema | `FIM_EXTENSAO` |
+| `FERRAMENTA` | Utilitários de linha de comando e scripts | `FIM_FERRAMENTA` |
+| `TESTE` | Suites de testes automatizados integrados | `FIM_TESTE` |
+| `TELA` | Componentes de interface gráfica declarativa (`.thzui`) | `FIM_TELA` |
 
 ---
 
 ## 📝 Exemplo Canônico
 
 ```thz
-PROGRAMA ProcessamentoFaturamentoLote
-VERSAO_LINGUAGEM "2.2"
+PROGRAMA NEGOCIO ProcessamentoFaturamentoLote
+VERSAO_LINGUAGEM "2.4"
 
 METADADOS_ARQUITETURA
     SISTEMA: "FaturamentoCore"
@@ -85,120 +113,80 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO CalcularSubtotais
     RASTREIO_REQUISITO: "REQ-FIN-001"
     EXIGE: tamanho(itens) > 0
-    GARANTE: PARA_TODO(itens, item -> item.subtotal >= 0.00)
 
     VETORIZAR_PARA i DE 0 ATE tamanho(itens) - 1 PASSO_SIMD 8
         itens.subtotal[i] <- itens.quantidade[i] * itens.preco_unitario[i]
     FIM_VETORIZAR
 FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA
 ```
 
 ---
 
-## 📁 Estrutura do Repositório
+## ⚡ Quick Start (5 minutos)
+
+### Pré-requisitos
+- **Java 25** (JDK 25 ou GraalVM JDK 25)
+- **Gradle 8.x** (incluso via Wrapper `./gradlew`)
+
+### 1. Clonar o Repositório
+```bash
+git clone https.github.com/thz-lang/thz-lang.git
+cd thz-lang
+```
+
+### 2. Executar a Suíte de Testes
+```bash
+./gradlew test
+```
+
+### 3. Validar e Executar um Código THZ
+```bash
+# Análise semântica
+./gradlew :thz-cli-jvm:run --args="check exemplos/faturamento.thz"
+
+# Executar programa
+./gradlew :thz-cli-jvm:run --args="run exemplos/faturamento.thz"
+
+# Renderizar tela .thzui em HTML5
+./gradlew :thz-cli-jvm:run --args="ui exemplos/faturamento_dashboard.thzui --html"
+```
+
+---
+
+## 📖 Documentação Oficial
+
+Explore os guias detalhados da documentação:
+
+- 📘 [**Manual Completo da Linguagem**](file:///c:/Users/lucas/Projetos/thz-lang/docs/MANUAL_LINGUAGEM.md) — Guia do iniciante ao avançado sobre sintaxe, tipos, contratos, UI e SIMD.
+- 📖 [**Glossário de Linguagem Ubíqua**](file:///c:/Users/lucas/Projetos/thz-lang/docs/GLOSSARIO_LINGUAGEM_UBIQUA.md) — Termos universais de negócio, governança, arquitetura e dados em português.
+- 📐 [**Gramática Formal EBNF (v2.4)**](file:///c:/Users/lucas/Projetos/thz-lang/docs/GRAMATICA.md) — Especificação rigorosa da linguagem.
+- 🛠️ [**CLI, Tooling & IDEs**](file:///c:/Users/lucas/Projetos/thz-lang/docs/CLI_E_TOOLING.md) — Manual do `thz check/run/fmt/doc/audit/ui/ir`, LSP e extensão VS Code.
+- 💡 [**Exemplos & Padrões**](file:///c:/Users/lucas/Projetos/thz-lang/docs/EXEMPLOS_E_PADROES.md) — Receitas de código DDD, SIMD, HTTP e UIs.
+- 🤝 [**Guia de Contribuição**](file:///c:/Users/lucas/Projetos/thz-lang/CONTRIBUTING.md) — Diretrizes para desenvolvedores do monorepo.
+
+---
+
+## 🧱 Estrutura do Monorepo
 
 ```
 thz-lang/
-├── PROJECT.md                  # Visão, pilares, roadmap e especificações
-├── AGENTS.md                   # Diretrizes para agentes de IA e invariantes
-├── TODO.md                     # Próximas etapas de evolução
-├── CONTRIBUTING.md             # Guia de contribuição
-├── LICENSE                     # Licença MIT
-│
-├── Extensions/                  # Extensões para editores
-│   └── thz-lsp-vscode/          #   Extensão oficial do VS Code (LSP client)
-│
-├── JVM/                         # Motor Java 25 — produção
-│   ├── thz-core-jvm/            #   Núcleo: Lexer, Parser, Semântico, Runtime, IR, SIMD
-│   ├── thz-cli-jvm/             #   CLI + REPL + UberJAR
-│   ├── thz-gui-jvm/             #   IDE Desktop Swing
-│   ├── thz-api-jvm/             #   REST API (Spring Boot) → Playground Web
-│   ├── thz-lsp-jvm/             #   LSP Server (LSP4J) → VS Code Extension
-│   └── thz-bench-jvm/           #   Benchmarks JMH (Decimal, Memoria, Layout)
-│
-└── docs/                        # Documentação da linguagem, EBNF e arquitetura
-```
-
-> Os módulos JVM comunicam entre si pela API pública do `thz-core`; as funções gráficas `TELA.*` são registradas por cada apresentação via `BibliotecaPadrao.registrar()`.
+├── JVM/                        # Monorepo de motores e ferramentas Java 25
+│   ├── thz-core-jvm/           # Núcleo: Léxico, Parser, Semântico, Interpretador, UI & IR
+│   ├── thz-cli-jvm/            # Ferramenta de linha de comando (`thz`)
+│   ├── thz-gui-jvm/            # Swing FlatLaf Desktop & Native Webview
+│   ├── thz-lsp-jvm/            # Servidor LSP (Language Server Protocol)
+│   ├── thz-api-jvm/            # Biblioteca HTTP / Rest API
+│   └── thz-bench-jvm/          # Benchmarks JMH (SIMD, Arenas, Decimais)
+├── Extensions/
+│   └── thz-lsp-vscode/         # Extensão oficial para o Visual Studio Code
+├── docs/                       # Documentação técnica e manuais
+└── exemplos/                   # Códigos de exemplo em `.thz` e `.thzui`
 ```
 
 ---
 
-## 🚀 Quick Start
+## ⚖️ Licença
 
-### 0. Orquestrador da raiz (`package.json`)
-
-A raiz do workspace centraliza as operações dos módulos JVM — sem ferramenta extra, apenas npm:
-
-```bash
-npm run setup        # compila core + CLI + API + LSP
-npm test             # suíte completa: core + gui + api + lsp
-npm run test:core    # apenas núcleo JVM
-
-npm run thz -- check JVM/thz-core-jvm/exemplos/faturamento.thz   # CLI
-npm run repl                                             # REPL interativo
-npm run ide                                              # IDE Desktop Swing
-
-# API REST (Spring Boot) — consume o core Java via HTTP
-npm run api:build    # gera o JAR da API
-npm run api:run      # http://localhost:8080
-
-# LSP Server (Java) — conecta ao VS Code
-npm run lsp:jar      # gera shadow JAR
-npm run lsp:run      # inicia servidor LSP via stdio
-
-# Benchmarks JMH
-npm run bench        # roda todos os benchmarks
-```
-
----
-
-### 1. Motor Java 25 (produção)
-
-Três projetos Gradle autônomos na pasta `JVM/` do workspace, comunicando pela API pública do `thz-core` (as funções gráficas `TELA.*` são registradas por cada apresentação via `BibliotecaPadrao.registrar()`). Requisitos: OpenJDK 25 (Gradle Wrapper embutido em cada projeto).
-
-```bash
-# Núcleo — testes e publicação no Maven Local
-cd JVM/thz-core-jvm
-./gradlew test publishToMavenLocal
-
-# CLI — UberJAR executável (target/thz-jvm-2.3.0.jar)
-cd ../thz-cli-jvm
-./gradlew shadowJar
-java -jar target/thz-jvm-2.3.0.jar check ../thz-core-jvm/exemplos/agenda.thz
-java -jar target/thz-jvm-2.3.0.jar run   ../thz-core-jvm/exemplos/colecao/01-ola-mundo.thz
-java -jar target/thz-jvm-2.3.0.jar repl
-
-# IDE Desktop Swing
-cd ../thz-gui-jvm
-./gradlew gui
-
-# API REST
-cd ../thz-api-jvm
-./gradlew bootRun    # http://localhost:8080
-
-# LSP Server (VS Code)
-cd ../thz-lsp-jvm
-./gradlew shadowJar
-java -jar target/thz-lsp-2.3.0.jar --stdio
-
-# Benchmarks
-cd ../thz-bench-jvm
-./gradlew jmh
-```
-
----
-
-## 📚 Documentação
-
-- **Gramática EBNF:** [`docs/GRAMATICA.md`](docs/GRAMATICA.md)
-- **Documentação do Motor JVM:** [`thz-core-jvm/README.md`](JVM/thz-core-jvm/README.md), [`thz-cli-jvm/README.md`](JVM/thz-cli-jvm/README.md), [`thz-api-jvm/README.md`](JVM/thz-api-jvm/README.md), [`thz-lsp-jvm/README.md`](JVM/thz-lsp-jvm/README.md)
-- **Visão Arquitetural e Roadmap:** [`docs/PROJECT.md`](docs/PROJECT.md)
-- **Diretrizes para Agentes de IA:** [`AGENTS.md`](AGENTS.md)
-- **Extensão VS Code:** [`thz-lsp-vscode/README.md`](Extensions/thz-lsp-vscode/README.md)
-
----
-
-## 📄 Licença
-
-Distribuído sob a licença **MIT**. Consulte o arquivo [`LICENSE`](LICENSE) para mais detalhes.
+Este projeto está licenciado sob a Licença MIT — consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
