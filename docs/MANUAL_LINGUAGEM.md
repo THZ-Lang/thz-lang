@@ -1,6 +1,6 @@
 # Manual Oficial da Linguagem THZ-LANG (v2.4.0)
 
-Bem-vindo ao **Manual Oficial do THZ-LANG**, a linguagem corporativa de sistemas projetada para unir **Governança de Negócio (DDD)**, **Design por Contrato**, **Arquitetura Viva** e **Processamento de Dados de Alta Performance (DoD / SIMD)**.
+Bem-vindo ao **Manual Oficial do THZ-LANG**, a linguagem corporativa de sistemas projetada para unir **Governança de Negócio (DDD)**, **Design por Contrato**, **Arquitetura Viva**, **Processamento de Dados de Alta Performance (DoD / SIMD)** e **Big Data Streaming & Batch Pipelines**.
 
 ---
 
@@ -15,7 +15,8 @@ Bem-vindo ao **Manual Oficial do THZ-LANG**, a linguagem corporativa de sistemas
 8. [Tratamento Idiomático de Resultados](#8-tratamento-idiomático-de-resultados)
 9. [DSL de Interface Gráfica e Tela Declarativa (`.thzui`)](#9-dsl-de-interface-gráfica-e-tela-declarativa-thzui)
 10. [Engenharia Orientada a Dados: Arenas e Vetorização SIMD](#10-engenharia-orientada-a-dados-arenas-e-vetorização-simd)
-11. [Biblioteca Padrão (Stdlib)](#11-biblioteca-padrão-stdlib)
+11. [Pipelines de Big Data: Ingestão Massiva (Streaming & Batch)](#11-pipelines-de-big-data-ingestão-massiva-streaming--batch)
+12. [Biblioteca Padrão (Stdlib)](#12-biblioteca-padrão-stdlib)
 
 ---
 
@@ -27,7 +28,7 @@ O **THZ-LANG** (`.thz`, `.thzui`) foi concebido para resolver o hiato entre espe
 - **Expressividade em Português:** Palavras-chave claras que refletem o domínio do negócio sem ambiguidades.
 - **Aritmética Financeira Rigorosa (ISO/IEC 10967 & ISO 4217):** Proibição total de ponto flutuante binário (`float`/`double`) para operações fiscais ou monetárias.
 - **Design por Contrato Integrado:** As cláusulas `EXIGE`, `GARANTE` e `INVARIANTE` não são meros comentários, mas garantias executáveis.
-- **Arquitetura Viva:** O bloco `METADADOS_ARQUITETURA` permite auditoria automática de SLOs, criticidade e governança.
+- **Big Data Streaming & Batch Pipelines:** Arquitetura para ingestão e processamento em lote e tempo real em fontes heterogêneas (PostgreSQL, MySQL, MongoDB, JSONB, CSV, XLSX, LOG).
 - **Vetorização SIMD Nativa:** Processamento colunar contíguo (*Structure of Arrays*) viabilizando operações vetorizadas via CPU.
 
 ---
@@ -36,9 +37,7 @@ O **THZ-LANG** (`.thz`, `.thzui`) foi concebido para resolver o hiato entre espe
 
 No desenvolvimento orientado a domínio (DDD), a **Linguagem Ubíqua** é o conjunto de termos unificados que elimina a necessidade de "tradução" entre o que o especialista de negócio pede e o que o desenvolvedor codifica.
 
-No THZ-LANG, essa linguagem é parte nativa do código compilável.
-
-👉 Consulte o [**Glossário Oficial de Linguagem Ubíqua**](file:///c:/Users/lucas/Projetos/thz-lang/docs/GLOSSARIO_LINGUAGEM_UBIQUA.md) para a definição completa de termos como `REGRA_NEGOCIO`, `EXIGE`, `GARANTE`, `INVARIANTE`, `RASTREIO_REQUISITO`, `METADADOS_ARQUITETURA`, `DECIMAL`, `MONETARIO`, `LAYOUT_COLUNAR`, `PASSO_SIMD`, `RESULTADO` e `ThzUiMaker`.
+👉 Consulte o [**Glossário Oficial de Linguagem Ubíqua**](file:///c:/Users/lucas/Projetos/thz-lang/docs/GLOSSARIO_LINGUAGEM_UBIQUA.md) para a definição de termos como `REGRA_NEGOCIO`, `EXIGE`, `GARANTE`, `PIPELINE_DADOS`, `FONTE_ENTRADA`, `DESTINO_SAIDA`, `STREAMING`, `LOTE` e `LAYOUT_COLUNAR`.
 
 ---
 
@@ -54,17 +53,6 @@ Em THZ-LANG, todos os tipos são estaticamente verificados pelo compilador/anali
 | `TEXTO` | Cadeia de caracteres Unicode | `"Faturamento 2026"` |
 | `LOGICO` | Booleano (`VERDADEIRO` ou `FALSO`) | `VERDADEIRO`, `FALSO` |
 
-### Exemplo de Declaração e Aritmética:
-
-```thz
-VARIAVEL valor_item: DECIMAL(12, 2) <- 199.90
-VARIAVEL quantidade: INTEIRO <- 5
-VARIAVEL total: DECIMAL(12, 2) <- valor_item * quantidade
-VARIAVEL saldo_carteira: MONETARIO(BRL) <- 1500.00 BRL
-```
-
-> ⚠️ **Aviso de Invariante de Domínio:** Tentativas de misturar moedas diferentes (ex: `100.00 BRL + 50.00 USD`) geram erros explícitos em tempo de compilação ou execução.
-
 ---
 
 ## 4. Arquétipos de Módulo
@@ -76,21 +64,9 @@ PROGRAMA NEGOCIO ProcessamentoContas
     // Código do programa principal de negócio
 FIM_PROGRAMA
 
-BIBLIOTECA UtilitariosFinanceiros
-    // Funções e procedimentos reutilizáveis
-FIM_BIBLIOTECA
-
-EXTENSAO IntegracaoBancaria
-    // Módulo de extensão de sistema
-FIM_EXTENSAO
-
-FERRAMENTA AuditoriaCusto
-    // Utilitário CLI ou script de ferramentas
-FIM_FERRAMENTA
-
-TESTE SuiteCalculoImpostos
-    // Casos de testes automatizados
-FIM_TESTE
+PIPELINE_DADOS IngestaoVendas
+    // Pipeline de Big Data (Streaming / Batch)
+FIM_PIPELINE
 
 TELA DashboardVendas
     // Interface gráfica declarativa (.thzui)
@@ -99,179 +75,46 @@ FIM_TELA
 
 ---
 
-## 5. Estruturas, Enums e Módulos
+## 11. Pipelines de Big Data: Ingestão Massiva (Streaming & Batch)
 
-### 5.1 Estruturas (`ESTRUTURA`)
-Representam entidades de domínio com suporte opcional ao modificador `LAYOUT_COLUNAR` (Structure of Arrays).
-
-```thz
-ESTRUTURA Cliente
-    id: INTEIRO
-    nome: TEXTO
-    documento: TEXTO
-    ativo: LOGICO
-FIM_ESTRUTURA
-```
-
-### 5.2 Enumerações (`ENUMERACAO`)
-Conjuntos finitos de constantes nomeadas.
+O arquétipo `PIPELINE_DADOS` viabiliza a ingestão e transformação massiva de dados em lote (*Batch*) ou em tempo real (*Streaming*) a partir de fontes heterogêneas:
 
 ```thz
-ENUMERACAO StatusPedido
-    RASCUNHO,
-    APROVADO,
-    FATURADO,
-    CANCELADO
-FIM_ENUMERACAO
-```
-
-### 5.3 Módulos e Importação (`IMPORTAR`)
-Reutilização de código entre arquivos:
-
-```thz
-IMPORTAR Cliente, StatusPedido DE "modelos/cliente.thz"
-```
-
----
-
-## 6. Governança e Design por Contrato
-
-O THZ-LANG integra governança corporativa no coração do código fonte.
-
-```thz
-PROGRAMA NEGOCIO FaturamentoLote
+PIPELINE_DADOS ProcessamentoTransacoesStreaming
 VERSAO_LINGUAGEM "2.4"
 
 METADADOS_ARQUITETURA
-    SISTEMA: "FaturamentoCore"
-    MODULO: "CalculoImpostos"
-    DOMINIO: "Financeiro"
+    SISTEMA: "DataPipelineCore"
+    DOMINIO: "EngenhariaDeDados"
     SLO_LATENCIA_MS: 50
-    CRITICIDADE: "ALTA"
 FIM_METADADOS
 
-REGRA_NEGOCIO ProcessarFatura
-    RASTREIO_REQUISITO: "REQ-FIN-2026-001"
-    EXIGE: valor_total > 0.00
-    GARANTE: imposto_calculado >= 0.00
+FONTE_ENTRADA OrigemTransacoes
+    TIPO: "STREAMING"
+    CONECTOR: "POSTGRESQL"
+    FORMATO: "JSONB"
+FIM_FONTE
 
-    INICIO
-        VARIAVEL imposto_calculado: DECIMAL(12, 2) <- valor_total * 0.15
-        RETORNAR imposto_calculado
-    FIM
-FIM_REGRA_NEGOCIO
+DESTINO_SAIDA DestinoDataLake
+    CONECTOR: "MONGODB"
+    COLECAO: "faturamento_agregado"
+FIM_DESTINO
+
+TRANSFORMACAO ProcessarEFiltrar
+    RASTREIO_REQUISITO: "REQ-DATA-001"
+    EXIGE: tamanho(lote) > 0
+
+    VETORIZAR_PARA i DE 0 ATE tamanho(lote) - 1 PASSO_SIMD 8
+        lote.subtotal[i] <- lote.quantidade[i] * lote.preco_unitario[i]
+    FIM_VETORIZAR
+FIM_TRANSFORMACAO
+
+FIM_PIPELINE
 ```
 
 ---
 
-## 7. Controle de Fluxo e Funções
-
-### 7.1 Condicionais (`SE ... SENAO`)
-```thz
-SE valor > 1000.00 ENTAO
-    EXIBA("Desconto de grande porte aplicado")
-SENAO
-    EXIBA("Valor padrão")
-FIM_SE
-```
-
-### 7.2 Laços (`ENQUANTO` e `PARA`)
-```thz
-PARA i DE 0 ATE 10 PASSO 1 FACA
-    EXIBA("Índice: " + i)
-FIM_PARA
-```
-
----
-
-## 8. Tratamento Idiomático de Resultados
-
-O THZ-LANG evita exceções descontroladas utilizando o padrão explícito `RESULTADO`.
-
-### 8.1 Retornando Resultados
-```thz
-PROCEDIMENTO ValidarCredito(cliente_id: INTEIRO, valor: DECIMAL(12, 2))
-INICIO
-    SE valor > 50000.00 ENTAO
-        FALHAR_COM("Limite de crédito excedido para a conta")
-    SENAO
-        RETORNAR RESULTADO(VERDADEIRO)
-    FIM_SE
-FIM
-```
-
-### 8.2 Pattern Matching com `CASO_RESULTADO`
-```thz
-VARIAVEL res <- ValidarCredito(101, 60000.00)
-
-CASO_RESULTADO res
-    SUCESSO valor_aprovado =>
-        EXIBA("Crédito liberado com sucesso: " + valor_aprovado)
-    ERRO mensagem_erro =>
-        EXIBA("Solicitação negada: " + mensagem_erro)
-FIM_CASO
-```
-
----
-
-## 9. DSL de Interface Gráfica e Tela Declarativa (`.thzui`)
-
-Com o arquétipo `TELA`, você constrói interfaces visuais declarativas em arquivos `.thzui` ou `.thz`.
-
-```thz
-TELA PainelFaturamento
-
-METADADOS_ARQUITETURA
-    DOMINIO: "Financeiro"
-    CAMADA: "Apresentacao"
-FIM_METADADOS
-
-PROCEDIMENTO MontarInterface()
-INICIO
-    TELA.criarContainer("raiz", "CONTAINER")
-    TELA.criarCard("card_kpi", "Resumo Diário")
-    TELA.adicionarMetrica("kpi_vendas", "Vendas Hoje", "R$ 450.000,00")
-    TELA.adicionarBotao("btn_atualizar", "Atualizar Dados", "CarregarDados")
-    TELA.exibir("PainelFaturamento")
-FIM
-
-FIM_TELA
-```
-
-Renderize e exporte UIs diretamente pelo CLI:
-```bash
-thz ui painel.thzui --html
-```
-
----
-
-## 10. Engenharia Orientada a Dados: Arenas e Vetorização SIMD
-
-### 10.1 Blocos de Memória Contígua em Arena
-Alocação em arena para descarte $O(1)$ em lote:
-
-```thz
-USAR_BLOCO_MEMORIA "ArenaFaturamento", 1024 * 1024 FACA
-    // Operações em lote na memória contígua
-FIM_BLOCO_MEMORIA
-```
-
-### 10.2 Vetorização SIMD (`LAYOUT_COLUNAR`)
-```thz
-ESTRUTURA ItemLote LAYOUT_COLUNAR
-    quantidade: INTEIRO
-    preco: DECIMAL(12, 2)
-    subtotal: DECIMAL(12, 2)
-FIM_ESTRUTURA
-
-VETORIZAR_PARA i DE 0 ATE tamanho(itens) - 1 PASSO_SIMD 8
-    itens.subtotal[i] <- itens.quantidade[i] * itens.preco[i]
-FIM_VETORIZAR
-```
-
----
-
-## 11. Biblioteca Padrão (Stdlib)
+## 12. Biblioteca Padrão (Stdlib)
 
 Módulos utilitários embutidos acessíveis em runtime:
 

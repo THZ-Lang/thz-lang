@@ -12,7 +12,8 @@ public enum TipoModulo {
     EXTENSAO("EXTENSAO"),
     FERRAMENTA("FERRAMENTA"),
     TESTE("TESTE"),
-    TELA("TELA");
+    TELA("TELA"),
+    PIPELINE_DADOS("PIPELINE_DADOS");
 
     private final String descricao;
 
@@ -25,7 +26,7 @@ public enum TipoModulo {
     }
 
     public boolean ehPrograma() {
-        return this == PROGRAMA || this == PROGRAMA_VISUAL || this == PROGRAMA_NEGOCIO || this == PROGRAMA_ARQUITETURA || this == TELA;
+        return this == PROGRAMA || this == PROGRAMA_VISUAL || this == PROGRAMA_NEGOCIO || this == PROGRAMA_ARQUITETURA || this == TELA || this == PIPELINE_DADOS;
     }
 
     public String terminadorPadrao() {
@@ -36,6 +37,7 @@ public enum TipoModulo {
             case FERRAMENTA -> "FIM_FERRAMENTA";
             case TESTE -> "FIM_TESTE";
             case TELA -> "FIM_TELA";
+            case PIPELINE_DADOS -> "FIM_PIPELINE";
         };
     }
 }
