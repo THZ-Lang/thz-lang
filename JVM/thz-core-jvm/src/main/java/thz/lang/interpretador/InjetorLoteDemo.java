@@ -1,11 +1,5 @@
 package thz.lang.interpretador;
 
-import thz.lang.ast.EstruturaAst;
-import thz.lang.ast.OperacaoAst;
-import thz.lang.ast.ParametroOperacaoAst;
-import thz.lang.ast.ProcedimentoAst;
-import thz.lang.ast.ProgramaAst;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,20 +9,28 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import thz.lang.ast.EstruturaAst;
+import thz.lang.ast.OperacaoAst;
+import thz.lang.ast.ParametroOperacaoAst;
+import thz.lang.ast.ProcedimentoAst;
+import thz.lang.ast.ProgramaAst;
+
 /**
- * Provedor canônico de dados de demonstração (LOTE) e construção de argumentos para OPERACAO/PROCEDIMENTO.
+ * Provedor canônico de dados de demonstração (LOTE) e construção de argumentos
+ * para OPERACAO/PROCEDIMENTO.
  * Centralizado para eliminar duplicações entre ThzCli e ThzGui (DRY).
  */
 public final class InjetorLoteDemo {
 
     public static final Object[][] LOTE = {
-            new Object[]{"a1b2c3d4-0000-0000-0000-000000000001", "PROD-SKU-901", 10, "150.5000", "18.00", "0"},
-            new Object[]{"a1b2c3d4-0000-0000-0000-000000000002", "PROD-SKU-902", 5, "320.0000", "12.00", "0"}
+            new Object[] { "a1b2c3d4-0000-0000-0000-000000000001", "PROD-SKU-901", 10, "150.5000", "18.00", "0" },
+            new Object[] { "a1b2c3d4-0000-0000-0000-000000000002", "PROD-SKU-902", 5, "320.0000", "12.00", "0" }
     };
 
     private static final Pattern PADRAO_FATIA = Pattern.compile("^FATIA\\[(\\w+)\\]$");
 
-    private InjetorLoteDemo() {}
+    private InjetorLoteDemo() {
+    }
 
     /**
      * Constrói registro estruturado com validação de invariantes.
@@ -56,7 +58,8 @@ public final class InjetorLoteDemo {
     }
 
     /**
-     * Constrói argumentos para uma OPERACAO, injetando LOTE para parâmetros FATIA e solicitando os demais.
+     * Constrói argumentos para uma OPERACAO, injetando LOTE para parâmetros FATIA e
+     * solicitando os demais.
      */
     public static Map<String, ValorThz> construirArgsOperacao(
             OperacaoAst op,
@@ -74,7 +77,8 @@ public final class InjetorLoteDemo {
                         .findFirst()
                         .orElse(null);
                 if (est == null) {
-                    throw new RuntimeException("Estrutura '" + nomeEstrutura + "' referenciada por '" + p.tipo() + "' não declarada.");
+                    throw new RuntimeException(
+                            "Estrutura '" + nomeEstrutura + "' referenciada por '" + p.tipo() + "' não declarada.");
                 }
                 List<ValorThz> elems = new ArrayList<>();
                 for (Object[] linha : LOTE) {

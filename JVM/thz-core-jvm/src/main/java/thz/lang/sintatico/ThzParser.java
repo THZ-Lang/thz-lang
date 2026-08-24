@@ -21,13 +21,15 @@ public class ThzParser {
         return errosSintaticos;
     }
 
-    private void sincronizar() {
+    public void sincronizar() {
         advance();
         while (!isAtEnd()) {
             TokenType t = peek().type();
             if (t == TokenType.FIM_PROGRAMA || t == TokenType.FIM_BIBLIOTECA || t == TokenType.FIM_TELA ||
-                t == TokenType.FIM_ESTRUTURA || t == TokenType.FIM_REGRA_NEGOCIO || t == TokenType.PROCEDIMENTO ||
-                t == TokenType.REGRA_NEGOCIO || t == TokenType.ESTRUTURA || t == TokenType.ENUMERACAO) {
+                t == TokenType.FIM_PIPELINE || t == TokenType.FIM_EXTENSAO || t == TokenType.FIM_FERRAMENTA ||
+                t == TokenType.FIM_TESTE || t == TokenType.FIM_ESTRUTURA || t == TokenType.FIM_REGRA_NEGOCIO ||
+                t == TokenType.PROCEDIMENTO || t == TokenType.REGRA_NEGOCIO || t == TokenType.ESTRUTURA ||
+                t == TokenType.ENUMERACAO || t == TokenType.PIPELINE_DADOS) {
                 return;
             }
             advance();
@@ -90,9 +92,12 @@ public class ThzParser {
         } else if (match(TokenType.TELA)) {
             tipoModulo = TipoModulo.TELA;
             terminadorEsperado = TokenType.FIM_TELA;
+        } else if (match(TokenType.PIPELINE_DADOS)) {
+            tipoModulo = TipoModulo.PIPELINE_DADOS;
+            terminadorEsperado = TokenType.FIM_PIPELINE;
         } else {
             Token token = peek();
-            throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Esperada declaração de módulo no início do arquivo ('PROGRAMA', 'PROGRAMA VISUAL', 'PROGRAMA NEGOCIO', 'PROGRAMA ARQUITETURA', 'BIBLIOTECA', 'EXTENSAO', 'FERRAMENTA', 'TESTE' ou 'TELA'). (Encontrado: '" + token.value() + "')");
+            throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Esperada declaração de módulo no início do arquivo ('PROGRAMA', 'PROGRAMA VISUAL', 'PROGRAMA NEGOCIO', 'PROGRAMA ARQUITETURA', 'PIPELINE_DADOS', 'BIBLIOTECA', 'EXTENSAO', 'FERRAMENTA', 'TESTE' ou 'TELA'). (Encontrado: '" + token.value() + "')");
         }
 
         String nome = consumeIdentificador("Esperado o nome do módulo " + tipoModulo.descricao() + ".").value();
@@ -458,6 +463,7 @@ public class ThzParser {
             case SE: {
                 advance();
                 ExprAst condicao = parseExpressao();
+                match(TokenType.ENTAO);
                 List<ComandoAst> entao = parseBlocoComandos(TokenType.FIM_SE, TokenType.SENAO);
                 List<ComandoAst> senao = new ArrayList<>();
                 if (match(TokenType.SENAO)) {
@@ -470,6 +476,7 @@ public class ThzParser {
             case ENQUANTO: {
                 advance();
                 ExprAst condicao = parseExpressao();
+                match(TokenType.FACA);
                 List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_ENQUANTO);
                 consume(TokenType.FIM_ENQUANTO, "Esperado 'FIM_ENQUANTO' encerrando o laço 'ENQUANTO'.");
                 return new ComandoAst.Enquanto(condicao, corpo, token.line(), token.column());
@@ -492,14 +499,17 @@ public class ThzParser {
                         throw new RuntimeException("[Erro Sintático][Linha " + valorPasso.line() + ":" + valorPasso.column() + "] PASSO_SIMD exige inteiro positivo.");
                     }
                 }
-                List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_PARA);
-                consume(TokenType.FIM_PARA, "Esperado 'FIM_PARA' encerrando o laço vetorizado.");
+                List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_PARA, TokenType.FIM_VETORIZAR);
+                if (!match(TokenType.FIM_PARA) && !match(TokenType.FIM_VETORIZAR)) {
+                    throw new RuntimeException("[Erro Sintático][Linha " + peek().line() + ":" + peek().column() + "] Esperado 'FIM_PARA' ou 'FIM_VETORIZAR' encerrando o laço vetorizado.");
+                }
                 return new ComandoAst.VetorizarPara(variavel, fonte, passoSimd, corpo, token.line(), token.column());
             }
 
             case USAR_BLOCO_MEMORIA: {
                 advance();
                 String nome = consumeIdentificador("Esperado nome do bloco de memória temporária.").value();
+                match(TokenType.FACA);
                 List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_BLOCO_MEMORIA);
                 consume(TokenType.FIM_BLOCO_MEMORIA, "Esperado 'FIM_BLOCO_MEMORIA' encerrando o escopo de memória.");
                 return new ComandoAst.BlocoMemoria(nome, corpo, token.line(), token.column());
@@ -522,6 +532,7 @@ public class ThzParser {
                 if (match(TokenType.PASSO)) {
                     passo = parseExpressao();
                 }
+                match(TokenType.FACA);
                 List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_PARA);
                 consume(TokenType.FIM_PARA, "Esperado 'FIM_PARA' encerrando o laço 'PARA'.");
                 return new ComandoAst.Para(variavel, inicio, fim, passo, corpo, token.line(), token.column());

@@ -1,9 +1,27 @@
 package thz.lang.api.controller;
 
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import thz.lang.api.dto.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.Valid;
+import thz.lang.api.dto.AnaliseRequest;
+import thz.lang.api.dto.AnaliseResponse;
+import thz.lang.api.dto.AstResponse;
+import thz.lang.api.dto.AuditoriaResponse;
+import thz.lang.api.dto.DocumentacaoResponse;
+import thz.lang.api.dto.ExecucaoRequest;
+import thz.lang.api.dto.ExecucaoResponse;
+import thz.lang.api.dto.FormatacaoRequest;
+import thz.lang.api.dto.FormatacaoResponse;
+import thz.lang.api.dto.HealthResponse;
+import thz.lang.api.dto.HoverRequest;
+import thz.lang.api.dto.HoverResponse;
+import thz.lang.api.dto.IrResponse;
+import thz.lang.api.dto.SimdResponse;
 import thz.lang.api.service.ThzService;
 
 @RestController
@@ -22,14 +40,14 @@ public class ThzController {
     public ResponseEntity<AnaliseResponse> analisar(@Valid @RequestBody AnaliseRequest request) {
         ThzService.AnaliseResult r = thzService.analisar(request.fonte(), request.estrito());
         return ResponseEntity.ok(new AnaliseResponse(
-                r.diagnosticos(), r.textoDiagnosticos(), r.temErros(), r.simbolos(), r.astJson()
-        ));
+                r.diagnosticos(), r.textoDiagnosticos(), r.temErros(), r.simbolos(), r.astJson()));
     }
 
     @PostMapping("/hover")
     public ResponseEntity<HoverResponse> hover(@Valid @RequestBody HoverRequest request) {
         ThzService.HoverResult r = thzService.obterHover(request.fonte(), request.linha(), request.coluna());
-        if (r == null) return ResponseEntity.ok(null);
+        if (r == null)
+            return ResponseEntity.ok(null);
         return ResponseEntity.ok(new HoverResponse(r.conteudo(), r.range()));
     }
 
@@ -97,7 +115,6 @@ public class ThzController {
                 "UP",
                 "2.3.3",
                 System.getProperty("java.version"),
-                "thz-core-jvm"
-        ));
+                "thz-core-jvm"));
     }
 }

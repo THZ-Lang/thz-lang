@@ -1,65 +1,67 @@
-# THZ-LANG — VS Code Extension (G1-G6)
+# THZ-LANG — VS Code & Antigravity IDE Extension
 
-Extensão alimentada pelo **Language Service Core (G1)** via LSP — `src/lsp/server.ts` (stdio).
+Extensão oficial para **VS Code**, **Antigravity IDE** e IDEs compatíveis com TextMate / LSP, trazendo suporte completo a desenvolvimento para **THZ-LANG** (`.thz`, `.thzui`).
 
-## Funcionalidades
+---
 
-| Recurso | Detalhe |
+## 🌟 Funcionalidades
+
+| Recurso | Descrição |
 |---|---|
-| **Diagnósticos** | `[Linha L:C]` com caret → `Diagnostic` (léxico/sintático/semântico + lint `--estrito`) |
-| **Hover** | Tipos/assinaturas de `ESTRUTURA`, `campo`, `ENUMERACAO`, `RESULTADO[T,E]`, `variável` e `item.q` |
-| **Símbolos** | `DocumentSymbol` (programa, estruturas/campos/invariantes, enumerações, regras e operações) |
-| **Go-to-Definition** | Mapeia `simbolosDe()` → `Location` |
-| **Completion** | Keywords (`PALAVRAS_RESERVADAS`) e tipos (`DECIMAL`, `MONETARIO`, `FATIA`, `RESULTADO`…) |
-| **Formatting** | `textDocument/formatting` via `src/fmt.ts` (Shift+Alt+F; descarta comentários `#`) |
-| **Governança** | Comando `THZ: Mostrar Auditoria` → `thz/audit` (matriz `RASTREIO→Regra→Contrato`) |
-| **THZ-IR / LLVM** | Comandos `THZ: Mostrar IR` (`thz/ir`, `thz-ir/1`) e `THZ: Mostrar LLVM` (`thz/llvm`) |
+| **Realce Léxico Completo** | Gramática TextMate com suporte a `PROGRAMA`, `BIBLIOTECA`, `PIPELINE_DADOS`, `ESTRUTURA`, `REGRA_NEGOCIO`, `TELA`, tipos numéricos exatos, comentários `//`, `#` e `/* */` |
+| **Diagnósticos em Tempo Real** | Validação sintática e semântica com precisão `[Linha L:C]` e modo `--estrito` |
+| **Hover & Assinaturas** | Tipos e parâmetros de estruturas, campos, enums, contratos `EXIGE`/`GARANTE` e stdlib |
+| **Autocompletion Contextual** | Palavras-chave, conectores de pipeline, tipos nativos e templates |
+| **Navegação de Símbolos** | Outline hierárquico com `DocumentSymbol` e `Go-to-Definition` |
+| **Formatação Canônica** | Formatação idempotente ao salvar ou via comando `Format Document` (`Shift+Alt+F`) |
+| **Governança & IR** | Comandos `THZ: Mostrar Auditoria de Governança`, `THZ: Mostrar IR` e `THZ: Mostrar LLVM IR` |
 
-Gramática TextMate: `syntaxes/thz.tmLanguage.json`. Configurações: `thz-lang.lintEstrito` (ativa `--estrito` no `analisar()`) e `thz-lang.trace.server` (`off`/`messages`/`verbose`).
+---
 
-## Requisitos
+## 🚀 Como Gerar e Instalar o Pacote `.vsix`
 
-- VS Code ≥ 1.85
-- Engine compilado: `dist/lsp/server.js` (gerado por `npm run lsp:build` na raiz do engine)
+O repositório inclui automação completa para empacotar a extensão junto ao servidor LSP Java 25:
 
-## Dev
+### 1. Gerar o Pacote `.vsix`:
+```powershell
+# Via script dedicado:
+powershell.exe -ExecutionPolicy Bypass -File scripts/build-vsix.ps1
 
-```bash
-# 1) motor TS — servidor LSP (thz-lang-engine/)
-npm install
-npm run lsp:build          # compila src/lsp/server.ts → dist/lsp/server.js
-
-# 2) extensão (esta pasta, thz-lsp-vscode/)
-npm install
-npm run compile            # compila src/extension.ts → dist/extension.js
-
-# abrir a extensão como Extension Development Host (F5)
-code --extensionDevelopmentPath=<raiz>/thz-lsp-vscode <raiz>/thz-lang-engine
-# ou
-cd thz-lang-engine && npm run playground   # alternativa web (Vite + Monaco)
+# Ou via npm:
+npm run vsix:build
 ```
 
-Servidor em `stdio`: `npm run lsp` → `node dist/lsp/server.js --stdio`.
+O arquivo gerado é salvo em `dist/thz-lang-0.3.0.vsix`.
 
-## Empacotamento
-
-```bash
-npm run extension:package  # → thz-lang.vsix (requer @vscode/vsce)
+### 2. Gerar e Instalar Automaticamente:
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File scripts/build-vsix.ps1 -Instalar
 ```
 
-Para publicar fora do dev, garanta que `dist/lsp/server.js` está incluído no `vsix` (o `extension/package.json` resolve via `../dist/lsp/server.js`; se necessário: `Copy-Item dist/lsp/* extension/server -Force` antes de `vsce package`).
+### 3. Instalação Manual no VS Code ou Antigravity IDE:
+- **No Terminal:**
+  ```bash
+  code --install-extension dist/thz-lang-0.3.0.vsix
+  ```
+- **Na Interface Gráfica:**
+  1. Abra o painel de **Extensions** (`Ctrl+Shift+X`).
+  2. Clique no menu de três pontos (`...`) no canto superior do painel.
+  3. Selecione **"Install from VSIX..."** e aponte para `dist/thz-lang-0.3.0.vsix`.
 
-## Comandos
+---
 
-- `THZ: Mostrar Auditoria` (`thz.showAudit`)
-- `THZ: Mostrar IR (thz-ir/1)` (`thz.showIr`)
-- `THZ: Mostrar LLVM IR` (`thz.showLlvm`)
-- Formatação nativa (menu **Formatar Documento**)
+## 🛠️ Estrutura da Extensão
 
-## Playground (G2) — referência cruzada
-
-Os mesmos Language Service + Runtime do LSP alimentam `playground/` — botões `🛡️ Audit`, `🧩 IR`, `⚡ LLVM`, `✨ Fmt` e execução browser com `ArenaMemoria`.
-
-## Licença
-
-Protótipo — uso interno.
+```
+Extensions/thz-lsp-vscode/
+├── syntaxes/
+│   └── thz.tmLanguage.json       # Gramática TextMate (Realce sintático)
+├── server/
+│   └── thz-lsp-2.3.0.jar         # Servidor LSP Java 25 empacotado
+├── src/
+│   └── extension.ts              # Cliente LSP (LanguageClient)
+├── dist/
+│   └── extension.js              # Bundle compilado da extensão
+├── language-configuration.json   # Pares de fechamento e comentários
+└── package.json                  # Manifesto da extensão
+```

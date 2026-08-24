@@ -9,7 +9,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -573,7 +572,7 @@ public final class BibliotecaPadrao {
             exigirAridade("WEBVIEW.iniciar", args, 1, ctx);
             exigirClasse("WEBVIEW.iniciar", args.get(0), "TEXTO", ctx);
             String html = ((ValorThz.Texto) args.get(0)).valor();
-            int porta = thz.lang.webview.ThzWebviewBridge.iniciar(html);
+            thz.lang.webview.ThzWebviewBridge.iniciar(html);
             return ValorThz.TEXTO(thz.lang.webview.ThzWebviewBridge.getUrl());
         });
         registrar(m, "WEBVIEW.emitir", (args, ctx, interp) -> {

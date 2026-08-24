@@ -1,7 +1,5 @@
 package thz.lang.ui;
 
-import java.util.Map;
-
 /**
  * Tokens de design e estilização para o ThzUiMaker.
  * Suporta temas escuro corporativo (Glassmorphism), claro e customizado.

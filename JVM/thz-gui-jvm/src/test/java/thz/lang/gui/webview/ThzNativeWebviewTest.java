@@ -3,8 +3,6 @@ package thz.lang.gui.webview;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import thz.lang.webview.ThzWebviewBridge;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ThzNativeWebviewTest {

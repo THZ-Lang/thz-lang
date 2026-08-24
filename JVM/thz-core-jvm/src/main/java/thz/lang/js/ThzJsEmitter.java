@@ -3,8 +3,6 @@ package thz.lang.js;
 import thz.lang.ast.*;
 import thz.lang.sintatico.ThzParser;
 
-import java.util.List;
-
 /**
  * ThzJsEmitter — Emissor/Transpilador de programas THZ para JavaScript moderno ES2023.
  */

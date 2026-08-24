@@ -33,10 +33,11 @@ public final class ThzPipelineDataEngine {
             for (RegistroDado reg : lote) {
                 futures.add(CompletableFuture.runAsync(() -> {
                     // Processamento individual via Virtual Thread
+                    if (reg == null) throw new IllegalArgumentException("Registro nulo");
                 }, executor));
                 processados++;
             }
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
         } catch (Exception e) {
             return new ResultadoPipeline(false, processados, 1, "Falha no pipeline: " + e.getMessage());
         }
@@ -53,10 +54,11 @@ public final class ThzPipelineDataEngine {
                 final int id = i + 1;
                 futures.add(CompletableFuture.runAsync(() -> {
                     // Simula evento de streaming processado em tempo real
+                    if (id < 0) throw new IllegalArgumentException("ID inválido");
                 }, executor));
                 processados++;
             }
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
         } catch (Exception e) {
             return new ResultadoPipeline(false, processados, 1, "Falha no streaming: " + e.getMessage());
         }

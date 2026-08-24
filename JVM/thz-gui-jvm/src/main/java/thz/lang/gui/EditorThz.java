@@ -223,7 +223,7 @@ public final class EditorThz extends JPanel {
             }
             String line = text.substring(lineStart, caret);
             String trimmed = line.stripTrailing();
-            if (trimmed.equals("INICIO") || trimmed.equals("METADADOS_ARQUITETURA") || trimmed.equals("ESTRUTURA") || trimmed.equals("ENUMERACAO") || trimmed.equals("REGRA_NEGOCIO") || trimmed.equals("OPERACAO") || trimmed.equals("CONTRATO_ENTRADA") || trimmed.equals("CONTRATO_SAIDA") || trimmed.endsWith(" INICIO")) {
+            if (trimmed.equals("INICIO") || trimmed.equals("METADADOS_ARQUITETURA") || trimmed.equals("ESTRUTURA") || trimmed.equals("ENUMERACAO") || trimmed.equals("REGRA_NEGOCIO") || trimmed.equals("OPERACAO") || trimmed.equals("CONTRATO_ENTRADA") || trimmed.equals("CONTRATO_SAIDA") || trimmed.equals("PIPELINE_DADOS") || trimmed.equals("FONTE_ENTRADA") || trimmed.equals("DESTINO_SAIDA") || trimmed.equals("TRANSFORMACAO") || trimmed.equals("TELA") || trimmed.endsWith(" INICIO") || trimmed.endsWith(" ENTAO") || trimmed.endsWith(" FACA")) {
                 indent.append("    ");
             }
             final String toInsert = indent.toString();

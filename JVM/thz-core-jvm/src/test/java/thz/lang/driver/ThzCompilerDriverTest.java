@@ -6,7 +6,6 @@ import thz.lang.interpretador.ValorThz;
 import thz.lang.script.ThzLangScript;
 import thz.lang.tools.ThzLangTools;
 
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;

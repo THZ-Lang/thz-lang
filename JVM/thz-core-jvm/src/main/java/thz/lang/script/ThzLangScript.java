@@ -1,9 +1,7 @@
 package thz.lang.script;
 
 import thz.lang.driver.ThzCompilerDriver;
-import thz.lang.interpretador.ValorThz;
 
-import java.util.List;
 import java.util.Map;
 
 /**

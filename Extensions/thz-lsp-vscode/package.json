@@ -4,6 +4,12 @@
   "description": "Language support for THZ-LANG (.thz) — LSP powered by Language Service Core (G1)",
   "version": "0.3.0",
   "publisher": "thz-lang",
+  "icon": "icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thz-lang/thz-lang.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -16,7 +22,18 @@
     "ddd"
   ],
   "activationEvents": [
-    "onLanguage:thz"
+    "onLanguage:thz",
+    "onCommand:thz.run",
+    "onCommand:thz.check",
+    "onCommand:thz.previewArchitecture",
+    "onCommand:thz.previewUi",
+    "onCommand:thz.openRepl",
+    "onCommand:thz.openGui",
+    "onCommand:thz.showAudit",
+    "onCommand:thz.showIr",
+    "onCommand:thz.showLlvm",
+    "onCommand:thz.runTarget",
+    "onView:thz-governance-view"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -41,30 +58,266 @@
         "path": "./syntaxes/thz.tmLanguage.json"
       }
     ],
+    "snippets": [
+      {
+        "language": "thz",
+        "path": "./snippets/thz.json"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "thz"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "thz",
+        "label": "THZ-LANG Debugger",
+        "languages": [
+          "thz"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Arquivo .thz a ser executado e depurado.",
+                "default": "${file}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Pausar automaticamente no início da execução.",
+                "default": false
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "thz",
+            "name": "THZ: Depurar Arquivo Atual",
+            "request": "launch",
+            "program": "${file}",
+            "stopOnEntry": false
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "THZ: Depurar Programa",
+            "description": "Configuração de depuração de programas THZ-LANG",
+            "body": {
+              "type": "thz",
+              "request": "launch",
+              "name": "THZ: Depurar ${1:Arquivo}",
+              "program": "^\"\\${workspaceFolder}/${2:exemplos/faturamento.thz}\"",
+              "stopOnEntry": false
+            }
+          }
+        ]
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "thz-sidebar",
+          "title": "THZ-LANG",
+          "icon": "assets/thz-sidebar.svg"
+        }
+      ]
+    },
+    "views": {
+      "thz-sidebar": [
+        {
+          "id": "thz-governance-view",
+          "name": "Governança & Arquitetura Viva",
+          "icon": "assets/thz-sidebar.svg"
+        }
+      ]
+    },
     "commands": [
       {
+        "command": "thz.run",
+        "title": "Executar Programa THZ",
+        "category": "THZ-LANG",
+        "icon": "$(play)"
+      },
+      {
+        "command": "thz.check",
+        "title": "Verificar Código THZ",
+        "category": "THZ-LANG",
+        "icon": "$(check)"
+      },
+      {
+        "command": "thz.previewArchitecture",
+        "title": "Live Preview de Arquitetura (Mermaid)",
+        "category": "THZ-LANG",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "thz.previewUi",
+        "title": "Live Preview de Tela (.thzui)",
+        "category": "THZ-LANG",
+        "icon": "$(browser)"
+      },
+      {
+        "command": "thz.openRepl",
+        "title": "Abrir REPL Interativo",
+        "category": "THZ-LANG",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "thz.openGui",
+        "title": "Abrir Desktop IDE Oficial (Swing)",
+        "category": "THZ-LANG",
+        "icon": "$(window)"
+      },
+      {
         "command": "thz.showAudit",
-        "title": "THZ: Mostrar Auditoria de Governança",
-        "category": "THZ-LANG"
+        "title": "Mostrar Auditoria de Governança",
+        "category": "THZ-LANG",
+        "icon": "$(shield)"
       },
       {
         "command": "thz.showIr",
-        "title": "THZ: Mostrar IR (thz-ir/1)",
-        "category": "THZ-LANG"
+        "title": "Mostrar IR (thz-ir/1)",
+        "category": "THZ-LANG",
+        "icon": "$(symbol-structure)"
       },
       {
         "command": "thz.showLlvm",
-        "title": "THZ: Mostrar LLVM IR",
+        "title": "Mostrar LLVM IR",
+        "category": "THZ-LANG",
+        "icon": "$(file-binary)"
+      },
+      {
+        "command": "thz.runTarget",
+        "title": "Executar Alvo",
         "category": "THZ-LANG"
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "thz.run",
+          "when": "resourceLangId == thz",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "thz.run",
+          "when": "resourceLangId == thz",
+          "group": "navigation@1"
+        },
+        {
+          "command": "thz.check",
+          "when": "resourceLangId == thz",
+          "group": "navigation@2"
+        },
+        {
+          "command": "thz.previewArchitecture",
+          "when": "resourceLangId == thz",
+          "group": "navigation@3"
+        },
+        {
+          "command": "thz.previewUi",
+          "when": "resourceLangId == thz",
+          "group": "navigation@4"
+        },
+        {
+          "command": "thz.showAudit",
+          "when": "resourceLangId == thz",
+          "group": "navigation@5"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "thz.run",
+          "when": "resourceLangId == thz",
+          "group": "1_modification@1"
+        },
+        {
+          "command": "thz.check",
+          "when": "resourceLangId == thz",
+          "group": "1_modification@2"
+        },
+        {
+          "command": "thz.previewArchitecture",
+          "when": "resourceLangId == thz",
+          "group": "1_modification@3"
+        },
+        {
+          "command": "thz.previewUi",
+          "when": "resourceLangId == thz",
+          "group": "1_modification@4"
+        },
+        {
+          "command": "thz.showAudit",
+          "when": "resourceLangId == thz",
+          "group": "1_modification@5"
+        },
+        {
+          "command": "thz.showIr",
+          "when": "resourceLangId == thz",
+          "group": "1_modification@6"
+        },
+        {
+          "command": "thz.showLlvm",
+          "when": "resourceLangId == thz",
+          "group": "1_modification@7"
+        },
+        {
+          "command": "thz.openRepl",
+          "group": "2_terminal@1"
+        },
+        {
+          "command": "thz.openGui",
+          "group": "2_terminal@2"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "thz.run",
+        "key": "f5",
+        "when": "editorLangId == thz"
+      },
+      {
+        "command": "thz.run",
+        "key": "ctrl+f5",
+        "when": "editorLangId == thz"
+      },
+      {
+        "command": "thz.check",
+        "key": "shift+f5",
+        "when": "editorLangId == thz"
       }
     ],
     "configuration": {
       "title": "THZ-LANG",
       "properties": {
+        "thz-lang.cliPath": {
+          "type": "string",
+          "default": "",
+          "description": "Caminho opcional customizado para o executável ou JAR da CLI do THZ-LANG."
+        },
+        "thz-lang.lspJarPath": {
+          "type": "string",
+          "default": "",
+          "description": "Caminho customizado para o JAR do Language Server (thz-lsp)."
+        },
         "thz-lang.lintEstrito": {
           "type": "boolean",
           "default": false,
           "description": "Ativa lint --estrito (pragma, rastreabilidade, SLO e contratos obrigatórios)."
+        },
+        "thz-lang.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Exibe links de CodeLens sobre regras e procedimentos no editor."
         },
         "thz-lang.trace.server": {
           "type": "string",
@@ -80,9 +333,10 @@
     }
   },
   "scripts": {
-    "compile": "tsc -p ./tsconfig.json",
-    "watch": "tsc -p ./tsconfig.json --watch",
-    "package": "vsce package",
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "compile": "npm run build",
+    "watch": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch",
+    "package": "npm run build && vsce package --no-dependencies",
     "lint": "echo \"no lint\""
   },
   "dependencies": {
@@ -91,6 +345,7 @@
   "devDependencies": {
     "@types/vscode": "^1.85.0",
     "@types/node": "^20.11.0",
+    "esbuild": "^0.25.0",
     "typescript": "^5.3.3"
   }
 }

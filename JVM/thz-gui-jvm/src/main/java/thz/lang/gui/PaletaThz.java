@@ -19,8 +19,8 @@ public final class PaletaThz {
     private static final Set<String> TIPOS_PRIMITIVOS = Set.of(
             "TEXTO","LOGICO","UUID","DATA","DATA_HORA",
             "NATURAL8","NATURAL16","NATURAL32","NATURAL64",
-            "INTEIRO8","INTEIRO16","INTEIRO32","INTEIRO64",
-            "DECIMAL","MONETARIO","FATIA","RESULTADO"
+            "INTEIRO","INTEIRO8","INTEIRO16","INTEIRO32","INTEIRO64",
+            "DECIMAL","MONETARIO","FATIA","RESULTADO","LISTA"
     );
 
     public final String nome;

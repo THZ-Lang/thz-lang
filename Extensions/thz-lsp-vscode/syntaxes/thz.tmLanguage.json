@@ -6,13 +6,15 @@
     { "include": "#comments" },
     { "include": "#strings" },
     { "include": "#numbers" },
+    { "include": "#named-declarations" },
     { "include": "#contracts" },
+    { "include": "#pipeline-blocks" },
     { "include": "#declarations" },
     { "include": "#control-flow" },
     { "include": "#memory-simd" },
-    { "include": "#stdlib" },
     { "include": "#metadata-keys" },
     { "include": "#types" },
+    { "include": "#stdlib" },
     { "include": "#constants" },
     { "include": "#logical-operators" },
     { "include": "#operators" },
@@ -24,6 +26,15 @@
         {
           "name": "comment.line.number-sign.thz",
           "match": "#.*$"
+        },
+        {
+          "name": "comment.line.double-slash.thz",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.thz",
+          "begin": "/\\*",
+          "end": "\\*/"
         }
       ]
     },
@@ -54,19 +65,77 @@
         }
       ]
     },
+    "named-declarations": {
+      "patterns": [
+        {
+          "match": "\\b(PROGRAMA\\s+(?:NEGOCIO|VISUAL|ARQUITETURA)?|PROGRAMA|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE|TELA|PIPELINE_DADOS)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.control.declaration.thz" },
+            "2": { "name": "entity.name.type.module.thz" }
+          }
+        },
+        {
+          "match": "\\b(ESTRUTURA|ENUMERACAO)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.control.declaration.thz" },
+            "2": { "name": "entity.name.type.class.thz" }
+          }
+        },
+        {
+          "match": "\\b(REGRA_NEGOCIO|PROCEDIMENTO|OPERACAO|TRANSFORMACAO)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.control.declaration.thz" },
+            "2": { "name": "entity.name.function.thz" }
+          }
+        },
+        {
+          "match": "\\b(FONTE_ENTRADA|DESTINO_SAIDA)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.control.declaration.thz" },
+            "2": { "name": "entity.name.type.class.thz" }
+          }
+        },
+        {
+          "match": "\\b(VARIAVEL)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "storage.type.variable.thz" },
+            "2": { "name": "variable.other.declaration.thz" }
+          }
+        },
+        {
+          "match": "\\b(CRIAR)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.operator.new.thz" },
+            "2": { "name": "entity.name.type.class.thz" }
+          }
+        }
+      ]
+    },
     "contracts": {
       "patterns": [
         {
-          "name": "keyword.other.contract.thz",
-          "match": "\\b(CONTRATO_ENTRADA|FIM_CONTRATO_ENTRADA|CONTRATO_SAIDA|FIM_CONTRATO_SAIDA|EXIGE|GARANTE|INVARIANTE)\\b"
+          "name": "keyword.control.contract.thz",
+          "match": "\\b(CONTRATO_ENTRADA|FIM_CONTRATO_ENTRADA|CONTRATO_SAIDA|FIM_CONTRATO_SAIDA|EXIGE|GARANTE|INVARIANTE|CHAVE_IDEMPOTENCIA)\\b"
+        }
+      ]
+    },
+    "pipeline-blocks": {
+      "patterns": [
+        {
+          "name": "keyword.control.pipeline.thz",
+          "match": "\\b(PIPELINE_DADOS|FIM_PIPELINE|FONTE_ENTRADA|FIM_FONTE|DESTINO_SAIDA|FIM_DESTINO|TRANSFORMACAO|FIM_TRANSFORMACAO)\\b"
+        },
+        {
+          "name": "support.constant.pipeline.thz",
+          "match": "\\b(STREAMING|LOTE|CONECTOR|FORMATO|COLECAO)\\b"
         }
       ]
     },
     "declarations": {
       "patterns": [
         {
-          "name": "keyword.declaration.thz",
-          "match": "\\b(PROGRAMA|VISUAL|NEGOCIO|ARQUITETURA|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE|FIM_PROGRAMA|FIM_BIBLIOTECA|FIM_EXTENSAO|FIM_FERRAMENTA|FIM_TESTE|METADADOS_ARQUITETURA|FIM_METADADOS|ESTRUTURA|FIM_ESTRUTURA|ENUMERACAO|FIM_ENUMERACAO|REGRA_NEGOCIO|FIM_REGRA_NEGOCIO|PROCEDIMENTO|OPERACAO|VARIAVEL|IMPORTAR|VERSAO_LINGUAGEM|CRIAR|IDEMPOTENTE|CHAVE_IDEMPOTENCIA)\\b"
+          "name": "keyword.control.declaration.thz",
+          "match": "\\b(PROGRAMA|VISUAL|NEGOCIO|ARQUITETURA|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE|TELA|FIM_PROGRAMA|FIM_BIBLIOTECA|FIM_EXTENSAO|FIM_FERRAMENTA|FIM_TESTE|FIM_TELA|METADADOS_ARQUITETURA|FIM_METADADOS|ESTRUTURA|FIM_ESTRUTURA|ENUMERACAO|FIM_ENUMERACAO|REGRA_NEGOCIO|FIM_REGRA_NEGOCIO|PROCEDIMENTO|OPERACAO|VARIAVEL|IMPORTAR|VERSAO_LINGUAGEM|CRIAR|IDEMPOTENTE)\\b"
         }
       ]
     },
@@ -74,15 +143,15 @@
       "patterns": [
         {
           "name": "keyword.control.thz",
-          "match": "\\b(INICIO|FIM|SE|SENAO|FIM_SE|ENQUANTO|FIM_ENQUANTO|PARA|DE|ATE|PASSO|FIM_PARA|RETORNE|FALHAR_COM|EXIBA|LER|CASO_RESULTADO|FIM_CASO|SUCESSO|ERRO)\\b"
+          "match": "\\b(INICIO|FIM|SE|ENTAO|SENAO|FIM_SE|ENQUANTO|FACA|FIM_ENQUANTO|PARA|DE|ATE|PASSO|FIM_PARA|RETORNE|RETORNAR|FALHAR_COM|EXIBA|LER|CASO_RESULTADO|FIM_CASO|SUCESSO|ERRO)\\b"
         }
       ]
     },
     "memory-simd": {
       "patterns": [
         {
-          "name": "keyword.other.memory.thz",
-          "match": "\\b(USAR_BLOCO_MEMORIA|FIM_BLOCO_MEMORIA|VETORIZAR_PARA|LAYOUT_COLUNAR|EM|PASSO_SIMD|ARENA_EPHEMERAL)\\b"
+          "name": "keyword.control.memory.thz",
+          "match": "\\b(USAR_BLOCO_MEMORIA|FIM_BLOCO_MEMORIA|VETORIZAR_PARA|FIM_VETORIZAR|LAYOUT_COLUNAR|EM|PASSO_SIMD|ARENA_EPHEMERAL)\\b"
         }
       ]
     },
@@ -90,11 +159,11 @@
       "patterns": [
         {
           "name": "support.class.thz",
-          "match": "\\b(TEXTO|MATEMATICA|DATA|TELA|GUI)\\b(?=\\.)"
+          "match": "\\b(TEXTO|MATEMATICA|DATA|TELA|GUI|Console|ThzIO|ThzConfig|ThzSecurity|ThzLog|ThzHttpServer|DOCUMENTO|ThzUiMaker)\\b"
         },
         {
           "name": "support.function.thz",
-          "match": "(?<=\\.)(comprimento|maiusculas|minusculas|aparar|contem|subtexto|substituir|dividir|juntar|abs|min|max|potencia|raiz|arredondar|aleatorio|hoje|agora|criar|criarDataHora|adicionarDias|adicionarHoras|diferencaDias|ano|mes|dia|diaDaSemana|texto|renderizarFormulario|alerta|confirmar|pedirTexto)\\b"
+          "match": "(?<=\\.)(comprimento|tamanho|maiusculas|minusculas|aparar|contem|subtexto|substituir|dividir|juntar|abs|min|max|potencia|raiz|arredondar|aleatorio|hoje|agora|criar|criarDataHora|adicionarDias|adicionarHoras|diferencaDias|ano|mes|dia|diaDaSemana|texto|renderizarFormulario|alerta|confirmar|pedirTexto|criarContainer|criarCard|adicionarMetrica|adicionarBotao|adicionarCampoTexto|adicionarCampoMoeda|exibir)\\b"
         }
       ]
     },
@@ -102,7 +171,7 @@
       "patterns": [
         {
           "name": "entity.other.attribute-name.thz",
-          "match": "\\b(DOMINIO|SUBDOMINIO|CAMADA|VERSAO|AUTOR|SLO_LATENCIA_MAXIMA|CONFORMIDADE|IDENTIFICADOR_REGRA|RASTREIO_REQUISITO|DESCRICAO)(?=\\s*:)"
+          "match": "\\b(SISTEMA|MODULO|DOMINIO|SUBDOMINIO|CAMADA|VERSAO|AUTOR|RESPONSAVEL|SLO_LATENCIA_MS|SLO_LATENCIA_MAXIMA|CONFORMIDADE|CRITICIDADE|IDENTIFICADOR_REGRA|RASTREIO_REQUISITO|DESCRICAO|TIPO|COLECAO|CONECTOR|FORMATO)(?=\\s*:)"
         }
       ]
     },
@@ -110,7 +179,7 @@
       "patterns": [
         {
           "name": "entity.name.type.thz",
-          "match": "\\b(TEXTO|LOGICO|UUID|DATA|DATA_HORA|NATURAL8|NATURAL16|NATURAL32|NATURAL64|INTEIRO8|INTEIRO16|INTEIRO32|INTEIRO64|DECIMAL|MONETARIO|FATIA|RESULTADO|LISTA)\\b"
+          "match": "\\b(TEXTO|LOGICO|UUID|DATA|DATA_HORA|NATURAL8|NATURAL16|NATURAL32|NATURAL64|INTEIRO|INTEIRO8|INTEIRO16|INTEIRO32|INTEIRO64|DECIMAL|MONETARIO|FATIA|RESULTADO|LISTA)\\b"
         }
       ]
     },
@@ -138,7 +207,7 @@
         },
         {
           "name": "keyword.operator.comparison.thz",
-          "match": "(<=|>=|<>|=|<|>)"
+          "match": "(<=|>=|<>|==|=|!=|<|>)"
         },
         {
           "name": "keyword.operator.arithmetic.thz",

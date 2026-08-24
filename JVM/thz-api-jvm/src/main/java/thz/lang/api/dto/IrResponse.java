@@ -4,6 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record IrResponse(
-        String irJson,
-        String llvm
-) {}
+                String irJson,
+                String llvm) {
+}

@@ -38,9 +38,11 @@
     "lsp:jar": "cd JVM/thz-lsp-jvm && gradlew shadowJar",
     "lsp:run": "java -jar JVM/thz-lsp-jvm/target/thz-lsp-2.3.0.jar --stdio",
 
-    "// === Extensão VS Code ===": "",
+    "// === Extensão VS Code / VSIX ===": "",
     "ext:compile": "npm run compile --prefix Extensions/thz-lsp-vscode",
-    "ext:package": "cd Extensions/thz-lsp-vscode && npx @vscode/vsce package --out ../../thz-lang.vsix",
+    "ext:package": "powershell -ExecutionPolicy Bypass -File scripts/build-vsix.ps1",
+    "vsix:build": "powershell -ExecutionPolicy Bypass -File scripts/build-vsix.ps1",
+    "vsix:install": "powershell -ExecutionPolicy Bypass -File scripts/build-vsix.ps1 -Instalar",
 
     "// === Scripts PowerShell (atalhos fáceis) ===": "",
     "clean": "powershell -ExecutionPolicy Bypass -File scripts/clean.ps1",

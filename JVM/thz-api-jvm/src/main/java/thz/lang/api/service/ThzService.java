@@ -273,9 +273,9 @@ public class ThzService {
 
         // Índice token → lookup rápido
         var posPorNome = tokens.stream()
-                .filter(t -> t.type() == TokenType.IDENTIFICADOR)
+                .filter(t -> t != null && t.type() == TokenType.IDENTIFICADOR)
                 .collect(Collectors.groupingBy(
-                        Token::value,
+                        t -> t.value(),
                         Collectors.mapping(t -> new int[]{t.line(), t.column()}, Collectors.toList())
                 ));
 

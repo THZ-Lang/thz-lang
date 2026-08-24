@@ -1,13 +1,10 @@
 package thz.lang.lsp;
 
 import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.services.*;
 
 import thz.lang.ast.ProgramaAst;
-import thz.lang.diagnosticos.DiagnosticoEntrada;
-import thz.lang.diagnosticos.Diagnosticos;
 import thz.lang.formato.Formatador;
 import thz.lang.governanca.AuditorGovernanca;
 import thz.lang.governanca.RelatorioAuditoria;
@@ -22,7 +19,6 @@ import thz.lang.semantico.ErroSemantico;
 import thz.lang.semantico.OpcoesAnalise;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

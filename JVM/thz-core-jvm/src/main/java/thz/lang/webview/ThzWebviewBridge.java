@@ -1,23 +1,31 @@
 package thz.lang.webview;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-import thz.lang.interpretador.ValorThz;
-import thz.lang.web.ThzLangWeb;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+
+import thz.lang.interpretador.ValorThz;
+
 /**
- * ThzWebviewBridge — Ponte de comunicação bidirecional de alta velocidade entre THZ-LANG e JavaScript na WebView.
- * Fornece servidor local em Virtual Threads com injeção automática de SDK JavaScript e barramento RPC.
+ * ThzWebviewBridge — Ponte de comunicação bidirecional de alta velocidade entre
+ * THZ-LANG e JavaScript na WebView.
+ * Fornece servidor local em Virtual Threads com injeção automática de SDK
+ * JavaScript e barramento RPC.
  */
 public final class ThzWebviewBridge {
 
@@ -28,7 +36,8 @@ public final class ThzWebviewBridge {
     private static final Queue<String> EVENTOS_PENDENTES = new ConcurrentLinkedQueue<>();
     private static final Map<String, List<Function<ValorThz, ValorThz>>> LISTENERS_EVENTOS = new ConcurrentHashMap<>();
 
-    private ThzWebviewBridge() {}
+    private ThzWebviewBridge() {
+    }
 
     public static synchronized int iniciar(String htmlInicial) {
         htmlAtual = htmlInicial != null ? htmlInicial : "";
@@ -42,7 +51,8 @@ public final class ThzWebviewBridge {
             try {
                 server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
             } catch (Throwable t) {
-                // Fallback para ambientes onde Virtual Threads não estão disponíveis (native-image antigo)
+                // Fallback para ambientes onde Virtual Threads não estão disponíveis
+                // (native-image antigo)
                 server.setExecutor(Executors.newCachedThreadPool(r -> {
                     Thread th = new Thread(r, "thz-webview-" + System.nanoTime());
                     th.setDaemon(true);
@@ -59,7 +69,8 @@ public final class ThzWebviewBridge {
             // shutdown hook para garantir liberação de porta ao encerrar JVM/nativo
             try {
                 Runtime.getRuntime().addShutdownHook(new Thread(ThzWebviewBridge::parar, "thz-bridge-shutdown"));
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
             return porta;
         } catch (IOException e) {
             throw new RuntimeException("Falha ao iniciar ThzWebviewBridge: " + e.getMessage(), e);
@@ -83,7 +94,8 @@ public final class ThzWebviewBridge {
     }
 
     public static void emitirParaJs(String evento, String dadosJson) {
-        EVENTOS_PENDENTES.offer("{\"evento\":\"" + escaparJson(evento) + "\",\"dados\":" + (dadosJson != null ? dadosJson : "null") + "}");
+        EVENTOS_PENDENTES.offer("{\"evento\":\"" + escaparJson(evento) + "\",\"dados\":"
+                + (dadosJson != null ? dadosJson : "null") + "}");
     }
 
     public static synchronized void parar() {
@@ -203,7 +215,8 @@ public final class ThzWebviewBridge {
                     for (var l : listeners) {
                         try {
                             l.apply(ValorThz.TEXTO(dados));
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                        }
                     }
                 }
             } else {
@@ -236,7 +249,8 @@ public final class ThzWebviewBridge {
             List<String> eventos = new ArrayList<>();
             while (!EVENTOS_PENDENTES.isEmpty()) {
                 String ev = EVENTOS_PENDENTES.poll();
-                if (ev != null) eventos.add(ev);
+                if (ev != null)
+                    eventos.add(ev);
             }
 
             String json = "[" + String.join(",", eventos) + "]";
@@ -251,32 +265,41 @@ public final class ThzWebviewBridge {
         }
     }
 
-    private static String extrairCampoJson(String json, String campo) {
-        if (json == null) return "";
+    public static String extrairCampoJson(String json, String campo) {
+        if (json == null)
+            return "";
         String busca = "\"" + campo + "\":";
         int idx = json.indexOf(busca);
-        if (idx < 0) return "";
+        if (idx < 0)
+            return "";
         int ini = idx + busca.length();
-        while (ini < json.length() && (json.charAt(ini) == ' ' || json.charAt(ini) == '"')) ini++;
+        while (ini < json.length() && (json.charAt(ini) == ' ' || json.charAt(ini) == '"'))
+            ini++;
         int fim = ini;
-        while (fim < json.length() && json.charAt(fim) != '"' && json.charAt(fim) != ',' && json.charAt(fim) != '}') fim++;
+        while (fim < json.length() && json.charAt(fim) != '"' && json.charAt(fim) != ',' && json.charAt(fim) != '}')
+            fim++;
         return json.substring(ini, fim).trim();
     }
 
-    private static String extrairObjetoOuValorJson(String json, String campo) {
-        if (json == null) return "";
+    public static String extrairObjetoOuValorJson(String json, String campo) {
+        if (json == null)
+            return "";
         String busca = "\"" + campo + "\":";
         int idx = json.indexOf(busca);
-        if (idx < 0) return "";
+        if (idx < 0)
+            return "";
         int ini = idx + busca.length();
-        while (ini < json.length() && Character.isWhitespace(json.charAt(ini))) ini++;
+        while (ini < json.length() && Character.isWhitespace(json.charAt(ini)))
+            ini++;
         int fim = json.lastIndexOf('}');
-        if (fim > ini) return json.substring(ini, fim).trim();
+        if (fim > ini)
+            return json.substring(ini, fim).trim();
         return json.substring(ini).trim();
     }
 
     private static String escaparJson(String s) {
-        if (s == null) return "";
+        if (s == null)
+            return "";
         return s.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")

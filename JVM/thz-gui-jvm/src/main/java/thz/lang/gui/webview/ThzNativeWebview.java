@@ -32,6 +32,10 @@ public final class ThzNativeWebview {
 
     private ThzNativeWebview() {}
 
+    public static JanelaConfig getConfigAtiva() {
+        return configAtiva;
+    }
+
     public static synchronized void abrir(JanelaConfig config) {
         configAtiva = config;
         String url;

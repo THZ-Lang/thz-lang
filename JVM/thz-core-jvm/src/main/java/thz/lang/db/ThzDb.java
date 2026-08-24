@@ -1,25 +1,35 @@
 package thz.lang.db;
 
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import thz.lang.interpretador.ValorThz;
 import thz.lang.runtime.DataHoraThz;
 import thz.lang.runtime.DataThz;
 import thz.lang.runtime.DecimalFixo;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.*;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
- * ThzDb — Conexão, consultas e transações de banco de dados com mapeamento exato de tipos THZ.
+ * ThzDb — Conexão, consultas e transações de banco de dados com mapeamento
+ * exato de tipos THZ.
  */
 public final class ThzDb {
 
     private static final Map<String, Connection> CONEXOES = new ConcurrentHashMap<>();
     private static Connection conexaoPadrao = null;
 
-    private ThzDb() {}
+    private ThzDb() {
+    }
 
     public static synchronized void conectar(String url) {
         conectar("padrao", url, null, null);
@@ -44,7 +54,8 @@ public final class ThzDb {
 
     public static Connection obterConexao(String nome) {
         Connection conn = nome != null ? CONEXOES.get(nome) : conexaoPadrao;
-        if (conn == null) conn = conexaoPadrao;
+        if (conn == null)
+            conn = conexaoPadrao;
         if (conn == null) {
             throw new IllegalStateException("Nenhuma conexão de banco ativa. Use BANCO.conectar(url).");
         }
@@ -94,7 +105,8 @@ public final class ThzDb {
     }
 
     private static void vincularParametros(PreparedStatement stmt, List<ValorThz> params) throws SQLException {
-        if (params == null) return;
+        if (params == null)
+            return;
         for (int i = 0; i < params.size(); i++) {
             ValorThz p = params.get(i);
             int idx = i + 1;
@@ -121,9 +133,12 @@ public final class ThzDb {
     }
 
     private static ValorThz converterParaThz(Object obj, int sqlType) {
-        if (obj == null) return ValorThz.NULO;
-        if (obj instanceof String s) return ValorThz.TEXTO(s);
-        if (obj instanceof Boolean b) return ValorThz.LOGICO(b);
+        if (obj == null)
+            return ValorThz.NULO;
+        if (obj instanceof String s)
+            return ValorThz.TEXTO(s);
+        if (obj instanceof Boolean b)
+            return ValorThz.LOGICO(b);
         if (obj instanceof Number n) {
             if (obj instanceof BigDecimal bd) {
                 return ValorThz.DECIMAL(DecimalFixo.deTexto(bd.toPlainString(), bd.scale()));
@@ -145,8 +160,10 @@ public final class ThzDb {
     public static synchronized void fecharTodas() {
         for (Connection c : CONEXOES.values()) {
             try {
-                if (!c.isClosed()) c.close();
-            } catch (SQLException ignored) {}
+                if (!c.isClosed())
+                    c.close();
+            } catch (SQLException ignored) {
+            }
         }
         CONEXOES.clear();
         conexaoPadrao = null;

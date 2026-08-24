@@ -33,13 +33,6 @@ public final class ThzWebView2ComHost {
         // Tenta carregar JNA via reflection (opcional)
         try {
             Class.forName("com.sun.jna.Native");
-            // Verifica se WebView2Loader.dll está acessível (bundled em dist/ ou System32)
-            String[] loaderCandidates = {
-                    "dist/thz/WebView2Loader.dll",
-                    "JVM/thz-gui-jvm/WebView2Loader.dll",
-                    System.getenv("ProgramFiles(x86)") + "\\Microsoft\\EdgeWebView\\Application\\msedge.exe",
-                    System.getenv("ProgramFiles") + "\\Microsoft\\EdgeWebView\\Application\\msedge.exe"
-            };
             // Se JNA existe, consideramos host potencialmente disponível (Fase 3 parcial)
             jnaDetectado = true;
             return true;

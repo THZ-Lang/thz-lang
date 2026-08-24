@@ -129,17 +129,17 @@ public final class RenderizadorFormularioWeb implements ThzRenderer {
 
     private static ValorThz coerceValor(ValorThz prototipo, String raw) {
         return switch (prototipo) {
-            case ValorThz.Texto ignored -> ValorThz.TEXTO(raw);
-            case ValorThz.Inteiro ignored -> {
+            case ValorThz.Texto _ -> ValorThz.TEXTO(raw);
+            case ValorThz.Inteiro _ -> {
                 try { yield ValorThz.INTEIRO(new java.math.BigInteger(raw.trim())); } catch (Exception e) { yield ValorThz.TEXTO(raw); }
             }
-            case ValorThz.Decimal ignored -> {
+            case ValorThz.Decimal _ -> {
                 try { yield ValorThz.DECIMAL(raw); } catch (Exception e) { yield ValorThz.TEXTO(raw); }
             }
             case ValorThz.Monetario m -> {
                 try { yield ValorThz.MONETARIO(thz.lang.runtime.Monetario.deTexto(raw, m.valor().moeda.codigo())); } catch (Exception e) { yield prototipo; }
             }
-            case ValorThz.Logico ignored -> ValorThz.LOGICO("true".equalsIgnoreCase(raw) || "verdadeiro".equalsIgnoreCase(raw) || "1".equals(raw) || "on".equalsIgnoreCase(raw));
+            case ValorThz.Logico _ -> ValorThz.LOGICO("true".equalsIgnoreCase(raw) || "verdadeiro".equalsIgnoreCase(raw) || "1".equals(raw) || "on".equalsIgnoreCase(raw));
             case ValorThz.Enumerado en -> ValorThz.ENUMERADO(en.nomeEnumeracao(), raw);
             default -> ValorThz.TEXTO(raw);
         };

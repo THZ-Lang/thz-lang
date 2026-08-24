@@ -29,9 +29,8 @@ public final class LancadorWebviewNativo {
         if (config.urlOuHtml().startsWith("http://") || config.urlOuHtml().startsWith("https://")) {
             url = config.urlOuHtml();
         } else {
-            int porta = ThzWebviewBridge.iniciar(config.urlOuHtml());
+            ThzWebviewBridge.iniciar(config.urlOuHtml());
             url = ThzWebviewBridge.getUrl();
-            // porta já expõe; url resolvida
         }
 
         if (!lancarNativo(url, config)) {
@@ -42,7 +41,7 @@ public final class LancadorWebviewNativo {
 
     public static synchronized String abrirHtml(String titulo, String html, int largura, int altura) {
         // Sempre serve via bridge para ter porta conhecida
-        int porta = ThzWebviewBridge.iniciar(html);
+        ThzWebviewBridge.iniciar(html);
         String url = ThzWebviewBridge.getUrl();
         JanelaConfig cfg = new JanelaConfig(titulo, url, largura, altura);
         if (!lancarNativo(url, cfg)) {

@@ -2,7 +2,6 @@ package thz.lang.bench;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
-import java.math.BigInteger;
 import java.util.concurrent.TimeUnit;
 
 import thz.lang.runtime.DecimalFixo;

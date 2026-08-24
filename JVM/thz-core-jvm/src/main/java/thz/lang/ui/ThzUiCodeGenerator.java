@@ -1,7 +1,5 @@
 package thz.lang.ui;
 
-import java.util.*;
-
 /**
  * Transpilador reverso de um schema ThzUiComponente para código canônico THZ-LANG (PROGRAMA VISUAL).
  */
