@@ -25,7 +25,6 @@ import thz.lang.interpretador.InterpretadorThz;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;

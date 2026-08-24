@@ -4,27 +4,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Fonte da verdade léxica para todas as palavras reservadas e conectivos do THZ-LANG.
- *
- * <p>Esta classe contêm a tabela imutável de palavras-chave da linguagem, categorizando
- * cada lexema e mapeando-o para o respectivo {@link TokenType} e {@link CategoriaPalavra}.</p>
- *
- * @author THZ-LANG Core Team
- * @version 2.4.0
+ * Tabela e utilitários de palavras reservadas e conectivos do THZ-LANG.
  */
 public final class PalavrasReservadas {
 
-    /**
-     * Versão corrente da especificação léxica e sintática da linguagem THZ-LANG.
-     */
     public static final String VERSAO_LINGUAGEM_ATUAL = "2.4.0";
 
-    /**
-     * Registro que encapsula o token e a categoria de uma palavra reservada.
-     *
-     * @param token Tipo de token associado à palavra reservada
-     * @param categoria Categoria sintático-semântica da palavra
-     */
     public record EntradaPalavra(TokenType token, CategoriaPalavra categoria) {}
 
     private static final Map<String, EntradaPalavra> TABELA = Map.ofEntries(
@@ -102,54 +87,26 @@ public final class PalavrasReservadas {
 
     private PalavrasReservadas() {}
 
-    /**
-     * Verifica se uma dada palavra (lexema) é uma palavra reservada da linguagem.
-     *
-     * @param palavra Palavra a ser verificada
-     * @return {@code true} se for palavra reservada; {@code false} caso contrário
-     */
     public static boolean ehPalavraReservada(String palavra) {
         return palavra != null && TABELA.containsKey(palavra);
     }
 
-    /**
-     * Retorna o {@link TokenType} associado a uma palavra reservada.
-     *
-     * @param palavra Palavra reservada
-     * @return O token correspondente ou {@code null} se não for reservada
-     */
     public static TokenType tokenDe(String palavra) {
         if (palavra == null) return null;
         EntradaPalavra e = TABELA.get(palavra);
         return e == null ? null : e.token();
     }
 
-    /**
-     * Retorna a {@link CategoriaPalavra} associada a uma palavra reservada.
-     *
-     * @param palavra Palavra reservada
-     * @return A categoria correspondente ou {@code null} se não for reservada
-     */
     public static CategoriaPalavra categoriaDe(String palavra) {
         if (palavra == null) return null;
         EntradaPalavra e = TABELA.get(palavra);
         return e == null ? null : e.categoria();
     }
 
-    /**
-     * Retorna o conjunto completo de lexemas de palavras reservadas.
-     *
-     * @return Conjunto imutável de palavras reservadas
-     */
     public static Set<String> palavras() {
         return TABELA.keySet();
     }
 
-    /**
-     * Retorna a tabela completa de mapeamento de palavras reservadas.
-     *
-     * @return Mapa imutável com as entradas de palavras reservadas
-     */
     public static Map<String, EntradaPalavra> tabela() {
         return TABELA;
     }
