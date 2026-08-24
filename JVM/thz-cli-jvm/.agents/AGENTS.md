@@ -5,7 +5,7 @@ Diretrizes para agentes de IA operando no módulo **thz-cli** (CLI + REPL do mot
 ## Identidade
 
 * **Projeto:** thz-cli — aplicação Java 25 que consome o módulo irmão `:thz-core` (`implementation(project(":thz-core"))`).
-* **Build canônico:** exclusivamente o Gradle Wrapper embutido na raiz do motor (`thz-lang-jvm/gradlew`).
+* **Build canônico:** exclusivamente o Gradle Wrapper embutido na raiz do projeto (`gradlew` / `gradlew.bat`).
 
 ## Pontos-Chave do Código
 
@@ -24,4 +24,4 @@ Diretrizes para agentes de IA operando no módulo **thz-cli** (CLI + REPL do mot
 ./gradlew cli                                   # atalho para run
 ```
 
-Scripts legados (`scripts/build-native.ps1`, `scripts/build-package.ps1`) esperam `target/thz-jvm-2.3.0.jar` — mantido pelo `doLast` do `shadowJar`.
+Scripts legados (`../scripts/build-native.ps1`, `../scripts/build-package.ps1`) esperam `../target/thz-jvm-2.3.0.jar` — mantido pelo `doLast` do `shadowJar`.

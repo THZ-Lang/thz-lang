@@ -216,7 +216,7 @@ cd ../thz-gui-jvm
 - **Gramática EBNF:** [`Node/thz-lang-base/docs/GRAMATICA.md`](Node/thz-lang-base/docs/GRAMATICA.md)
 - **Documentação do Motor Node/TS:** [`Node/thz-lang-base/README.md`](Node/thz-lang-base/README.md)
 - **Documentação do Motor JVM:** [`thz-core-jvm/README.md`](JVM/thz-core-jvm/README.md), [`thz-cli-jvm/README.md`](JVM/thz-cli-jvm/README.md) e [`thz-gui-jvm/README.md`](JVM/thz-gui-jvm/README.md)
-- **Visão Arquitetural e Roadmap:** [`PROJECT.md`](PROJECT.md)
+- **Visão Arquitetural e Roadmap:** [`docs/PROJECT.md`](docs/PROJECT.md)
 - **Diretrizes para Agentes de IA:** [`AGENTS.md`](AGENTS.md)
 - **Extensão VS Code:** [`thz-lsp-vscode/README.md`](Extensions/thz-lsp-vscode/README.md)
 

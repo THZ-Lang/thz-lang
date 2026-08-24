@@ -5,7 +5,7 @@ Diretrizes para agentes de IA operando no módulo **thz-gui** (IDE Desktop Swing
 ## Identidade
 
 * **Projeto:** thz-gui — IDE Desktop Java 25 (Swing + FlatLaf 3.5) que consome o módulo irmão `:thz-core` (`implementation(project(":thz-core"))`).
-* **Build canônico:** exclusivamente o Gradle Wrapper embutido na raiz do motor (`thz-lang-jvm/gradlew`).
+* **Build canônico:** exclusivamente o Gradle Wrapper embutido na raiz do projeto (gradlew / gradlew.bat).
 
 ## Pontos-Chave do Código
 

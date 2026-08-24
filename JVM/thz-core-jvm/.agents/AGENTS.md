@@ -32,7 +32,7 @@ Diretrizes de Engenharia e Operação para Agentes de IA operando no repositóri
 * Assinaturas estáticas para análise semântica vivem em `semantico.AssinaturasStdlib` (metadados puros, sem dependências superiores).
 * **Regra:** nada aqui pode importar de `thz.lang.gui` ou `thz.lang.cli`.
 
-## 4. Mapa de Pacotes (`src/main/java/thz/lang/`)
+## 4. Mapa de Pacotes (`../src/main/java/thz/lang`)
 
 * `ast/`, `lexico/`, `sintatico/`, `semantico/`, `runtime/`, `interpretador/`, `documento/`, `governanca/`, `docgen/`, `ir/`, `simd/`, `formato/`, `diagnosticos/` — ver README.md para detalhes.
 
@@ -43,4 +43,4 @@ Diretrizes de Engenharia e Operação para Agentes de IA operando no repositóri
 ./gradlew publishToMavenLocal   # publica thz.lang:thz-core:2.3.3 (~/.m2)
 ```
 
-Os exemplos canônicos `.thz` usados pelos testes ficam em `exemplos/` (lidos a partir da raiz do repositório).
+Os exemplos canônicos `.thz` usados pelos testes ficam em `../exemplos` (lidos a partir da raiz do repositório).

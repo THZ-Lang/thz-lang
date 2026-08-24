@@ -46,14 +46,14 @@ Maior commit em volume absoluto. Importa o ecossistema inteiro de uma vez:
 
 - **Motor TypeScript maduro** (`thz-lang-base/`): lexer, parser, analisador semântico, interpretador tree-walking com contratos `EXIGE`/`GARANTE`, CLI (`check/run/repl/doc/audit/ir/fmt`), LSP (`src/lsp/server.ts`), extensão VS Code, playground web (Vite + Monaco) e suíte de benchmarks (`bench/`). Conforme `PROJECT.md`: 149 testes verdes.
 - **Motor JVM 25 inicial** (`thz-lang-engine-JVM25/`): esqueleto funcional com AST tipada, léxico, parser, semântico, interpretador, CLI (`ThzCli`), REPL, formatador, `JsonEscritor` e GUI Swing embrionária (`EditorThz`, `PaletaThz`, `ThzGui`).
-- **Infraestrutura**: workflow de CI (`.github/workflows/ci.yml`), `setup-thz.js` (script de scaffolding com 831 linhas), licença, guias de contribuição e **13 exemplos `.thz`** canônicos (de "olá mundo" até SIMD vetorizado e blocos de memória).
+- **Infraestrutura**: workflow de CI (`../.github/workflows/ci.yml`), `../setup-thz.js` (script de scaffolding com 831 linhas), licença, guias de contribuição e **13 exemplos `.thz`** canônicos (de "olá mundo" até SIMD vetorizado e blocos de memória).
 
 ### Fase 2 — Organização do workspace (`e68b23e` → `94cee45`, 11:40–11:44)
 
 Três commits curtos de organização estrutural:
 
-- `e68b23e`: adiciona **skills de agente** em `.agents/skills/` — `write-tests` (157 linhas), `thz-language-design` (74) e `thz-bench-and-simd` (71).
-- `cae26b9`: move `AGENTS.md` para a raiz de `.agents/`.
+- `e68b23e`: adiciona **skills de agente** em `../.agents/skills` — `write-tests` (157 linhas), `thz-language-design` (74) e `thz-bench-and-simd` (71).
+- `cae26b9`: move `AGENTS.md` para a raiz de `../.agents`.
 - `94cee45`: renomeia `thz-lang-engine-JVM25` → `thz-lang-engine-JVM` em **85 arquivos** (maioria renomeações puras R100; ajuste de +37/−37). Decisão de nomenclatura que desacopla o nome do motor da versão específica do JDK.
 
 ### Fase 3 — IDE Swing modular e stdlib (`583bb25`, 12:30)
@@ -101,7 +101,7 @@ Maior commit em delta líquido. Transforma o motor JVM em produto:
 
 **docs: add core project documentation, configuration, and implementation roadmaps** · 9 arquivos · +455 / −395
 
-Fechamento do dia com sincronização total entre código e docs: README reescrito (+199), `AGENTS.md` expandido (+93), `PROGRESSO.md` consolidado, `PROJECT.md`, `TODO.md`, manual e READMEs de exemplos atualizados.
+Fechamento do dia com sincronização total entre código e docs: README reescrito (+199), `AGENTS.md` expandido (+93), `PROGRESSO.md` consolidado, `PROJECT.md`, `../TODO.md`, manual e READMEs de exemplos atualizados.
 
 ---
 
@@ -147,7 +147,7 @@ Crescimento acumulado de linhas ao longo do dia:
 ## 6. Padrões Observados
 
 - **Conventional Commits** consistente (`feat`/`refactor`/`docs`), mensagens descritivas em inglês.
-- **Commits grandes e coesos** (estilo snapshot de fase), típicos de desenvolvimento assistido por agentes/skills — reforçado pelos artefatos em `.agents/skills/`.
+- **Commits grandes e coesos** (estilo snapshot de fase), típicos de desenvolvimento assistido por agentes/skills — reforçado pelos artefatos em `../.agents/skills`.
 - **Refatoração estrutural precoce**: renames e modularização da GUI ocorreram nas primeiras horas, antes do acúmulo de dívida.
 - **Testes acompanham features**: cada componente novo do motor JVM entra com sua classe de teste JUnit 5 no mesmo commit.
 - **Docs vivas versionadas junto ao código**: `README`/`PROJECT`/`TODO`/`PROGRESSO` evoluem em paralelo ao código, com commit dedicado de fechamento.
@@ -157,7 +157,7 @@ Crescimento acumulado de linhas ao longo do dia:
 
 **Estado:** 238 arquivos rastreados; motor TS estável (149 testes verdes) e motor JVM funcional com 29 testes JUnit 5, IDE Swing completa, geração de documentos e governança auditável.
 
-**Pendências registradas no roadmap (`TODO.md`):**
+**Pendências registradas no roadmap (`../TODO.md`):**
 
 - [ ] **Fase 7** — Fatias Zero-Copy (Arrow IPC) + codegen nativo Rust/Inkwell (LLVM 17+).
 - [ ] Separar GUI, CLI e Core/Stdlib em projetos autônomos que comuniquem entre si.

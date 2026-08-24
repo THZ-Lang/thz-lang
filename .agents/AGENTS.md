@@ -121,4 +121,4 @@ Este documento define o contexto técnico, restrições arquiteturais e diretriz
 * **Governança Auditável (G4):** `src/governanca.ts` — matriz `RASTREIO_REQUISITO → Regra → Contrato`; `src/language-service.ts:auditarFonte()`; CLI `thz audit` (--json, --saida, --estrito); LSP `thz/audit` + VS Code `THZ: Mostrar Auditoria`; Playground botão `🛡️ Audit`.
 * **THZ-IR + SIMD Formal (G5):** `src/ir.ts` (`VERSAO_IR='thz-ir/1'`, `baixarParaIr()`, `emitirLlvm()`) + `src/simd.ts` (regras R1-R5, `verificarVetorizado()`) — CLI `thz ir` (`--llvm`, `--saida`), LSP `thz/ir`/`thz/llvm` e Playground `🧩 IR`/`⚡ LLVM`.
 * **Bench + fmt (G6):** `src/fmt.ts` (`formatar()` canônico, idempotente) — CLI `thz fmt` (`--check`, `--escrever`, `--saida`), LSP `textDocument/formatting`, Playground `✨ Fmt` (Ctrl+S); `bench/` — `tsx bench/run.ts` (`npm run bench`) com Decimal/Arena/SoA/SIMD.
-* **Prioridade pos-v2.2:** trilha Padrao Ouro G1-G6 definida na secao 5 do `PROJECT.md` (expressividade DDD primeiro, tooling depois).
+* **Prioridade pos-v2.2:** trilha Padrao Ouro G1-G6 definida na secao 5 do `../docs/PROJECT.md` (expressividade DDD primeiro, tooling depois).

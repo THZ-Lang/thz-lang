@@ -31,8 +31,7 @@ Biblioteca central do motor JVM da THZ-LANG: linguagem corporativa orientada a d
 
 ## Consumo
 
-Dentro do motor (`thz-lang-jvm`): `implementation(project(":thz-core"))`.
-Fora dele, publique com `./gradlew publishToMavenLocal` e declare `thz.lang:thz-core:2.3.3`.
+Os consumidores JVM (`JVM/thz-cli-jvm`, `JVM/thz-gui-jvm`) declaram `implementation("thz.lang:thz-core:2.3.3")` e resolvem via Composite Build (`includeBuild("../thz-core-jvm")`). Fora do workspace, publique com `./gradlew publishToMavenLocal` e a dependência é baixada como artefato.
 
 ## Stack
 

@@ -1,8 +1,8 @@
 // ==============================================================================
 // thz-gui-jvm — IDE Desktop Swing do THZ-LANG
 //
-// Projeto Gradle autônomo na raiz do workspace. Consome o núcleo thz-core
-// (motor JVM em ../thz-lang-jvm) via Composite Build no dev local ou
+// Projeto Gradle autônomo na pasta JVM/ do workspace. Consome o núcleo thz-core
+// (../thz-core-jvm) via Composite Build no dev local ou
 // artefato publicado (thz.lang:thz-core) em CI.
 // Registra as funções TELA.* (Swing) na stdlib via BibliotecaTela.registrar().
 // ==============================================================================

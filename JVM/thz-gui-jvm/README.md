@@ -22,7 +22,7 @@ IDE desktop completa para a linguagem THZ-LANG, com FlatLaf (temas Dark/Light), 
 
 ## Dependência do core
 
-`implementation(project(":thz-core"))` — módulo do mesmo build Gradle em `thz-lang-jvm/`.
+`implementation("thz.lang:thz-core:2.3.3")` — resolvido via Composite Build a partir de `../thz-core-jvm` (mesma pasta `JVM/`), ou como artefato publicado fora do workspace.
 
 ## Stack
 
