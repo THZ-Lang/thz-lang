@@ -134,6 +134,7 @@ FIM_PROGRAMA
 - **Java 25** (OpenJDK 25 ou GraalVM JDK 25)
 - **Gradle 8.x** (incluso via `./gradlew`)
 - **LLVM Clang & MinGW GCC** (Opcional, para compilação nativa AOT)
+- **MSVC - Ferramentas de Build do Visual Studio 2019+ (no caso for Windows)
 
 ### 1. Clonar o Repositório
 ```bash
