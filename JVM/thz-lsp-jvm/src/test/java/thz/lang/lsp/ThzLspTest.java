@@ -122,4 +122,38 @@ public class ThzLspTest {
         var edits = docService.formatting(fmtParams).get();
         assertNotNull(edits);
     }
+
+    @Test
+    @DisplayName("ThzTextDocumentService deve responder a Find References e Rename Refactoring")
+    void testReferencesERename() throws Exception {
+        String uri = "file:///ref.thz";
+        String src = """
+                PROGRAMA RefDemo
+                PROCEDIMENTO Calcular()
+                INICIO
+                    VARIAVEL total <- 100
+                    EXIBA(total)
+                FIM
+                FIM_PROGRAMA
+                """;
+
+        docService.didOpen(new DidOpenTextDocumentParams(new TextDocumentItem(uri, "thz", 1, src)));
+
+        // References para 'total'
+        ReferenceParams refParams = new ReferenceParams();
+        refParams.setTextDocument(new TextDocumentIdentifier(uri));
+        refParams.setPosition(new Position(3, 15));
+        var refs = docService.references(refParams).get();
+        assertNotNull(refs);
+        assertFalse(refs.isEmpty());
+
+        // Rename de 'total' -> 'novoTotal'
+        RenameParams renameParams = new RenameParams();
+        renameParams.setTextDocument(new TextDocumentIdentifier(uri));
+        renameParams.setPosition(new Position(3, 15));
+        renameParams.setNewName("novoTotal");
+        var workspaceEdit = docService.rename(renameParams).get();
+        assertNotNull(workspaceEdit);
+        assertTrue(workspaceEdit.getChanges().containsKey(uri));
+    }
 }

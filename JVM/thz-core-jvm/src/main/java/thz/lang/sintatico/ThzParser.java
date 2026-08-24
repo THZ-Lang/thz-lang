@@ -15,6 +15,24 @@ public class ThzParser {
 
     private int current = 0;
     private final List<Token> tokens;
+    private final List<String> errosSintaticos = new ArrayList<>();
+
+    public List<String> errosSintaticos() {
+        return errosSintaticos;
+    }
+
+    private void sincronizar() {
+        advance();
+        while (!isAtEnd()) {
+            TokenType t = peek().type();
+            if (t == TokenType.FIM_PROGRAMA || t == TokenType.FIM_BIBLIOTECA || t == TokenType.FIM_TELA ||
+                t == TokenType.FIM_ESTRUTURA || t == TokenType.FIM_REGRA_NEGOCIO || t == TokenType.PROCEDIMENTO ||
+                t == TokenType.REGRA_NEGOCIO || t == TokenType.ESTRUTURA || t == TokenType.ENUMERACAO) {
+                return;
+            }
+            advance();
+        }
+    }
 
     private static final Map<String, String> RELACIONAIS = Map.of(
             "=", "=",

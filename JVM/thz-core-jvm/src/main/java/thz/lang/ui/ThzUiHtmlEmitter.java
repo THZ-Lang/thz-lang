@@ -284,12 +284,25 @@ public final class ThzUiHtmlEmitter {
 
     private static String gerarJs() {
         return """
-            window.thzEstado = {};
+            const _estadoInterno = {};
+            window.thzEstado = new Proxy(_estadoInterno, {
+                set(target, prop, val) {
+                    target[prop] = val;
+                    document.querySelectorAll('[data-vinculo="' + prop + '"], [data-thz-vinculo="' + prop + '"]').forEach(el => {
+                        if ('value' in el && el.tagName !== 'DIV' && el.tagName !== 'SPAN') {
+                            if (el.value !== String(val)) el.value = val;
+                        } else {
+                            el.textContent = val;
+                        }
+                    });
+                    if (window.thz && typeof window.thz.emitirEvento === 'function') {
+                        window.thz.emitirEvento('ui_vinculo_alterado', { vinculo: prop, valor: val });
+                    }
+                    return true;
+                }
+            });
             function thzVinculoAtualizado(vinculo, valor) {
                 window.thzEstado[vinculo] = valor;
-                if (window.thz && typeof window.thz.emitirEvento === 'function') {
-                    window.thz.emitirEvento('ui_vinculo_alterado', { vinculo: vinculo, valor: valor });
-                }
             }
             function thzDespacharAcao(acao, idComponente) {
                 if (!acao) return;

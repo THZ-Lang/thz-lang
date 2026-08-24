@@ -269,7 +269,80 @@ public class ThzTextDocumentService implements TextDocumentService {
         return CompletableFuture.completedFuture(List.of(edit));
     }
 
+    // ---- References ----
+
+    @Override
+    public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
+        String uri = params.getTextDocument().getUri();
+        String fonte = server.obterDocumento(uri);
+        if (fonte == null) return CompletableFuture.completedFuture(List.of());
+
+        String palavra = obterPalavraNaPosicao(fonte, params.getPosition().getLine() + 1, params.getPosition().getCharacter() + 1);
+        if (palavra.isBlank()) return CompletableFuture.completedFuture(List.of());
+
+        List<Location> locs = encontrarOcorrencias(uri, fonte, palavra);
+        return CompletableFuture.completedFuture(locs);
+    }
+
+    // ---- Rename ----
+
+    @Override
+    public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
+        String uri = params.getTextDocument().getUri();
+        String fonte = server.obterDocumento(uri);
+        if (fonte == null) return CompletableFuture.completedFuture(null);
+
+        String palavraAntiga = obterPalavraNaPosicao(fonte, params.getPosition().getLine() + 1, params.getPosition().getCharacter() + 1);
+        if (palavraAntiga.isBlank()) return CompletableFuture.completedFuture(null);
+
+        List<Location> ocorrencias = encontrarOcorrencias(uri, fonte, palavraAntiga);
+        List<TextEdit> edits = new ArrayList<>();
+        for (Location loc : ocorrencias) {
+            TextEdit edit = new TextEdit();
+            edit.setRange(loc.getRange());
+            edit.setNewText(params.getNewName());
+            edits.add(edit);
+        }
+
+        WorkspaceEdit we = new WorkspaceEdit();
+        we.setChanges(Map.of(uri, edits));
+        return CompletableFuture.completedFuture(we);
+    }
+
     // ---- Helpers ----
+
+    private String obterPalavraNaPosicao(String fonte, int linha, int coluna) {
+        String[] linhas = fonte.split("\\r?\\n", -1);
+        if (linha - 1 >= linhas.length) return "";
+        String conteudo = linhas[linha - 1];
+        int idx = Math.max(0, coluna - 1);
+        while (idx > 0 && isIdentChar(conteudo.charAt(idx - 1))) idx--;
+        int fim = idx;
+        while (fim < conteudo.length() && isIdentChar(conteudo.charAt(fim))) fim++;
+        return conteudo.substring(idx, fim);
+    }
+
+    private List<Location> encontrarOcorrencias(String uri, String fonte, String palavra) {
+        List<Location> locs = new ArrayList<>();
+        String[] linhas = fonte.split("\\r?\\n", -1);
+        for (int l = 0; l < linhas.length; l++) {
+            String lineContent = linhas[l];
+            int index = lineContent.indexOf(palavra);
+            while (index >= 0) {
+                boolean inicioValido = index == 0 || !isIdentChar(lineContent.charAt(index - 1));
+                boolean fimValido = (index + palavra.length() == lineContent.length()) || !isIdentChar(lineContent.charAt(index + palavra.length()));
+                if (inicioValido && fimValido) {
+                    Location loc = new Location(uri, new Range(
+                            new Position(l, index),
+                            new Position(l, index + palavra.length())
+                    ));
+                    locs.add(loc);
+                }
+                index = lineContent.indexOf(palavra, index + 1);
+            }
+        }
+        return locs;
+    }
 
     private boolean isIdentChar(char c) {
         return Character.isLetterOrDigit(c) || c == '_';
