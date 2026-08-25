@@ -1,5 +1,6 @@
 package thz.lang.ast;
 
+import thz.lang.lexico.DialetoLinguagem;
 import java.util.List;
 
 public record ProgramaAst(
@@ -11,7 +12,21 @@ public record ProgramaAst(
         List<EstruturaAst> estruturas,
         List<EnumeracaoAst> enumeracoes,
         List<RegraNegocioAst> regras,
-        List<ProcedimentoAst> procedimentos) {
+        List<ProcedimentoAst> procedimentos,
+        DialetoLinguagem dialeto) {
+
+    public ProgramaAst(
+            TipoModulo tipoModulo,
+            String nome,
+            String versaoLinguagem,
+            List<ImportacaoAst> importacoes,
+            MetadadosArquiteturaAst metadados,
+            List<EstruturaAst> estruturas,
+            List<EnumeracaoAst> enumeracoes,
+            List<RegraNegocioAst> regras,
+            List<ProcedimentoAst> procedimentos) {
+        this(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos, DialetoLinguagem.PT_BR);
+    }
 
     public ProgramaAst(
             TipoModulo tipoModulo,
@@ -22,7 +37,7 @@ public record ProgramaAst(
             List<EnumeracaoAst> enumeracoes,
             List<RegraNegocioAst> regras,
             List<ProcedimentoAst> procedimentos) {
-        this(tipoModulo, nome, versaoLinguagem, List.of(), metadados, estruturas, enumeracoes, regras, procedimentos);
+        this(tipoModulo, nome, versaoLinguagem, List.of(), metadados, estruturas, enumeracoes, regras, procedimentos, DialetoLinguagem.PT_BR);
     }
 
     public ProgramaAst(
@@ -33,6 +48,6 @@ public record ProgramaAst(
             List<EnumeracaoAst> enumeracoes,
             List<RegraNegocioAst> regras,
             List<ProcedimentoAst> procedimentos) {
-        this(TipoModulo.PROGRAMA, nome, versaoLinguagem, List.of(), metadados, estruturas, enumeracoes, regras, procedimentos);
+        this(TipoModulo.PROGRAMA, nome, versaoLinguagem, List.of(), metadados, estruturas, enumeracoes, regras, procedimentos, DialetoLinguagem.PT_BR);
     }
 }

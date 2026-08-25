@@ -8,23 +8,66 @@ public class ThzLexer {
     private int pos = 0;
     private int line = 1;
     private int col = 1;
+    private DialetoLinguagem dialeto = DialetoLinguagem.PT_BR;
 
     public ThzLexer(String input) {
         this.input = input;
+        this.dialeto = detectarDialetoCabecalho(input);
+    }
+
+    public ThzLexer(String input, DialetoLinguagem dialeto) {
+        this.input = input;
+        this.dialeto = dialeto != null ? dialeto : detectarDialetoCabecalho(input);
+    }
+
+    public DialetoLinguagem getDialeto() {
+        return dialeto;
+    }
+
+    /**
+     * Inspeciona as primeiras linhas do código fonte para detectar diretivas de dialeto
+     * como 'LINGUAGEM: pt-BR' ou 'LANGUAGE: en-US' (inclusive em comentários).
+     */
+    private static DialetoLinguagem detectarDialetoCabecalho(String src) {
+        if (src == null || src.isEmpty()) return DialetoLinguagem.PT_BR;
+        String[] linhas = src.split("\\R", 6);
+        for (String l : linhas) {
+            String trim = l.trim();
+            if (trim.startsWith("#")) {
+                trim = trim.substring(1).trim();
+            }
+            if (trim.toUpperCase().startsWith("LINGUAGEM:") || trim.toUpperCase().startsWith("LANGUAGE:")
+                    || trim.toUpperCase().startsWith("DIALETO:") || trim.toUpperCase().startsWith("DIALECT:")) {
+                int idx = trim.indexOf(':');
+                if (idx != -1) {
+                    return DialetoLinguagem.detectar(trim.substring(idx + 1).trim());
+                }
+            }
+        }
+        return DialetoLinguagem.PT_BR;
     }
 
     public List<Token> tokenize() {
         List<Token> tokens = new ArrayList<>();
         // Tolerância Dual-OS: descarta BOM UTF-8 (U+FEFF) no início do arquivo.
         if (pos < input.length() && input.charAt(pos) == '\uFEFF') advance();
+
         while (pos < input.length()) {
             char c = input.charAt(pos);
             if (c == ' ' || c == '\t' || c == '\r') { advance(); continue; }
             if (c == '\n') { line++; col = 1; pos++; continue; }
+
+            // Comentários de linha (# ...)
             if (c == '#') {
                 while (pos < input.length() && input.charAt(pos) != '\n') advance();
                 continue;
             }
+
+            // Diretivas de Cabeçalho na raiz (ex: LINGUAGEM: pt-BR ou LANGUAGE: en-US)
+            if (verificarDiretivaCabecalho()) {
+                continue;
+            }
+
             if (c == '"') { tokens.add(readString()); continue; }
             if (Character.isDigit(c)) { tokens.add(readNumber()); continue; }
             if (c == ':') { tokens.add(make(TokenType.DOIS_PONTOS, ":")); advance(); continue; }
@@ -66,6 +109,27 @@ public class ThzLexer {
         return tokens;
     }
 
+    private boolean verificarDiretivaCabecalho() {
+        int tempPos = pos;
+        StringBuilder sb = new StringBuilder();
+        while (tempPos < input.length() && (Character.isLetter(input.charAt(tempPos)) || input.charAt(tempPos) == '_')) {
+            sb.append(input.charAt(tempPos));
+            tempPos++;
+        }
+        String palavra = sb.toString().toUpperCase();
+        if (palavra.equals("LINGUAGEM") || palavra.equals("LANGUAGE") || palavra.equals("DIALETO") || palavra.equals("DIALECT")) {
+            while (tempPos < input.length() && (input.charAt(tempPos) == ' ' || input.charAt(tempPos) == '\t')) tempPos++;
+            if (tempPos < input.length() && input.charAt(tempPos) == ':') {
+                // Consome a linha inteira da diretiva
+                while (pos < input.length() && input.charAt(pos) != '\n') {
+                    advance();
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void advance() { pos++; col++; }
 
     private Token make(TokenType t, String v) { return new Token(t, v, line, col); }
@@ -75,10 +139,37 @@ public class ThzLexer {
         advance();
         StringBuilder sb = new StringBuilder();
         while (pos < input.length() && input.charAt(pos) != '"' && input.charAt(pos) != '\n') {
-            if (input.charAt(pos) == '\\' && pos + 1 < input.length() && input.charAt(pos + 1) == 'n') {
-                sb.append('\n'); advance(); advance();
+            if (input.charAt(pos) == '\\') {
+                advance();
+                if (pos >= input.length()) break;
+                char esc = input.charAt(pos);
+                switch (esc) {
+                    case 'n' -> sb.append('\n');
+                    case 't' -> sb.append('\t');
+                    case 'r' -> sb.append('\r');
+                    case '"' -> sb.append('"');
+                    case '\\' -> sb.append('\\');
+                    case 'u' -> {
+                        // Unicode escape hexadecimal de 4 dígitos (RFC 3629 / ISO 10646)
+                        if (pos + 4 < input.length()) {
+                            String hex = input.substring(pos + 1, pos + 5);
+                            try {
+                                int code = Integer.parseInt(hex, 16);
+                                sb.append((char) code);
+                                advance(); advance(); advance(); advance();
+                            } catch (NumberFormatException ignored) {
+                                sb.append("\\u");
+                            }
+                        } else {
+                            sb.append("\\u");
+                        }
+                    }
+                    default -> sb.append(esc);
+                }
+                advance();
             } else {
-                sb.append(input.charAt(pos)); advance();
+                sb.append(input.charAt(pos));
+                advance();
             }
         }
         if (pos >= input.length() || input.charAt(pos) != '"') {
@@ -98,11 +189,6 @@ public class ThzLexer {
                 if (ch != '_') num.append(ch);
                 advance();
             } else break;
-            // also allow letters? no
-            // handle the . already
-            // stop checking for other chars
-            // need to replicate TS: while /[\\d._]/
-            // we already did digit, ., _
         }
         String s = num.toString();
         if (s.endsWith(".")) s = s.substring(0, s.length() - 1);
@@ -118,7 +204,11 @@ public class ThzLexer {
             else break;
         }
         String ident = sb.toString();
-        TokenType t = PalavrasReservadas.tokenDe(ident);
+
+        // Checagem de pureza de dialeto estrito
+        PalavrasReservadas.validarPurezaDialeto(ident, dialeto, line, startCol);
+
+        TokenType t = PalavrasReservadas.tokenDe(ident, dialeto);
         if (t == null) t = TokenType.IDENTIFICADOR;
         return new Token(t, ident, line, startCol);
     }

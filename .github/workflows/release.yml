@@ -1,0 +1,154 @@
+name: THZ-LANG Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Tag de Versão (ex: v2.4.0)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  # =============================================================
+  # Job 1: Build de Artefatos Linux (.jar, .elf, .vsix)
+  # =============================================================
+  build-linux-artifacts:
+    name: Build Linux (.jar, .elf, .vsix)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25 (Oracle)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'oracle'
+
+      - name: Setup Node.js 20 (para VSIX)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Instalar Clang, LLVM e GCC
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm gcc
+
+      - name: Conceder permissão aos executáveis e scripts
+        run: chmod +x gradlew scripts/*.sh
+
+      # 1. Compilar UberJARs (CLI, LSP, API)
+      - name: Compilar UberJARs (.jar)
+        run: |
+          ./gradlew :thz-cli-jvm:shadowJar
+          ./gradlew :thz-lsp-jvm:shadowJar
+          ./gradlew :thz-api-jvm:bootJar
+
+      # 2. Compilar binário nativo Linux ELF via LLVM
+      - name: Compilar Compilador Nativo Linux ELF (.elf)
+        run: |
+          mkdir -p dist/bin
+          ./gradlew :thz-cli-jvm:run --args="ir compilador/driver.thz --llvm --saida dist/bin/thz-driver.ll"
+          clang -target x86_64-unknown-linux-gnu -c dist/bin/thz-driver.ll -o dist/bin/thz-driver.o
+          gcc -O3 dist/bin/thz-driver.o src/runtime/thz_runtime.c -o dist/bin/thz-driver.elf -lm -lpthread
+          chmod +x dist/bin/thz-driver.elf
+          ./dist/bin/thz-driver.elf
+
+      # 3. Empacotar Extensão VS Code (.vsix)
+      - name: Empacotar Extensão VS Code (.vsix)
+        working-directory: Extensions/thz-lsp-vscode
+        run: |
+          npm ci
+          npx -y @vscode/vsce package --no-dependencies -o ../../dist/thz-lsp-vscode.vsix
+
+      # 4. Upload dos artefatos Linux
+      - name: Upload temporário dos artefatos Linux
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: |
+            dist/bin/thz-driver.elf
+            dist/thz-lsp-vscode.vsix
+            target/*.jar
+            JVM/thz-api-jvm/build/libs/*.jar
+
+  # =============================================================
+  # Job 2: Build de Artefatos Windows (.exe via GraalVM)
+  # =============================================================
+  build-windows-artifacts:
+    name: Build Windows (.exe GraalVM)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup GraalVM JDK 25
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: 'graalvm-community'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compilar Executáveis Nativos Windows (.exe)
+        shell: pwsh
+        run: |
+          $env:GRAALVM_AGENT = "false"
+          .\scripts\build-native.ps1 -PularTestes
+
+      - name: Upload temporário dos executáveis Windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            dist/bin/thz.exe
+            dist/bin/thz-gui.exe
+
+  # =============================================================
+  # Job 3: Publicação da Release e Anexo dos Arquivos
+  # =============================================================
+  publish-release:
+    name: Publicar GitHub Release Oficial
+    needs: [build-linux-artifacts, build-windows-artifacts]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Baixar artefatos do Linux
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-artifacts
+          path: release-assets/
+
+      - name: Baixar artefatos do Windows
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-artifacts
+          path: release-assets/
+
+      - name: Listar arquivos preparados para Release
+        run: |
+          ls -lh release-assets/
+
+      - name: Publicar GitHub Release com Arquivos Anexados
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true

@@ -56,7 +56,7 @@ public class ThzCli {
 
         if (args[0].equals("--versao") || args[0].equals("-v") || args[0].equals("versao")
                 || args[0].equals("version")) {
-            System.out.println("THZ-LANG Engine v2.4.0 (GraalVM / Java 25)");
+            System.out.println("THZ-LANG Engine v" + thz.lang.version.ThzVersion.ATUAL + " (GraalVM / Java 25)");
             return;
         }
 
@@ -73,6 +73,38 @@ public class ThzCli {
         }
         if (comando.equals("gui")) {
             lancarGuiSeDisponivel();
+            return;
+        }
+        if (comando.equals("livro") || comando.equals("manual") || comando.equals("book")) {
+            boolean linguaEn = argumentos.contains("--en") || argumentos.contains("--en-us") || argumentos.contains("--english");
+            boolean linguaPt = argumentos.contains("--pt") || argumentos.contains("--pt-br") || argumentos.contains("--portugues");
+
+            Path raizWorkspace = Path.of(".").toAbsolutePath().normalize();
+            Path dirDist = Path.of("dist").toAbsolutePath().normalize();
+            try {
+                Files.createDirectories(dirDist);
+                if (linguaEn && !linguaPt) {
+                    Path destino = dirDist.resolve("MANUAL_THZ_LANG_EN.pdf");
+                    System.out.println("Compilando Livro-Manual PDF em Inglês (EN-US)...");
+                    Path gerado = thz.lang.documento.ThzLivroManualPdf.gerarLivroManual(raizWorkspace, destino, thz.lang.lexico.DialetoLinguagem.EN_US);
+                    System.out.println("[SUCESSO] Livro-Manual EN-US gerado em: " + gerado);
+                } else if (linguaPt && !linguaEn) {
+                    Path destino = dirDist.resolve("MANUAL_THZ_LANG_PT.pdf");
+                    System.out.println("Compilando Livro-Manual PDF em Português (PT-BR)...");
+                    Path gerado = thz.lang.documento.ThzLivroManualPdf.gerarLivroManual(raizWorkspace, destino, thz.lang.lexico.DialetoLinguagem.PT_BR);
+                    System.out.println("[SUCESSO] Livro-Manual PT-BR gerado em: " + gerado);
+                } else {
+                    System.out.println("Compilando todos os documentos Markdown (.md) em Livros-Manuais PDF (PT-BR & EN-US)...");
+                    List<Path> gerados = thz.lang.documento.ThzLivroManualPdf.gerarTodosManuais(raizWorkspace, dirDist);
+                    for (Path p : gerados) {
+                        System.out.println("  • " + p.getFileName() + " -> " + p);
+                    }
+                    System.out.println("[SUCESSO] Manuais gerados com sucesso!");
+                }
+            } catch (Exception e) {
+                System.err.println("[ERRO] Falha ao compilar manuais PDF: " + e.getMessage());
+                e.printStackTrace();
+            }
             return;
         }
         String arquivo = resolverArquivo(argumentos);
@@ -371,7 +403,7 @@ public class ThzCli {
 
     private static void exibirAjuda() {
         System.out.println("================================================================================");
-        System.out.println("   THZ-LANG Engine — JVM (v2.3.0)");
+        System.out.println("   THZ-LANG Engine — JVM (v" + thz.lang.version.ThzVersion.ATUAL + ")");
         System.out.println("   Linguagem Corporativa de Sistemas, Governança e Alta Performance");
         System.out.println("================================================================================\n");
         System.out.println("Uso:");
@@ -386,8 +418,8 @@ public class ThzCli {
         System.out
                 .println("  doc <arquivo> [--saida <caminho.md>]      Gera documentação técnica com diagramas Mermaid");
         System.out.println("  ir <arquivo> [--llvm] [--saida <caminho>] Gera a Representação Intermediária (THZ-IR/1)");
-        System.out.println(
-                "  ui <arquivo[.thzui]> [--html]             Renderiza ou exporta a interface declarativa (ThzUiMaker)");
+        System.out.println("  ui <arquivo[.thzui]> [--html]             Renderiza ou exporta a interface declarativa (ThzUiMaker)");
+        System.out.println("  livro [--saida <caminho.pdf>]             Compila toda a documentação Markdown em Livro-Manual PDF");
         System.out.println("  repl                                      Inicia o shell interativo multi-linha");
         System.out.println("  gui                                       Abre a Desktop IDE oficial (Swing + FlatLaf)");
         System.out.println("Exemplos:");
@@ -395,6 +427,7 @@ public class ThzCli {
         System.out.println("  thz run exemplos/faturamento.thz");
         System.out.println("  thz audit exemplos/faturamento.thz");
         System.out.println("  thz doc exemplos/faturamento.thz --saida docs/faturamento.md");
+        System.out.println("  thz livro --saida dist/MANUAL_THZ_LANG.pdf");
         System.out.println("  thz gui");
     }
 

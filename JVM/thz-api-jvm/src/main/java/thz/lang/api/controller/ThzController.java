@@ -113,7 +113,7 @@ public class ThzController {
     public ResponseEntity<HealthResponse> health() {
         return ResponseEntity.ok(new HealthResponse(
                 "UP",
-                "2.3.3",
+                thz.lang.version.ThzVersion.ATUAL.toString(),
                 System.getProperty("java.version"),
                 "thz-core-jvm"));
     }

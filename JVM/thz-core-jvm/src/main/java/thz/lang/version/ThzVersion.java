@@ -13,7 +13,22 @@ public record ThzVersion(int major, int minor, int patch, String preRelease, Str
             "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
     );
 
-    public static final ThzVersion ATUAL = new ThzVersion(2, 4, 0, null, null);
+    public static final ThzVersion ATUAL = carregarVersaoAtual();
+
+    private static ThzVersion carregarVersaoAtual() {
+        try (var is = ThzVersion.class.getResourceAsStream("/thz-version.properties")) {
+            if (is != null) {
+                var props = new java.util.Properties();
+                props.load(is);
+                String v = props.getProperty("version");
+                if (v != null && !v.isBlank() && !v.contains("${")) {
+                    return parse(v.trim());
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return new ThzVersion(2, 4, 0, null, null);
+    }
 
     public static ThzVersion parse(String versao) {
         if (versao == null || versao.isBlank()) {

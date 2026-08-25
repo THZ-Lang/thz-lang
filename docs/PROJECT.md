@@ -82,6 +82,30 @@ FIM_PROGRAMA
 
 ---
 
+## 3. Documentação — Mapa do Corpus
+
+| Doc | Escopo | Leitura |
+| :--- | :--- | :--- |
+| [`MANUAL_LINGUAGEM.md`](MANUAL_LINGUAGEM.md) | Linguagem completa (tipos, contratos, SIMD, PIPELINE, TELA, stdlib) | Referência diária |
+| [`ARQUITETURA_COMPILACAO_NATIVA.md`](ARQUITETURA_COMPILACAO_NATIVA.md) | **Tratado** GraalVM/LLVM/IR/IL/AOT, velocidade & segurança (7062w, 4 apêndices) | Arquitetura |
+| [`SELF_HOSTING.md`](SELF_HOSTING.md) | Compilador em THZ, bootstrap `THZ→THZ-IR→LLVM`, paridade Java | Self-hosting |
+| [`RUNTIME_NATIVO.md`](RUNTIME_NATIVO.md) | `thz_runtime.c`/`thz_webview2.c`, ABI Dual-OS, Arena, linking `clang→gcc` | Runtime |
+| [`PIPELINE_DADOS.md`](PIPELINE_DADOS.md) | `PIPELINE_DADOS` (FONTE/TRANSFORMACAO/DESTINO), conectores, streaming | Big Data |
+| [`TELA_THZUI.md`](TELA_THZUI.md) | `TELA`/`.thzui` DSL, `TELA.*`/`WEBVIEW.*`, Swing vs WebView | UI |
+| [`GUIA_PERFORMANCE.md`](GUIA_PERFORMANCE.md) | SoA/SIMD/Arena tuning, escolha `PASSO_SIMD`, JMH | Performance |
+| [`TESTES_E_BENCHMARKS.md`](TESTES_E_BENCHMARKS.md) | JUnit 5 112 testes, goldens, paridade, JMH, `write-tests` | Qualidade |
+| [`LSP_VSCODE.md`](LSP_VSCODE.md) / [`API_REST.md`](API_REST.md) | LSP4J + VS Code + Spring Boot 11 endpoints | Tooling |
+| [`DEPLOYMENT.md`](DEPLOYMENT.md) | `jpackage`/GraalVM/LLVM, Docker, `dist/`/`target`, CI `audit --git` | Deploy |
+| [`EXEMPLOS_E_PADROES.md`](EXEMPLOS_E_PADROES.md) | 12 receitas de `exemplos/*.thz` + `*.thzui` reais | Receitas |
+| [`INTELLIJ_SETUP.md`](INTELLIJ_SETUP.md) | JDK 25 + Gradle composite + TextMate + run configs | IDE |
+| [`ADRs/`](ADRs/README.md) | 5 ADRs (LLVM vs Cranelift, Arena vs GC, i128 vs double...) | Decisões |
+| [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) | FAQ por área (build, SIMD, arena, LSP, GraalVM, LLVM, Docker) | Suporte |
+| [`CLI_E_TOOLING.md`](CLI_E_TOOLING.md) | `thz check/run/dev/fmt/doc/audit/ui/ir/gui` + IDE/LSP | CLI |
+| [`GRAMATICA.md`](GRAMATICA.md) / [`CONFORMIDADE_E_NORMAS.md`](CONFORMIDADE_E_NORMAS.md) / [`DIRETRIZES_QUALIDADE.md`](DIRETRIZES_QUALIDADE.md) | EBNF, ISO 10967/4217/42010/TR24772, V&V | Normas |
+| [`RELATORIO-EVOLUCAO.md`](RELATORIO-EVOLUCAO.md) + [`CHANGELOG.md`](../CHANGELOG.md) | Linha do tempo + changelog SemVer | Histórico |
+
+---
+
 ## 3. Comandos do Ecossistema CLI
 
 ```bash

@@ -37,3 +37,30 @@ tasks.register("jmh") {
     dependsOn(gradle.includedBuilds.map { it.task(":jmh") })
 }
 
+// Tarefa Livro-Manual PDF
+tasks.register<JavaExec>("livro") {
+    group = "documentation"
+    description = "Compila todos os arquivos Markdown (.md) em Livro-Manual PDF"
+    mainClass.set("thz.lang.cli.ThzCli")
+    classpath = gradle.includedBuild("thz-cli-jvm").projectDir.resolve("build/classes/java/main").let {
+        files(
+            it,
+            gradle.includedBuild("thz-core-jvm").projectDir.resolve("build/classes/java/main"),
+            gradle.includedBuild("thz-gui-jvm").projectDir.resolve("build/classes/java/main")
+        )
+    }
+    args = listOf("livro", "--saida", "dist/MANUAL_THZ_LANG.pdf")
+    workingDir = rootDir
+    dependsOn(
+        gradle.includedBuild("thz-cli-jvm").task(":classes"),
+        gradle.includedBuild("thz-core-jvm").task(":classes"),
+        gradle.includedBuild("thz-gui-jvm").task(":classes")
+    )
+}
+
+tasks.register("manual") {
+    group = "documentation"
+    description = "Alias para tarefa livro"
+    dependsOn(tasks.named("livro"))
+}
+

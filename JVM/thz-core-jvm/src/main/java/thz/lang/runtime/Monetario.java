@@ -19,13 +19,42 @@ public final class Monetario {
 
     static {
         Map<String, DefinicaoMoeda> m = new HashMap<>();
+        // Américas / BACEN
         m.put("BRL", new DefinicaoMoeda("BRL", 2));
         m.put("USD", new DefinicaoMoeda("USD", 2));
+        m.put("CAD", new DefinicaoMoeda("CAD", 2));
+        m.put("MXN", new DefinicaoMoeda("MXN", 2));
+        m.put("ARS", new DefinicaoMoeda("ARS", 2));
+        m.put("CLP", new DefinicaoMoeda("CLP", 0));
+        m.put("COP", new DefinicaoMoeda("COP", 2));
+        m.put("PEN", new DefinicaoMoeda("PEN", 2));
+        m.put("UYU", new DefinicaoMoeda("UYU", 2));
+        m.put("PYG", new DefinicaoMoeda("PYG", 0));
+
+        // Europa / G10
         m.put("EUR", new DefinicaoMoeda("EUR", 2));
         m.put("GBP", new DefinicaoMoeda("GBP", 2));
-        m.put("JPY", new DefinicaoMoeda("JPY", 0));
         m.put("CHF", new DefinicaoMoeda("CHF", 2));
+        m.put("SEK", new DefinicaoMoeda("SEK", 2));
+        m.put("NOK", new DefinicaoMoeda("NOK", 2));
+        m.put("DKK", new DefinicaoMoeda("DKK", 2));
+
+        // Ásia / Oceania
+        m.put("JPY", new DefinicaoMoeda("JPY", 0));
         m.put("CNY", new DefinicaoMoeda("CNY", 2));
+        m.put("AUD", new DefinicaoMoeda("AUD", 2));
+        m.put("NZD", new DefinicaoMoeda("NZD", 2));
+        m.put("INR", new DefinicaoMoeda("INR", 2));
+        m.put("KRW", new DefinicaoMoeda("KRW", 0));
+        m.put("SGD", new DefinicaoMoeda("SGD", 2));
+        m.put("ZAR", new DefinicaoMoeda("ZAR", 2));
+
+        // Oriente Médio (3 casas decimais)
+        m.put("KWD", new DefinicaoMoeda("KWD", 3));
+        m.put("BHD", new DefinicaoMoeda("BHD", 3));
+        m.put("OMR", new DefinicaoMoeda("OMR", 3));
+        m.put("JOD", new DefinicaoMoeda("JOD", 3));
+
         TABELA_MOEDAS_ISO4217 = Collections.unmodifiableMap(m);
     }
 

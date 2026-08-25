@@ -154,22 +154,22 @@ public class ThzParser {
         List<String> conformidade = new ArrayList<>();
 
         while (!match(TokenType.FIM_METADADOS) && !isAtEnd()) {
-            String chave = consumeIdentificador("Esperada chave de metadado.").value();
+            String chave = consumeIdentificador("Esperada chave de metadado.").value().toUpperCase();
             consume(TokenType.DOIS_PONTOS, "Esperado ':' após identificador de metadado.");
 
-            if ("CONFORMIDADE".equals(chave)) {
+            if ("CONFORMIDADE".equals(chave) || "COMPLIANCE".equals(chave)) {
                 conformidade.add(consume(TokenType.STRING_LITERAL, "Esperada regra de conformidade.").value());
                 while (match(TokenType.VIRGULA)) {
                     conformidade.add(consume(TokenType.STRING_LITERAL, "Esperado próximo valor.").value());
                 }
             } else {
                 String valor = consume(TokenType.STRING_LITERAL, "Esperado valor textual do metadado.").value();
-                if ("DOMINIO".equals(chave)) dominio = valor;
-                if ("SUBDOMINIO".equals(chave)) subdominio = valor;
-                if ("CAMADA".equals(chave)) camada = valor;
-                if ("VERSAO".equals(chave)) versao = valor;
-                if ("AUTOR".equals(chave)) autor = valor;
-                if ("SLO_LATENCIA_MAXIMA".equals(chave)) sloLatencia = valor;
+                if ("DOMINIO".equals(chave) || "DOMAIN".equals(chave)) dominio = valor;
+                if ("SUBDOMINIO".equals(chave) || "SUBDOMAIN".equals(chave)) subdominio = valor;
+                if ("CAMADA".equals(chave) || "LAYER".equals(chave)) camada = valor;
+                if ("VERSAO".equals(chave) || "VERSION".equals(chave)) versao = valor;
+                if ("AUTOR".equals(chave) || "AUTHOR".equals(chave)) autor = valor;
+                if ("SLO_LATENCIA_MAXIMA".equals(chave) || "MAX_LATENCY_SLO".equals(chave)) sloLatencia = valor;
             }
         }
         return new MetadadosArquiteturaAst(dominio, subdominio, camada, versao, autor, sloLatencia, conformidade);
@@ -227,7 +227,20 @@ public class ThzParser {
      * Preserva verbatim (ex.: 'DECIMAL(12,4)', 'FATIA[ItemFatura]').
      */
     private String parseTipoDado() {
-        String tipo = consumeIdentificador("Esperado tipo do dado.").value();
+        String tipoRaw = consumeIdentificador("Esperado tipo do dado.").value();
+        String tipo = switch (tipoRaw.toUpperCase()) {
+            case "TEXT", "STRING" -> "TEXTO";
+            case "INTEGER" -> "INTEIRO";
+            case "MONETARY" -> "MONETARIO";
+            case "BOOLEAN" -> "BOOLEANO";
+            case "DATE" -> "DATA";
+            case "DATETIME" -> "DATA_HORA";
+            case "RESULT" -> "RESULTADO";
+            case "LIST", "SLICE" -> "FATIA";
+            case "MAP" -> "MAPA";
+            default -> tipoRaw;
+        };
+
         if (match(TokenType.ABRE_PARENTESE)) {
             StringBuilder args = new StringBuilder();
             while (!check(TokenType.FECHA_PARENTESE) && !isAtEnd()) {
@@ -238,15 +251,15 @@ public class ThzParser {
             tipo += "(" + args + ")";
         }
         if (match(TokenType.ABRE_COLCHETE)) {
-            if ("RESULTADO".equals(tipo)) {
+            if ("RESULTADO".equals(tipo) || "RESULT".equals(tipo)) {
                 // RESULTADO[T, E]: canal de sucesso e canal de erro.
                 String sucesso = parseTipoDado();
                 consume(TokenType.VIRGULA, "Esperado ',' separando os canais de RESULTADO[T, E].");
                 String erro = parseTipoDado();
                 consume(TokenType.FECHA_COLCHETE, "Esperado ']' após canais de RESULTADO.");
-                return tipo + "[" + sucesso + ", " + erro + "]";
+                return "RESULTADO[" + sucesso + ", " + erro + "]";
             }
-            tipo += "[" + consumeIdentificador("Esperado tipo interno do fatiamento.").value() + "]";
+            tipo += "[" + parseTipoDado() + "]";
             consume(TokenType.FECHA_COLCHETE, "Esperado ']' após tipo interno.");
         }
         return tipo;
@@ -269,15 +282,16 @@ public class ThzParser {
 
         while (!check(TokenType.FIM_REGRA_NEGOCIO) && !isAtEnd()) {
             Token p = peek();
-            if ("IDENTIFICADOR_REGRA".equals(p.value()) && p.type() == TokenType.IDENTIFICADOR) {
+            String pVal = p.value().toUpperCase();
+            if (("IDENTIFICADOR_REGRA".equals(pVal) || "RULE_ID".equals(pVal)) && p.type() == TokenType.IDENTIFICADOR) {
                 advance();
                 consume(TokenType.DOIS_PONTOS, "Esperado ':' após 'IDENTIFICADOR_REGRA'.");
                 identificador = consume(TokenType.STRING_LITERAL, "Esperado ID da regra.").value();
-            } else if ("RASTREIO_REQUISITO".equals(p.value()) && p.type() == TokenType.IDENTIFICADOR) {
+            } else if (("RASTREIO_REQUISITO".equals(pVal) || "REQUIREMENT_TRACE".equals(pVal)) && p.type() == TokenType.IDENTIFICADOR) {
                 advance();
                 consume(TokenType.DOIS_PONTOS, "Esperado ':' após 'RASTREIO_REQUISITO'.");
                 rastreioRequisito = consume(TokenType.STRING_LITERAL, "Esperado requisito de rastreio.").value();
-            } else if ("DESCRICAO".equals(p.value()) && p.type() == TokenType.IDENTIFICADOR) {
+            } else if (("DESCRICAO".equals(pVal) || "DESCRIPTION".equals(pVal)) && p.type() == TokenType.IDENTIFICADOR) {
                 advance();
                 consume(TokenType.DOIS_PONTOS, "Esperado ':' após 'DESCRICAO'.");
                 descricao = consume(TokenType.STRING_LITERAL, "Esperada descrição.").value();
@@ -290,7 +304,7 @@ public class ThzParser {
                         idempotente = false;
                     }
                 }
-            } else if ("CHAVE_IDEMPOTENCIA".equals(p.value()) || p.type() == TokenType.CHAVE_IDEMPOTENCIA) {
+            } else if ("CHAVE_IDEMPOTENCIA".equals(pVal) || "IDEMPOTENCY_KEY".equals(pVal) || p.type() == TokenType.CHAVE_IDEMPOTENCIA) {
                 advance();
                 consume(TokenType.DOIS_PONTOS, "Esperado ':' após 'CHAVE_IDEMPOTENCIA'.");
                 chaveIdempotencia = consume(TokenType.STRING_LITERAL, "Esperada chave de idempotência.").value();

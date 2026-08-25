@@ -21,7 +21,7 @@ public class BarraStatusGui {
     private final JLabel infoStatus = new JLabel("Pronto");
     private final JLabel badgeEstrito = new JLabel("ESTRITO");
     private final JLabel infoCursor = new JLabel("Ln 1, Col 1");
-    private final JLabel versaoLabel = new JLabel("v2.3.0 JVM");
+    private final JLabel versaoLabel = new JLabel("v" + thz.lang.version.ThzVersion.ATUAL + " JVM");
     private final JLabel jvmBadge = new JLabel("☕ JVM");
 
     public BarraStatusGui() {

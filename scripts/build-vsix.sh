@@ -30,17 +30,26 @@ echo -e "\033[0;36m=============================================================
 mkdir -p "$PASTA_DIST"
 mkdir -p "$PASTA_SERVER_EXT"
 
-# 1. Compilar JAR do LSP
-if [ "$SKIP_JAR" = false ] || [ ! -f "$LSP_JAR_ORIGEM" ]; then
+# 1. Compilar JAR do LSP se necessário
+LSP_JAR_ORIGEM="$(find "$RAIZ/JVM/thz-lsp-jvm/build/libs" "$RAIZ/target" -maxdepth 1 -name "thz-lsp*.jar" ! -name "*-sources.jar" 2>/dev/null | head -n 1)"
+
+if [ "$SKIP_JAR" = false ] || [ -z "$LSP_JAR_ORIGEM" ] || [ ! -f "$LSP_JAR_ORIGEM" ]; then
     echo -e "\n\033[0;33m[1/5] Compilando Servidor LSP Java 25 (shadowJar)...\033[0m"
     (cd "$RAIZ" && ./gradlew :thz-lsp-jvm:shadowJar)
+    LSP_JAR_ORIGEM="$(find "$RAIZ/JVM/thz-lsp-jvm/build/libs" "$RAIZ/target" -maxdepth 1 -name "thz-lsp*.jar" ! -name "*-sources.jar" 2>/dev/null | head -n 1)"
 else
     echo -e "\n\033[0;90m[1/5] Utilizando shadowJar existente em $LSP_JAR_ORIGEM...\033[0m"
 fi
 
+if [ -z "$LSP_JAR_ORIGEM" ] || [ ! -f "$LSP_JAR_ORIGEM" ]; then
+    echo -e "\033[0;31m[ERRO] JAR do LSP não foi encontrado.\033[0m"
+    exit 1
+fi
+
 # 2. Copiar JAR para pasta da extensão
 echo -e "\n\033[0;33m[2/5] Copiando servidor LSP para a extensão...\033[0m"
-cp -f "$LSP_JAR_ORIGEM" "$LSP_JAR_DESTINO"
+cp -f "$LSP_JAR_ORIGEM" "$PASTA_SERVER_EXT/thz-lsp.jar"
+cp -f "$LSP_JAR_ORIGEM" "$PASTA_SERVER_EXT/$(basename "$LSP_JAR_ORIGEM")"
 if [ -f "$RAIZ/LICENSE" ]; then
     cp -f "$RAIZ/LICENSE" "$PASTA_EXTENSAO/LICENSE"
 fi

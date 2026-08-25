@@ -683,7 +683,7 @@ public final class ThzGui extends JFrame implements BarraMenuGui.AcoesGui {
     @Override
     public void exibirSobre() {
         JOptionPane.showMessageDialog(this,
-                "THZ-LANG Engine — JVM v2.3.0\n\n" +
+                "THZ-LANG Engine — JVM v" + thz.lang.version.ThzVersion.ATUAL + "\n\n" +
                         "Linguagem Corporativa de Sistemas, Governança de Negócio e Alta Performance.\n" +
                         "Plataforma: Java 25 (LTS) sobre Gradle (Kotlin DSL)\n\n" +
                         "© 2026 THZ-LANG Project.",

@@ -14,8 +14,12 @@ plugins {
     id("org.graalvm.buildtools.native") version "0.10.2"
 }
 
+val repoRoot = rootProject.projectDir.resolve("../../")
+val versionFile = if (file("version.txt").exists()) file("version.txt") else repoRoot.resolve("version.txt")
+val thzVersion = if (versionFile.exists()) versionFile.readText().trim() else "2.4.0"
+
 group = "thz.lang"
-version = "2.3.3"
+version = thzVersion
 
 repositories {
     mavenCentral()
@@ -28,7 +32,7 @@ java {
 }
 
 dependencies {
-    implementation("thz.lang:thz-core:2.3.3")
+    implementation("thz.lang:thz-core:$thzVersion")
 
     // UI Desktop & Tema
     implementation("com.formdev:flatlaf:3.5.4")

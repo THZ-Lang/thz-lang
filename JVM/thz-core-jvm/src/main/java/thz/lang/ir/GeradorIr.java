@@ -104,7 +104,7 @@ public final class GeradorIr {
         return new IrPrograma(
                 VERSAO_IR,
                 ast.nome(),
-                ast.versaoLinguagem() != null ? ast.versaoLinguagem() : "2.3.0",
+                ast.versaoLinguagem() != null ? ast.versaoLinguagem() : thz.lang.version.ThzVersion.ATUAL.toString(),
                 Map.copyOf(meta),
                 List.copyOf(estruturas),
                 List.copyOf(funcoes),

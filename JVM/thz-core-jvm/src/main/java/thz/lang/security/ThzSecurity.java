@@ -22,7 +22,7 @@ public final class ThzSecurity {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final int GCM_IV_LENGTH = 12; // 96 bits
     private static final int GCM_TAG_LENGTH = 128; // 128 bits
-    private static final int PBKDF2_ITERATIONS = 65536;
+    private static final int PBKDF2_ITERATIONS = 310000; // OWASP & BACEN security standard 2026
 
     private ThzSecurity() {}
 

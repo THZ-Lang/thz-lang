@@ -5,30 +5,54 @@ Bem-vindo ao **Manual Oficial do THZ-LANG**, a linguagem de programação de sis
 ---
 
 ## 📚 Sumário
-1. [Filosofia de Design](#1-filosofia-de-design)
-2. [Arquitetura Viva e Metadados (`METADADOS_ARQUITETURA`)](#2-arquitetura-viva-e-metadados-metadados_arquitetura)
-3. [Tipos de Dados e Aritmética Exata (ISO/IEC 10967 & ISO 4217)](#3-tipos-de-dados-e-aritmética-exata-isoiec-10967--iso-4217)
-4. [Sintaxe Global de Módulos e Arquétipos](#4-sintaxe-global-de-módulos-e-arquétipos)
-5. [Estruturas, Enumerações e Modelagem Colunar (SoA)](#5-estruturas-enumerações-e-modelagem-colunar-soa)
-6. [Design por Contrato (DbC) e Governança](#6-design-por-contrato-dbc-e-governança)
-7. [Variáveis, Funções e Estruturas de Controle](#7-variáveis-funções-e-estruturas-de-controle)
-8. [Tratamento Idiomático de Erros (`RESULTADO`)](#8-tratamento-idiomático-de-erros-resultado)
-9. [Engenharia de Dados: Arenas de Memória e SIMD](#9-engenharia-de-dados-arenas-de-memória-e-simd)
-10. [Pipelines de Big Data (`PIPELINE_DADOS`)](#10-pipelines-de-big-data-pipeline_dados)
-11. [DSL de Interface Gráfica e Tela Declarativa (`.thzui`)](#11-dsl-de-interface-gráfica-e-tela-declarativa-thzui)
-12. [Referência Exaustiva da Biblioteca Padrão (Stdlib API)](#12-referência-exaustiva-da-biblioteca-padrão-stdlib-api)
+1. [Filosofia de Design e Arquitetura de Dialeto Duplo (PT-BR & EN-US)](#1-filosofia-de-design-e-arquitetura-de-dialeto-duplo-pt-br--en-us)
+2. [Diretiva de Dialeto e Tabela de Equivalência de Sintaxe](#2-diretiva-de-dialeto-e-tabela-de-equivalência-de-sintaxe)
+3. [Arquitetura Viva e Metadados (`METADADOS_ARQUITETURA`)](#3-arquitetura-viva-e-metadados-metadados_arquitetura)
+4. [Tipos de Dados e Aritmética Exata (ISO/IEC 10967 & ISO 4217)](#4-tipos-de-dados-e-aritmética-exata-isoiec-10967--iso-4217)
+5. [Sintaxe Global de Módulos e Arquétipos](#5-sintaxe-global-de-módulos-e-arquétipos)
+6. [Estruturas, Enumerações e Modelagem Colunar (SoA)](#6-estruturas-enumerações-e-modelagem-colunar-soa)
+7. [Design por Contrato (DbC) e Governança](#7-design-por-contrato-dbc-e-governança)
+8. [Variáveis, Funções e Estruturas de Controle](#8-variáveis-funções-e-estruturas-de-controle)
+9. [Tratamento Idiomático de Erros (`RESULTADO`)](#9-tratamento-idiomático-de-erros-resultado)
+10. [Engenharia de Dados: Arenas de Memória e SIMD](#10-engenharia-de-dados-arenas-de-memória-e-simd)
+11. [Pipelines de Big Data (`PIPELINE_DADOS`)](#11-pipelines-de-big-data-pipeline_dados)
+12. [DSL de Interface Gráfica e Tela Declarativa (`.thzui`)](#12-dsl-de-interface-gráfica-e-tela-declarativa-thzui)
+13. [Segurança Criptográfica & Conformidade BACEN/LGPD (PBKDF2/AES-GCM)](#13-segurança-criptográfica--conformidade-bacenlgpd-pbkdf2aes-gcm)
+14. [Referência Exaustiva da Biblioteca Padrão (Stdlib API)](#14-referência-exaustiva-da-biblioteca-padrão-stdlib-api)
 
 ---
 
-## 1. Filosofia de Design
+## 1. Filosofia de Design e Arquitetura de Dialeto Duplo (PT-BR & EN-US)
 
-O **THZ-LANG** resolve o hiato entre a modelagem arquitetural (Domain-Driven Design) e a entrega de software de alto desempenho.
+O **THZ-LANG** resolve o hiato entre a modelagem arquitetural (Domain-Driven Design), a governança de negócio e a entrega de software de alto desempenho.
 
-| Pilar | Descrição |
-| :--- | :--- |
-| **1. Expressividade** | Linguagem ubíqua compartilhada entre domínio e código sem camadas de tradução. |
-| **2. Segurança** | Gerenciamento via arenas e tipos numéricos exatos (elimina buffer overflow e leaks). |
-| **3. Alto Desempenho** | Compilação AOT sem GC, vetorização SIMD nativa e suporte a layout colunar. |
+A partir da versão **v2.4.0**, o THZ-LANG introduz **Arquitetura de Dialetos Duplos (PT-BR / EN-US)**:
+* **Dialeto Canônico PT-BR:** Sintaxe nativa em português estruturado para clareza corporativa.
+* **Dialeto Internacional EN-US:** Sintaxe equivalente em inglês para interoperabilidade com equipes globais.
+* **AST & IR Unificados:** Ambos os dialetos geram a exata mesma Árvore Sintática e Representação Intermediária (`thz-ir/1`), garantindo compatibilidade total com o compilador nativo LLVM, o interpretador e a engine SIMD.
+* **Regra de Pureza Estrita (*Single Dialect*):** É proibido misturar palavras-chave em inglês e português no mesmo arquivo.
+
+---
+
+## 2. Diretiva de Dialeto e Tabela de Equivalência de Sintaxe
+
+### 2.1 Diretiva de Cabeçalho (Linha 1 ou 2)
+Para selecionar o dialeto, declare no cabeçalho do arquivo fonte:
+* `LINGUAGEM: pt-BR` (ou ausência de diretiva, assumindo PT-BR por padrão)
+* `LANGUAGE: en-US` (ativa dialeto em inglês)
+
+### 2.2 Tabela de Equivalência Canônica
+
+| Categoria | PT-BR (`LINGUAGEM: pt-BR`) | EN-US (`LANGUAGE: en-US`) |
+| :--- | :--- | :--- |
+| **Arquétipo** | `PROGRAMA`, `BIBLIOTECA`, `MODULO`, `EXTENSAO`, `TESTE`, `FERRAMENTA`, `TELA` | `PROGRAM`, `LIBRARY`, `MODULE`, `EXTENSION`, `TEST`, `TOOL`, `SCREEN` |
+| **Metadados** | `METADADOS_ARQUITETURA`, `DOMINIO`, `AUTOR`, `VERSAO`, `CAMADA`, `CRITICIDADE` | `ARCHITECTURE_METADATA`, `DOMAIN`, `AUTHOR`, `VERSION`, `LAYER`, `CRITICALITY` |
+| **Contratos** | `REGRA_NEGOCIO`, `PROCESSO`, `EXIGE`, `GARANTE`, `INVARIANTE`, `IDEMPOTENTE` | `BUSINESS_RULE`, `PROCESS`, `REQUIRES`, `ENSURES`, `INVARIANT`, `IDEMPOTENT` |
+| **Estruturas**| `ESTRUTURA`, `CRIAR`, `VALIDAR` | `STRUCTURE`, `CREATE`, `VALIDATE` |
+| **Memória**   | `USAR_BLOCO_MEMORIA`, `LAYOUT_COLUNAR`, `VETORIZAR_PARA` | `USE_MEMORY_BLOCK`, `COLUMNAR_LAYOUT`, `VECTORIZE_FOR` |
+| **Controle**  | `SE`, `ENTAO`, `SENAO`, `ENQUANTO`, `FACA`, `PARA`, `DE`, `ATE`, `PASSO` | `IF`, `THEN`, `ELSE`, `WHILE`, `DO`, `FOR`, `FROM`, `TO`, `STEP` |
+| **Saída & I/O** | `EXIBA`, `RETORNE`, `LER`, `FALHAR_COM` | `PRINT`, `RETURN`, `READ`, `FAIL_WITH` |
+| **Terminadores** | `FIM_PROGRAMA`, `FIM_ESTRUTURA`, `FIM_REGRA`, `FIM_SE`, `FIM_PARA` | `END_PROGRAM`, `END_STRUCTURE`, `END_RULE`, `END_IF`, `END_FOR` |
 
 ---
 

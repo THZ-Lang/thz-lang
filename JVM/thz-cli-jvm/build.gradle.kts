@@ -14,8 +14,12 @@ plugins {
     id("org.graalvm.buildtools.native") version "0.10.2"
 }
 
+val repoRoot = rootProject.projectDir.resolve("../../")
+val versionFile = if (file("version.txt").exists()) file("version.txt") else repoRoot.resolve("version.txt")
+val thzVersion = if (versionFile.exists()) versionFile.readText().trim() else "2.4.0"
+
 group = "thz.lang"
-version = "2.3.3"
+version = thzVersion
 
 repositories {
     mavenCentral()
@@ -28,8 +32,8 @@ java {
 }
 
 dependencies {
-    implementation("thz.lang:thz-core:2.3.3")
-    implementation("thz.lang:thz-gui-jvm:2.3.3")
+    implementation("thz.lang:thz-core:$thzVersion")
+    implementation("thz.lang:thz-gui-jvm:$thzVersion")
 
     // Testes Automatizados
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
@@ -76,21 +80,28 @@ tasks.test {
     }
 }
 
-// Copia o UberJAR para target/ na raiz do workspace (compatibilidade com scripts e jpackage).
+// Copia o UberJAR para target/ e dist/bin na raiz do workspace (compatibilidade universal)
 tasks.register<Copy>("instalarUberJar") {
     group = "build"
     description = "Copia o UberJAR para target/ na raiz do workspace"
     from(tasks.shadowJar.flatMap { it.archiveFile })
     into(rootProject.projectDir.resolve("../../target"))
-    rename { "thz-jvm-2.3.0.jar" }
+    rename { "thz-jvm.jar" }
+}
+
+tasks.register<Copy>("instalarUberJarVersao") {
+    group = "build"
+    description = "Copia o UberJAR versionado para target/"
+    from(tasks.shadowJar.flatMap { it.archiveFile })
+    into(rootProject.projectDir.resolve("../../target"))
 }
 
 tasks.shadowJar {
     archiveBaseName.set("thz-jvm")
     archiveClassifier.set("")
-    archiveVersion.set("2.3.0")
+    archiveVersion.set(thzVersion)
 
-    finalizedBy("instalarUberJar")
+    finalizedBy("instalarUberJar", "instalarUberJarVersao")
 }
 
 // Task para executar a CLI — workingDir = raiz do workspace para resolver exemplos/*.thz

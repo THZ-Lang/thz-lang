@@ -11,8 +11,12 @@ plugins {
     `maven-publish`
 }
 
+val repoRoot = rootProject.projectDir.resolve("../../")
+val versionFile = if (file("version.txt").exists()) file("version.txt") else repoRoot.resolve("version.txt")
+val thzVersion = if (versionFile.exists()) versionFile.readText().trim() else "2.4.0"
+
 group = "thz.lang"
-version = "2.3.3"
+version = thzVersion
 
 repositories {
     mavenCentral()
@@ -41,6 +45,21 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     options.compilerArgs.addAll(listOf("-Xlint:all", "-Xlint:-processing"))
 }
+
+val gerarVersaoTask = tasks.register("gerarVersaoPropriedades") {
+    val saidaDir = layout.buildDirectory.dir("generated/version-resources")
+    val v = thzVersion
+    inputs.property("thzVersion", v)
+    outputs.dir(saidaDir)
+
+    doLast {
+        val propFile = saidaDir.get().file("thz-version.properties").asFile
+        propFile.parentFile.mkdirs()
+        propFile.writeText("version=$v\n")
+    }
+}
+
+sourceSets["main"].resources.srcDir(gerarVersaoTask)
 
 tasks.test {
     useJUnitPlatform()

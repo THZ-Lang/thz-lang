@@ -19,8 +19,6 @@ $Raiz = (Get-Item $PSScriptRoot).Parent.FullName
 $PastaExtensao = Join-Path $Raiz "Extensions\thz-lsp-vscode"
 $PastaDist = Join-Path $Raiz "dist"
 $PastaServerExt = Join-Path $PastaExtensao "server"
-$LspJarOrigem = Join-Path $Raiz "JVM\thz-lsp-jvm\build\libs\thz-lsp-2.3.0.jar"
-$LspJarDestino = Join-Path $PastaServerExt "thz-lsp-2.3.0.jar"
 
 Write-Host "==========================================================================" -ForegroundColor Cyan
 Write-Host "         BUILD DO PACOTE VSIX DA EXTENSÃO THZ-LANG (LSP + SINTAXE)        " -ForegroundColor Cyan
@@ -35,7 +33,9 @@ if (-not (Test-Path $PastaServerExt)) {
 }
 
 # 2. Compilar shadowJar do Servidor LSP Java se necessário
-if (-not $PularBuildJar -or -not (Test-Path $LspJarOrigem)) {
+$LspJarItem = Get-ChildItem (Join-Path $Raiz "JVM\thz-lsp-jvm\build\libs\thz-lsp*.jar"), (Join-Path $Raiz "target\thz-lsp*.jar") -ErrorAction SilentlyContinue | Where-Object { $_.Name -notmatch "-sources" } | Select-Object -First 1
+
+if (-not $PularBuildJar -or -not $LspJarItem) {
     Write-Host "[1/5] Compilando Servidor LSP Java 25 (shadowJar)..." -ForegroundColor Yellow
     Push-Location $Raiz
     try {
@@ -47,18 +47,23 @@ if (-not $PularBuildJar -or -not (Test-Path $LspJarOrigem)) {
     } finally {
         Pop-Location
     }
+    $LspJarItem = Get-ChildItem (Join-Path $Raiz "JVM\thz-lsp-jvm\build\libs\thz-lsp*.jar"), (Join-Path $Raiz "target\thz-lsp*.jar") -ErrorAction SilentlyContinue | Where-Object { $_.Name -notmatch "-sources" } | Select-Object -First 1
 } else {
-    Write-Host "[1/5] Utilizando shadowJar existente em $LspJarOrigem..." -ForegroundColor DarkGray
+    Write-Host "[1/5] Utilizando shadowJar existente em $($LspJarItem.FullName)..." -ForegroundColor DarkGray
 }
 
-if (-not (Test-Path $LspJarOrigem)) {
-    Write-Error "Erro: JAR do LSP não encontrado em $LspJarOrigem"
+if (-not $LspJarItem) {
+    Write-Error "Erro: JAR do LSP não encontrado."
     exit 1
 }
+
+$LspJarOrigem = $LspJarItem.FullName
+$LspJarDestino = Join-Path $PastaServerExt "thz-lsp.jar"
 
 # 3. Copiar JAR para a pasta da extensão
 Write-Host "[2/5] Copiando servidor LSP para a extensão ($LspJarDestino)..." -ForegroundColor Yellow
 Copy-Item -Path $LspJarOrigem -Destination $LspJarDestino -Force
+Copy-Item -Path $LspJarOrigem -Destination (Join-Path $PastaServerExt $LspJarItem.Name) -Force
 if (Test-Path (Join-Path $Raiz "LICENSE")) {
     Copy-Item -Path (Join-Path $Raiz "LICENSE") -Destination (Join-Path $PastaExtensao "LICENSE") -Force
 }

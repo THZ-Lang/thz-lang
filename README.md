@@ -185,11 +185,23 @@ Explore os guias detalhados da documentação:
 
 - 📘 [**Manual Completo da Linguagem**](docs/MANUAL_LINGUAGEM.md) — Guia do iniciante ao avançado sobre sintaxe, tipos, contratos, UI e SIMD.
 - ⚙️ [**Arquitetura de Compilação Nativa — GraalVM, LLVM, IR/IL e Código de Máquina**](docs/ARQUITETURA_COMPILACAO_NATIVA.md) — Tratado completo sobre IR/IL, LLVM, GraalVM Native Image, geração AOT, velocidade (SIMD/SoA/Arenas) e execução segura.
+- 🔁 [**Self-Hosting**](docs/SELF_HOSTING.md) — Compilador em THZ, bootstrap `THZ→THZ-IR→LLVM`, paridade Java↔THZ.
+- 🧱 [**Runtime Nativo**](docs/RUNTIME_NATIVO.md) — ABI Dual-OS, Arenas, `thz_runtime.c`/`thz_webview2.c`, linking `clang→gcc`.
+- 🌊 [**PIPELINE_DADOS**](docs/PIPELINE_DADOS.md) — Guia Big Data (FONTE/TRANSFORMACAO/DESTINO, conectores, streaming).
+- 🖼️ [**TELA / .thzui**](docs/TELA_THZUI.md) — DSL declarativa, `TELA.*`/`WEBVIEW.*`, Swing vs WebView.
+- 🚀 [**Deployment**](docs/DEPLOYMENT.md) — `jpackage`/GraalVM/LLVM, Docker, `dist/`/`target`, CI `audit --git`.
+- ⚡ [**Guia de Performance**](docs/GUIA_PERFORMANCE.md) — SoA/SIMD/Arena tuning, escolha `PASSO_SIMD`, JMH.
+- 🧪 [**Testes & Benchmarks**](docs/TESTES_E_BENCHMARKS.md) — JUnit 5, goldens, paridade, JMH, skill `write-tests`.
+- 🔌 [**LSP & VS Code**](docs/LSP_VSCODE.md) / [**API REST**](docs/API_REST.md) — LSP4J + VS Code + Spring Boot 11 endpoints.
 - 📖 [**Glossário de Linguagem Ubíqua**](docs/GLOSSARIO_LINGUAGEM_UBIQUA.md) — Termos universais de negócio, governança, arquitetura e dados em português.
 - 📐 [**Gramática Formal EBNF (v2.4)**](docs/GRAMATICA.md) — Especificação rigorosa da linguagem.
 - 🛠️ [**CLI, Tooling & IDEs**](docs/CLI_E_TOOLING.md) — Manual do `thz check/run/dev/fmt/doc/audit/ui/ir`, Desktop IDE, LSP e extensão VS Code.
 - 🏛️ [**Conformidade e Normas Técnicas**](docs/CONFORMIDADE_E_NORMAS.md) — Adesão a ISO/IEC 10967, ISO 4217, ISO/IEC/IEEE 42010, RFCs e JSRs.
-- 💡 [**Exemplos & Padrões**](docs/EXEMPLOS_E_PADROES.md) — Receitas de código DDD, SIMD, HTTP e UIs.
+- 💡 [**Exemplos & Padrões**](docs/EXEMPLOS_E_PADROES.md) — 12 receitas de `exemplos/*.thz` + `*.thzui` reais.
+- 🛠️ [**IntelliJ Setup**](docs/INTELLIJ_SETUP.md) — JDK 25 + Gradle composite + TextMate + run configs.
+- 📚 [**ADRs**](docs/ADRs/README.md) — 5 decisões (LLVM vs Cranelift, Arena vs GC, i128 vs double...).
+- 🆘 [**Troubleshooting**](docs/TROUBLESHOOTING.md) — FAQ por área (build, SIMD, LSP, GraalVM, LLVM, Docker).
+- 📦 [**Changelog**](CHANGELOG.md) — Histórico SemVer.
 - 📊 [**Relatório de Evolução Histórica**](docs/RELATORIO-EVOLUCAO.md) — Trajetória de desenvolvimento e marcos alcançados.
 - 🤝 [**Guia de Contribuição**](CONTRIBUTING.md) — Diretrizes para desenvolvedores do ecossistema.
 

@@ -150,7 +150,7 @@ public final class AuditorGovernanca {
 
         return new RelatorioAuditoria(
                 ast.nome(),
-                ast.versaoLinguagem() != null ? ast.versaoLinguagem() : "2.3.0",
+                ast.versaoLinguagem() != null ? ast.versaoLinguagem() : thz.lang.version.ThzVersion.ATUAL.toString(),
                 ast.metadados(),
                 List.copyOf(matriz),
                 List.copyOf(estruturas),

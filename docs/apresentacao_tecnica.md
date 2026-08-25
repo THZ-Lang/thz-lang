@@ -1,4 +1,4 @@
-# ⚡ THZ-LANG — Apresentação Técnica Deep Dive (Engenharia & Arquitetura)
+# ⚡ THZ-LANG — Apresentação Técnica Detalhada (Engenharia & Arquitetura)
 
 **Arquitetura Interna, Motor de Compilação AOT, Semântica SIMD/SoA, Runtime Dual-OS e Self-Hosting**
 
@@ -46,7 +46,7 @@ FIM_PARA
 ```
 
 > [!TIP]
-> **SIMD Vectorization Rules (R1–R5):** O verificador formal em `src/simd.ts` e `thz.lang.simd` garante que laços decorados com `VETORIZAR_PARA` não possuam dependências cruzadas de iteração nem I/O impuro, emitindo vetores SIMD diretamente no LLVM IR.
+> **Regras de Vetorização SIMD (R1–R5):** O verificador formal em `src/simd.ts` e `thz.lang.simd` garante que laços decorados com `VETORIZAR_PARA` não possuam dependências cruzadas de iteração nem I/O impuro, emitindo vetores SIMD diretamente no LLVM IR.
 
 ### B. Gerenciamento de Memória Efêmera em Arenas $O(1)$
 Para mitigar paus de Garbage Collection e fragmentação de Heap, operações em lote utilizam blocos contíguos em **Arena** (`USAR_BLOCO_MEMORIA`):
@@ -111,7 +111,7 @@ O ecossistema conta com uma suíte completa do compilador escrita na própria li
 
 ---
 
-## 5. Tooling & Execução de Scripts AOT
+## 5. Ferramentas & Execução de Scripts AOT
 
 ```powershell
 # 1. Compilação AOT para Windows PE (.exe):
@@ -129,16 +129,16 @@ powershell.exe -ExecutionPolicy Bypass -File scripts/build-llvm.ps1 -ArquivoThz 
 ## 🧪 6. Matriz de Cobertura de Testes Automatizados
 
 ```text
-CompiladorSelfHostTest > testTokensSelfHost()       PASSED
-CompiladorSelfHostTest > testAstSelfHost()          PASSED
-CompiladorSelfHostTest > testLexerSelfHost()        PASSED
-CompiladorSelfHostTest > testParserSelfHost()       PASSED
-CompiladorSelfHostTest > testCodegenSelfHost()      PASSED
-CompiladorSelfHostTest > testDriverSelfHost()       PASSED
-CompiladorSelfHostTest > testDriverLlvmIr()         PASSED
+CompiladorSelfHostTest > testTokensSelfHost()       APROVADO
+CompiladorSelfHostTest > testAstSelfHost()          APROVADO
+CompiladorSelfHostTest > testLexerSelfHost()        APROVADO
+CompiladorSelfHostTest > testParserSelfHost()       APROVADO
+CompiladorSelfHostTest > testCodegenSelfHost()      APROVADO
+CompiladorSelfHostTest > testDriverSelfHost()       APROVADO
+CompiladorSelfHostTest > testDriverLlvmIr()         APROVADO
 
 ========================================================================
-BUILD SUCCESSFUL in 10s
-112 unit tests completed, 0 failures (100% PASSED)
+COMPILAÇÃO BEM-SUCEDIDA em 10s
+112 testes unitários concluídos, 0 falhas (100% APROVADOS)
 ========================================================================
 ```

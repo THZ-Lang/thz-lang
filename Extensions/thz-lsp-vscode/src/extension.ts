@@ -23,15 +23,27 @@ export function activate(context: vscode.ExtensionContext): void {
   const config = vscode.workspace.getConfiguration('thz-lang');
   const customJar = config.get<string>('lspJarPath');
 
-  const candidatos = [
-    customJar,
-    // Empacotado (vsix): servidor JAR embutido na pasta server
-    context.asAbsolutePath(path.join('server', 'thz-lsp-2.3.0.jar')),
-    context.asAbsolutePath(path.join('server', 'thz-lsp.jar')),
-    // Desenvolvimento no repositório JVM:
-    path.resolve(context.extensionPath, '..', '..', 'JVM', 'thz-lsp-jvm', 'build', 'libs', 'thz-lsp-2.3.0.jar'),
-    path.resolve(context.extensionPath, '..', '..', 'JVM', 'thz-lsp-jvm', 'target', 'thz-lsp-2.3.0.jar'),
-  ].filter((c): c is string => typeof c === 'string' && c.trim().length > 0);
+  const buildDirs = [
+    context.asAbsolutePath('server'),
+    path.resolve(context.extensionPath, '..', '..', 'JVM', 'thz-lsp-jvm', 'build', 'libs'),
+    path.resolve(context.extensionPath, '..', '..', 'target'),
+  ];
+
+  const candidatos: string[] = [];
+  if (customJar) candidatos.push(customJar);
+
+  for (const dir of buildDirs) {
+    if (fs.existsSync(dir)) {
+      try {
+        const files = fs.readdirSync(dir);
+        const jarFound = files.find(f => f.startsWith('thz-lsp') && f.endsWith('.jar') && !f.includes('-sources'));
+        if (jarFound) {
+          candidatos.push(path.join(dir, jarFound));
+        }
+      } catch (ignored) {}
+    }
+  }
+  candidatos.push(context.asAbsolutePath(path.join('server', 'thz-lsp.jar')));
 
   let jarPath: string | undefined;
   for (const cand of candidatos) {
@@ -43,7 +55,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   if (!jarPath) {
     vscode.window.showWarningMessage(
-      'THZ-LANG: Servidor LSP Java (thz-lsp-2.3.0.jar) não foi encontrado. Execute "./gradlew :thz-lsp-jvm:jar" para compilá-lo.'
+      'THZ-LANG: Servidor LSP Java não foi encontrado. Execute "./gradlew :thz-lsp-jvm:jar" para compilá-lo.'
     );
     jarPath = candidatos[candidatos.length - 1];
   }
@@ -97,15 +109,25 @@ export function activate(context: vscode.ExtensionContext): void {
       const thzCmd = path.join(root, 'thz.cmd');
       const thzPs1 = path.join(root, 'thz.ps1');
       const gradlewBat = path.join(root, 'gradlew.bat');
-      const gradlewSh = path.join(root, 'gradlew');
-      const cliJar = path.join(root, 'JVM', 'thz-cli-jvm', 'build', 'libs', 'thz-jvm-2.3.3.jar');
-      const cliShadowJar = path.join(root, 'JVM', 'thz-cli-jvm', 'build', 'libs', 'thz-cli-jvm-2.3.3-all.jar');
+      const cliLibs = path.join(root, 'JVM', 'thz-cli-jvm', 'build', 'libs');
+      const targetDir = path.join(root, 'target');
+      let foundCliJar: string | undefined;
 
-      if (fs.existsSync(cliJar)) {
-        return { comando: `java -jar "${cliJar}" ${fullArgs}`, cwd: root };
+      for (const dir of [targetDir, cliLibs]) {
+        if (fs.existsSync(dir)) {
+          try {
+            const files = fs.readdirSync(dir);
+            const achado = files.find(f => (f.startsWith('thz-jvm') || f.startsWith('thz-cli')) && f.endsWith('.jar') && !f.includes('-sources'));
+            if (achado) {
+              foundCliJar = path.join(dir, achado);
+              break;
+            }
+          } catch (ignored) {}
+        }
       }
-      if (fs.existsSync(cliShadowJar)) {
-        return { comando: `java -jar "${cliShadowJar}" ${fullArgs}`, cwd: root };
+
+      if (foundCliJar && fs.existsSync(foundCliJar)) {
+        return { comando: `java -jar "${foundCliJar}" ${fullArgs}`, cwd: root };
       }
       if (isWin && fs.existsSync(thzPs1)) {
         return { comando: `& "${thzPs1}" ${fullArgs}`, cwd: root };
