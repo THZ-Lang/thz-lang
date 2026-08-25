@@ -60,7 +60,11 @@ graalvmNative {
     }
     agent {
         defaultMode.set("standard")
-        enabled.set(true)
+        // So ativa o agente de metadados automatico se a propriedade do projeto 'graalvmAgent' ou a variavel de ambiente 'GRAALVM_AGENT' estiver definida como 'true'
+        enabled.set(
+            project.hasProperty("graalvmAgent") && project.property("graalvmAgent").toString().toBoolean() ||
+            System.getenv("GRAALVM_AGENT") == "true"
+        )
     }
 }
 
