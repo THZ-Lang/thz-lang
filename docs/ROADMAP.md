@@ -112,10 +112,10 @@ Oferecer uma experiência de desenvolvimento e diagnóstico completa de nível i
 
 ## 📅 Matriz de Fases e Marcos
 
-| Fase | Foco Principal | Prazo Estimado | Módulos Impactados |
-| :--- | :--- | :--- | :--- |
-| **Fase 1** | **IA & RAG On-Device (Panama + ONNX + Candle)** | v2.6.0 | `src/runtime_rs`, `thz-core-jvm`, `BibliotecaPadrao` |
-| **Fase 2** | **Consultas Tipadas Nativas (LINQ / Query DSL)** | v2.7.0 | `lexer`, `parser`, `analisador`, `interpretador` |
-| **Fase 3** | **Mensageria Reativa & Eventos (EDA)** | v2.8.0 | `thz-core-jvm`, `thz-api-jvm`, `MENSAGERIA` |
-| **Fase 4** | **Debugger Nativo (DAP - Debug Adapter Protocol)** | v2.9.0 | `thz-lsp-jvm`, `thz-gui-jvm`, `Extensions/thz-lsp-vscode` |
-| **Fase 5** | **Compilação WebAssembly (WASM)** | v3.0.0 | `compilador/`, `src/runtime_rs`, `playground/` |
+| Fase | Foco Principal | Versão | Status | Módulos Impactados |
+| :--- | :--- | :--- | :--- | :--- |
+| **Fase 1** | **IA & RAG On-Device (Zero Python)** | v2.6.0 | ✅ **CONCLUÍDO** | `src/runtime_rs/ml.rs`, `ThzIaEngine`, `IA.*`, `ML.*` |
+| **Fase 2** | **Consultas Tipadas Nativas (LINQ / Query DSL)** | v2.7.0 | ✅ **CONCLUÍDO** | `CONSULTAR`, `ONDE`, `ORDENAR_POR`, `FATIA.*` |
+| **Fase 3** | **Mensageria Reativa & Eventos (EDA Async)** | v2.8.0 | ✅ **CONCLUÍDO** | `ThzBarramentoEventos`, `MENSAGERIA.*`, Virtual Threads |
+| **Fase 4** | **Debugger Nativo (DAP - Debug Adapter Protocol)** | v2.9.0 | ✅ **CONCLUÍDO** | `ThzDapServer`, `ThzDebugListener`, Breakpoints, StepOver |
+| **Fase 5** | **Compilação WebAssembly (WASM Universal)** | v3.0.0 | ✅ **CONCLUÍDO** | `src/runtime_rs/wasm.rs`, `Alvo.WEBASSEMBLY` |

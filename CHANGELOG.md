@@ -4,7 +4,55 @@ Todas as mudanças notáveis deste projeto são documentadas aqui. Formato basea
 
 ---
 
-## [2.4.0] - 2026-08-25
+## [3.0.0] - 2026-08-25 (WebAssembly Target & Arquitetura Unificada)
+
+### Adicionado
+- **Target WebAssembly (WASM):** Módulo `src/runtime_rs/src/wasm.rs` e alvo `Alvo.WEBASSEMBLY` no `ThzCompilerDriver` para execução universal em navegadores e Edge Workers.
+- **Rust Embutido (`BLOCO_NATIVO_RUST`):** Suporte sintático para blocos de código nativo Rust diretamente em arquivos `.thz`.
+- **Toolchain Rust Portátil:** Scripts `scripts/setup-rust.ps1` e `setup-rust.sh` para provisionamento standalone em `.tools/rust`.
+- **Exemplo Canônico:** `exemplos/regra_wasm.thz` e `exemplos/rust_embutido.thz`.
+
+### Alterado
+- **Consolidação Arquitetural:** Rust (`src/runtime_rs/`) estabelecido como o único runtime nativo oficial, aposentando código C legado (`src/runtime/`).
+- **Isolamento de Node.js:** Node.js mantido exclusivamente dentro de `Extensions/thz-lsp-vscode/`.
+
+---
+
+## [2.9.0] - 2026-08-25 (Debugger Nativo DAP)
+
+### Adicionado
+- **Servidor DAP (Debug Adapter Protocol):** `ThzDapServer.java` e hook `ThzDebugListener.java` com suporte a breakpoints, Step Over, Continue, StackTrace e inspeção de variáveis no VS Code e IDE Desktop.
+- **Suíte de Testes:** `ThzDapServerTest.java`.
+
+---
+
+## [2.8.0] - 2026-08-25 (Mensageria Reativa & EDA Async)
+
+### Adicionado
+- **Barramento Reativo de Eventos:** `ThzBarramentoEventos.java` com RingBuffer lock-free e despacho em Virtual Threads do Java 25.
+- **Módulo `MENSAGERIA.*`:** Funções `MENSAGERIA.publicar`, `MENSAGERIA.consumir`, `MENSAGERIA.tamanhoFila`, `MENSAGERIA.limparTopico`.
+- **Exemplo Canônico:** `exemplos/streaming_eventos.thz` e testes `MensageriaReativaTest.java`.
+
+---
+
+## [2.7.0] - 2026-08-25 (Consultas Tipadas LINQ / Query DSL)
+
+### Adicionado
+- **Sintaxe de Consulta Tipada:** Palavras-chave `CONSULTAR`, `DE`, `ONDE`, `ORDENAR_POR`, `LIMITE`, `PULAR`, `ASC`, `DESC`.
+- **Funções de Fatias:** `FATIA.tamanho`, `FATIA.primeiro`, `FATIA.ultimo`, `FATIA.vazia`.
+- **Exemplo Canônico:** `exemplos/consultas_linq.thz` e testes `ConsultaTipadaTest.java`.
+
+---
+
+## [2.6.0] - 2026-08-25 (IA & Machine Learning On-Device - Zero Python)
+
+### Adicionado
+- **Embeddings Determinísticos:** Extração semântica com hash FNV-1a 64-bit, tri-gramas morfológicos e normalização Euclidiana $L_2$ (`ThzIaEngine.java` / `ml.rs`).
+- **ML Tabular:** Regressão linear e classificação logística sigmoide sem dependências de Python (`ThzMlEngine.java`).
+- **Módulo `IA.*` e `ML.*`:** `IA.embedding`, `IA.similaridade`, `ML.classificar`, `ML.predizer`.
+- **Exemplo Canônico:** `exemplos/ia_rag_local.thz` e testes `ThzIaMlTest.java`.
+
+---
 
 ### Adicionado
 

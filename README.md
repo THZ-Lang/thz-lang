@@ -59,7 +59,12 @@ O repositório unifica os motores de execução em Java 25 (JVM Multi-módulo), 
 2. **Design by Contract & Governança Integrada:** Cláusulas formais de pré-condição (`EXIGE`), pós-condição (`GARANTE`) e invariantes de entidade (`INVARIANTE`) validadas em tempo de compilação e execução.
 3. **Engenharia Orientada a Dados (DoD):** Suporte nativo a layout colunar (*Structure of Arrays* via `LAYOUT_COLUNAR`), laços vetorizados (`VETORIZAR_PARA ... PASSO_SIMD`) e gerenciamento de blocos em Arena contígua (`USAR_BLOCO_MEMORIA`).
 4. **Arquitetura Viva & UIs Declarativas:** Extração automática de metadados arquiteturais (`METADADOS_ARQUITETURA`), rastreabilidade de requisitos (`RASTREIO_REQUISITO`) e suporte nativo a arquivos de interface gráfica (`.thzui` e `TELA`).
-5. **Autonomia Total & Self-Hosting:** Compilador escrito na própria linguagem (`compilador/*.thz`) com emissão de LLVM IR e compilação nativa AOT Dual-OS via Clang/MinGW GCC (`scripts/build-llvm.ps1`) e runtime C (`src/runtime/thz_runtime.c`), sem dependência obrigatória de JVM em produção.
+5. **Autonomia Total & Runtime Rust:** Compilação nativa AOT Dual-OS via LLVM Clang linkando com o runtime de alta performance em Rust (`src/runtime_rs`), sem dependência de JVM em produção.
+6. **IA & Machine Learning Soberano (Zero Python):** Embeddings determinísticos, similaridade de cosseno e modelos tabulares em sub-milissegundos on-device (`IA.*`, `ML.*`).
+7. **Consultas Tipadas Nativas (LINQ / Query DSL):** `CONSULTAR ... ONDE ... ORDENAR_POR ... LIMITE` com validação de tipos em tempo de compilação.
+8. **Mensageria Reativa & Streaming (EDA):** Barramento de eventos assíncrono de ultra-alta taxa de transferência (`MENSAGERIA.*`).
+9. **Depuração Nativa (DAP):** Protocolo DAP para depuração passo a passo com breakpoints no VS Code e na Desktop IDE.
+10. **Target Universal WebAssembly (WASM):** Execução nativa no navegador e Edge Workers com precisão ISO/IEC 10967.
 
 ---
 
