@@ -10,11 +10,12 @@ Este documento define o contexto técnico, restrições arquiteturais e diretriz
 * **Paradigma:** Linguagem Corporativa de Sistemas, Governança de Negócio (DDD), Arquitetura Viva e Processamento de Dados de Alta Performance.
 * **Sintaxe:** Estruturada em língua portuguesa com tipagem estática e *Design by Contract*.
 
-### Papéis do Ecossistema:
+### Papéis do Ecossistema (Arquitetura Unificada Rota 1):
 1. **Core & Tooling Principal (JVM):** Multi-módulo Java 25 (`JVM/thz-core-jvm`, `thz-cli-jvm`, `thz-gui-jvm`, `thz-lsp-jvm`, `thz-bench-jvm`, `thz-api-jvm`).
-2. **Desktop IDE:** Interface gráfica moderna com paridade visual universal em todas as plataformas via Swing + FlatLaf (`JVM/thz-gui-jvm`).
-3. **Compilação AOT & Performance:** GraalVM Native Image para o CLI/GUI (`thz.exe`) + Backend nativo LLVM Clang AOT (`src/runtime/thz_runtime.c` / `scripts/build-llvm.ps1`) para binários de negócio.
-4. **Web / Tooling Visual:** TypeScript e Monaco Editor (`src/`, `playground/`, `Extensions/thz-lsp-vscode`).
+2. **Desktop IDE:** Interface gráfica moderna em Swing + FlatLaf com paridade universal em todas as plataformas (`JVM/thz-gui-jvm`).
+3. **Runtime Nativo de Alta Performance:** Rust (`src/runtime_rs/` + `dist/native/`) com C ABI pura para SIMD, Arena de Memória, Criptografia e WebAssembly (WASM).
+4. **Compilação AOT & Performance:** Backend LLVM Clang AOT (`scripts/build-llvm.ps1`) para gerar binários nativos de negócio linkando com o runtime Rust.
+5. **VS Code Extension:** Extensão oficial isolada (`Extensions/thz-lsp-vscode`).
 
 ---
 
@@ -36,18 +37,17 @@ Este documento define o contexto técnico, restrições arquiteturais e diretriz
 
 ## 3. Mapa de Estrutura do Projeto
 
-* `JVM/thz-core-jvm/`: Núcleo da linguagem em Java 25 (Léxico, Sintático, AST, Semântico, Runtime de Arena, DecimalFixo, Interpretador, IR, Governança, DocGen).
+* `JVM/thz-core-jvm/`: Núcleo da linguagem em Java 25 (Léxico, Sintático, AST, Semântico, Runtime de Arena, DecimalFixo, Interpretador, IR, Governança, DocGen, DAP).
 * `JVM/thz-cli-jvm/`: Interface de linha de comando (`ThzCli`), REPL e servidor de desenvolvimento.
 * `JVM/thz-gui-jvm/`: Desktop IDE completa em Swing + FlatLaf (`ThzGui`, Editor com syntax highlighting, gutter, toolbar, formulários visuais).
 * `JVM/thz-lsp-jvm/`: Servidor de protocolo de linguagem (LSP) para IDEs.
 * `JVM/thz-bench-jvm/`: Suíte de benchmarks JMH para micro-otimizações.
-* `src/`: Implementação de referência em TypeScript e servidor de serviços de linguagem.
-* `playground/`: Playground Web Monaco + Monarch para execução interativa no navegador.
+* `src/runtime_rs/`: Único runtime nativo oficial em Rust (Arena, SIMD, Crypto, ML, WASM, C ABI).
+* `dist/native/`: Binários pré-compilados (.dll, .so, .wasm) do runtime nativo.
 * `Extensions/thz-lsp-vscode/`: Extensão oficial do VS Code (TextMate Grammar + Language Client).
-* `src/runtime/thz_runtime.c`: Runtime nativo C Dual-OS (Win32/POSIX) para executáveis gerados via LLVM Clang.
 * `compilador/`: Compilador self-hosted escrito na própria linguagem THZ (`driver.thz`, `lexer.thz`, `parser.thz`, `codegen.thz`).
-* `scripts/`: Scripts PowerShell de automação (`build-llvm.ps1`, `build-native.ps1`, `gui.ps1`, `test-all.ps1`).
-* `exemplos/`: Programas canônicos de teste e demonstração (`faturamento.thz`, `pedidos.thz`, `showcase_widgets_gui.thz`).
+* `scripts/`: Scripts PowerShell de automação (`build-llvm.ps1`, `setup-rust.ps1`, `gui.ps1`, `test-all.ps1`).
+* `exemplos/`: Programas canônicos de teste e demonstração (`faturamento.thz`, `pedidos.thz`, `rust_embutido.thz`, `streaming_eventos.thz`, `regra_wasm.thz`).
 
 ---
 

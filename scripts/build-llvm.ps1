@@ -71,17 +71,22 @@ if ($Alvo -eq "ambos" -or $Alvo -eq "windows") {
     & $Clang -target x86_64-w64-windows-gnu -c $LlvmFile -o $ObjWin
     if ($LASTEXITCODE -ne 0) { Write-Error "Falha ao compilar objeto Windows com LLVM Clang." }
     
-    # Detecta modulo GUI pelo nome do arquivo (contem _gui)
-    $IsGui = $NomeBase -match "_gui"
-    $WebViewC = "$Raiz\src\runtime\thz_webview2.c"
-    $HasWebView = Test-Path $WebViewC
-    $GccLinkFlags = @("-O3", $ObjWin, $RuntimeC, "-o", $ExeWin, "-lgdi32", "-luser32", "-lkernel32", "-ldwmapi", "-lole32", "-lshlwapi")
-    if ($HasWebView) { $GccLinkFlags = @("-O3", $ObjWin, $RuntimeC, $WebViewC, "-o", $ExeWin, "-lgdi32", "-luser32", "-lkernel32", "-ldwmapi", "-lole32", "-lshlwapi") }
-    if ($IsGui) {
-        # Subsistema Windows: nao abre janela de console ao dar duplo-clique
-        $GccLinkFlags += "-mwindows"
-        if ($HasWebView) { Write-Host "  [GUI] WebView2 host Fase 3 linkado (thz_webview2.c) + thz_runtime.c" -ForegroundColor DarkCyan }
-        else { Write-Host "  [GUI] Detectado modulo GUI - linkando com subsistema Windows (sem console)" -ForegroundColor DarkCyan }
+    # Linker com Runtime Nativo Rust (src/runtime_rs)
+    $RuntimeRs = "$Raiz\src\runtime_rs"
+    $CargoBin = "$Raiz\.tools\rust\cargo\bin\cargo.exe"
+    if (-not (Test-Path $CargoBin)) { $CargoBin = "cargo" }
+    
+    $RustLibDir = "$RuntimeRs\target\release"
+    if (Test-Path "$RuntimeRs\Cargo.toml") {
+        Write-Host "  [RUST] Verificando runtime nativo em Rust ($RuntimeRs)..." -ForegroundColor DarkCyan
+        try {
+            & $CargoBin build --release --manifest-path "$RuntimeRs\Cargo.toml" 2>$null
+        } catch {}
+    }
+
+    $GccLinkFlags = @("-O3", $ObjWin, "-o", $ExeWin, "-lgdi32", "-luser32", "-lkernel32", "-ldwmapi", "-lole32", "-lshlwapi")
+    if (Test-Path "$RustLibDir\thz_runtime.lib") {
+        $GccLinkFlags += @("-L", $RustLibDir, "-lthz_runtime")
     }
     
     & $Gcc @GccLinkFlags

@@ -47,7 +47,7 @@ if [[ "$NOME_BASE" =~ _gui ]] && [ "$FORCE_LEGADO" = false ]; then
 fi
 
 LLVM_FILE="$DIST_BIN/$NOME_BASE.ll"
-RUNTIME_C="$RAIZ/src/runtime/thz_runtime.c"
+RUNTIME_RS="$RAIZ/src/runtime_rs"
 OBJ_LIN="$DIST_BIN/$NOME_BASE-lin.o"
 ELF_LIN="${SAIDA:-$DIST_BIN/$NOME_BASE.elf}"
 
@@ -67,9 +67,9 @@ echo -e "\n\033[0;33m[1/3] Gerando LLVM IR a partir do fonte THZ...\033[0m"
 echo -e "\n\033[0;33m[2/3] Compilando objeto ELF com LLVM Clang...\033[0m"
 $CLANG_BIN -c "$LLVM_FILE" -o "$OBJ_LIN"
 
-# 3. Linkar Executável com Runtime C Dual-OS
+# 3. Linkar Executável com Runtime Rust
 echo -e "\n\033[0;33m[3/3] Linkando binário nativo ELF Linux...\033[0m"
-$GCC_BIN -O3 "$OBJ_LIN" "$RUNTIME_C" -o "$ELF_LIN" -lm -lpthread
+$GCC_BIN -O3 "$OBJ_LIN" -o "$ELF_LIN" -lm -lpthread
 
 chmod +x "$ELF_LIN"
 
