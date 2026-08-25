@@ -1,0 +1,49 @@
+PROGRAMA DemonstracaoMensageriaConectoresHibridos
+
+# ==============================================================================
+# THZ-LANG v3.0.0 — Conectores Universais de Mensageria (RabbitMQ / Kafka / SQS)
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "IntegracaoCorporativa"
+    SUBDOMINIO: "MensageriaDistribuida"
+    CAMADA: "Servico"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA TransacaoPix
+    idTransacao: TEXTO
+    chavePix: TEXTO
+    valor: DECIMAL
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO ProcessarFilaUniversal
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "=== DEMONSTRACAO DE MENSAGERIA HIBRIDA THZ-LANG ==="
+        EXIBA "Driver Ativo de Mensageria: " + MENSAGERIA.driverAtivo()
+        EXIBA "Status de Conexao: " + TEXTO.deLogico(MENSAGERIA.statusConexao())
+        EXIBA "URL do Broker: " + MENSAGERIA.urlAtiva()
+
+        VARIAVEL topico : TEXTO <- "pix.transferencias"
+        MENSAGERIA.limparTopico(topico)
+
+        # Publica mensagem estruturada no broker ativo (RabbitMQ/Kafka/SQS ou Embutido)
+        VARIAVEL tx : TransacaoPix <- CRIAR TransacaoPix(idTransacao: "TX-9988", chavePix: "financeiro@empresa.com", valor: 1250.00)
+        VARIAVEL offset : INTEIRO <- MENSAGERIA.publicar(topico, tx)
+
+        EXIBA "Mensagem publicada com sucesso! Offset: " + TEXTO.deInteiro(offset)
+        EXIBA "Tamanho atual da fila: " + TEXTO.deInteiro(MENSAGERIA.tamanhoFila(topico))
+
+        # Consome da fila com timeout de 100ms
+        VARIAVEL recebida : TransacaoPix <- MENSAGERIA.consumir(topico, 100)
+        EXIBA "Mensagem consumida: " + recebida.idTransacao + " | Valor: R$ " + TEXTO.deDecimal(recebida.valor)
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA
