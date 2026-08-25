@@ -73,8 +73,11 @@ ehthumbs_vista.db
 dados/
 JVM/**/dados/
 
-# Logs and Scratch
+# Logs, Snapshots and Scratch
 *.log
+*.thzsnap
+*.thzdbi
+.thz/internal/
 scratch/
 tmp/
 temp/

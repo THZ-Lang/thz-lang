@@ -9,6 +9,15 @@ Todas as mudanças notáveis deste projeto são documentadas aqui. Formato basea
 ### Adicionado
 - **Manifesto de Configuração Centralizada (`thz.config.json` / `thz.json`):** Padronização de projeto, dialeto (`pt-BR`), drivers de banco e mensageria, IA e conformidade de governança, com comando `thz init` e auto-detecção no CLI.
 - **Resolução e Pesquisa Inteligente Recursiva de Recursos (`ThzLocalizadorRecursos`):** Motor centralizado de busca progressiva e recursiva para arquivos-fonte `.thz`/`.thzui`, módulos (`IMPORTAR "..."`), manifestos de projeto e bancos SQLite com subida hierárquica à raiz e varredura profunda com descarte de diretórios ignorados.
+- **Banco de Dados Interno Protegido (`.thzdbi` / `ThzInternalDatabase`):** Extensão proprietária para persistência SQLite física interna de uso exclusivo da linguagem para CEPs, municípios IBGE e cache de compilação sem intervenção manual do usuário.
+- **Módulo do Brasil Digital (`BRASIL.*` / `ThzBrasilEngine`):**
+  - CEPs & Endereços: Consulta offline no `.thzdbi`, cadastro local, inferência por faixa canônica dos Correios e formatação ABNT.
+  - PIX: Geração de payload "PIX Copia e Cola" (EMVco / BR Code) com checksum CRC16-CCITT e validação de chaves (CPF, CNPJ, Email, Telefone, EVP).
+  - Boletos Bancários: Validação de linha digitável Febraban (47 dígitos), conversão para código de barras (44 posições) e extração de valor nominal.
+  - Documentos Oficiais: Validação e formatação de CPF, CNPJ, Título de Eleitor (2 DVs da Justiça Eleitoral), CNH (Detran), PIS/PASEP e telefones.
+  - Feriados & Dias Úteis: Feriados nacionais fixos (inclusive Consciência Negra - Lei 14.759/23), feriados móveis (Páscoa/Carnaval/Corpus Christi via algoritmo de Butcher/Meeus) e prorrogação de vencimentos bancários.
+  - Valores por Extenso: Escrita formal em Reais e centavos.
+- **Motor de Snapshot & Compactação de Cache (`SNAPSHOT.*` / `ThzSnapshotEngine`):** Congelamento e portabilidade de workspace em formato binário `THZSNAP\x01` com compressão Deflater nível 9, mantendo estritamente 1 único snapshot ativo e cota rígida de tamanho (< 100MB).
 - **Suíte de Analytics, DAX, Automação Excel & Data Quality:**
   - `ESTATISTICA.*`: Média, mediana, moda, desvio padrão, covariância/correlação de Pearson, percentis, escores Z-Score, detecção de outliers (IQR / Tukey) e regressão linear simples com $R^2$.
   - `DAX.*`: Inteligência temporal (YTD, YoY), contagem de distintos (`DISTINCTCOUNT`), ranking ordinal (`RANKX`), `% do Total` e avaliação de KPIs corporativos com status visual.
@@ -19,8 +28,8 @@ Todas as mudanças notáveis deste projeto são documentadas aqui. Formato basea
 - **Target WebAssembly (WASM):** Módulo `src/runtime_rs/src/wasm.rs` e alvo `Alvo.WEBASSEMBLY` no `ThzCompilerDriver` para execução universal em navegadores e Edge Workers.
 - **Rust Embutido (`BLOCO_NATIVO_RUST`):** Suporte sintático para blocos de código nativo Rust diretamente em arquivos `.thz`.
 - **Toolchain Rust Portátil:** Scripts `scripts/setup-rust.ps1` e `setup-rust.sh` para provisionamento standalone em `.tools/rust`.
-- **Exemplos Canônicos:** `exemplos/dax_kpis_analytics.thz`, `exemplos/estatistica_e_previsao.thz`, `exemplos/limpeza_dados_caoticos_etl.thz`, `exemplos/excel_planilhas_procv.thz`, `exemplos/mensageria_conectores_hibridos.thz`, `exemplos/banco_jpa_orm_vetorial.thz`, `exemplos/banco_rawsql_avancado.thz`, `exemplos/regra_wasm.thz` e `exemplos/rust_embutido.thz`.
-- **Documentação Formal:** `docs/ENGENHARIA_DE_DADOS_E_ANALYTICS.md` e `docs/CONECTORES_BANCO_E_MENSAGERIA.md`.
+- **Exemplos Canônicos:** `exemplos/brasil_enderecos_ceps_thzdbi.thz`, `exemplos/brasil_pix_boletos_dia_a_dia.thz`, `exemplos/snapshot_compactacao_workspace.thz`, `exemplos/dax_kpis_analytics.thz`, `exemplos/estatistica_e_previsao.thz`, `exemplos/limpeza_dados_caoticos_etl.thz`, `exemplos/excel_planilhas_procv.thz`, `exemplos/mensageria_conectores_hibridos.thz`, `exemplos/banco_jpa_orm_vetorial.thz`, `exemplos/banco_rawsql_avancado.thz`, `exemplos/regra_wasm.thz` e `exemplos/rust_embutido.thz`.
+- **Documentação Formal:** `docs/BRASIL_DIGITAL_E_SNAPSHOT_ENGINE.md`, `docs/ENGENHARIA_DE_DADOS_E_ANALYTICS.md` e `docs/CONECTORES_BANCO_E_MENSAGERIA.md`.
 
 ### Alterado
 - **Consolidação Arquitetural:** Rust (`src/runtime_rs/`) estabelecido como o único runtime nativo oficial, aposentando código C legado (`src/runtime/`).

@@ -1,0 +1,72 @@
+PROGRAMA DemonstracaoBrasilEnderecosCepsThzdbi
+
+# ==============================================================================
+# THZ-LANG v3.0.0 — Endereços, CEPs do Brasil e Banco Interno Protegido (.thzdbi)
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "LogisticaNacional"
+    SUBDOMINIO: "GeolocalizacaoECep"
+    CAMADA: "Integracao"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+REGRA_NEGOCIO ProcessarEnderecosCeps
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "================================================================================"
+        EXIBA "   DEMONSTRACAO THZ-LANG: BANCO INTERNO OFFLINE (.thzdbi) & CEPS DO BRASIL"
+        EXIBA "================================================================================"
+
+        # 1. Consulta Offline no Banco Interno Protegido (.thzdbi)
+        EXIBA "1. Consultando CEPs no Banco Interno .thzdbi (Zero Conexao Externa)..."
+        VARIAVEL endPaulista : REGISTRO <- BRASIL.consultarCep("01310-100")
+        EXIBA "-> CEP: " + endPaulista.cep
+        EXIBA "-> Logradouro: " + endPaulista.logradouro
+        EXIBA "-> Bairro: " + endPaulista.bairro
+        EXIBA "-> Cidade: " + endPaulista.cidade + " / " + endPaulista.uf + " (" + endPaulista.regiao + ")"
+        EXIBA "-> Codigo IBGE: " + endPaulista.ibge + " | DDD: " + endPaulista.ddd
+
+        # 2. Cadastro Offline de Novos CEPs no .thzdbi
+        EXIBA "2. Registrando Novo CEP no Banco Interno .thzdbi..."
+        VARIAVEL cadastrado : LOGICO <- BRASIL.cadastrarCep(
+            "13010-002",
+            "Rua General Osorio",
+            "Centro",
+            "Campinas",
+            "SP",
+            "3509502",
+            "19"
+        )
+        EXIBA "-> CEP Cadastrado no .thzdbi com Sucesso? " + TEXTO.deLogico(cadastrado)
+
+        VARIAVEL endCampinas : REGISTRO <- BRASIL.consultarCep("13010-002")
+        EXIBA "-> Consulta de Confirmacao: " + endCampinas.logradouro + ", " + endCampinas.cidade + "/" + endCampinas.uf
+
+        # 3. Formatação Canônica de Endereço Padrão Correios / ABNT
+        EXIBA "3. Formatacao Canonica de Endereco Completo..."
+        VARIAVEL enderecoCompleto : TEXTO <- BRASIL.formatarEndereco(
+            "Avenida Paulista",
+            "1000",
+            "Conjunto 142",
+            "Bela Vista",
+            "Sao Paulo",
+            "SP",
+            "01310100"
+        )
+        EXIBA "-> Endereco Formatado: " + enderecoCompleto
+
+        # 4. Validação de Unidades Federativas e Identificação de Regiões
+        EXIBA "4. Validacao de Unidades Federativas (UFs)..."
+        EXIBA "-> 'SP' e UF valida? " + TEXTO.deLogico(BRASIL.validarUf("SP")) + " (Regiao: " + BRASIL.regiaoUf("SP") + ")"
+        EXIBA "-> 'BA' e UF valida? " + TEXTO.deLogico(BRASIL.validarUf("BA")) + " (Regiao: " + BRASIL.regiaoUf("BA") + ")"
+        EXIBA "-> 'XX' e UF valida? " + TEXTO.deLogico(BRASIL.validarUf("XX"))
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

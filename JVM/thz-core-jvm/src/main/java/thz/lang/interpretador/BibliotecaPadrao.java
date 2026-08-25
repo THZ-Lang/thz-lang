@@ -1244,6 +1244,142 @@ public final class BibliotecaPadrao {
             return ValorThz.FATIA(lista);
         });
 
+        // ---------------- BRASIL (CEP, PIX, Boletos, Documentos, Feriados) ----------------
+        registrar(m, "BRASIL.cep", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.cep", args, 1, ctx);
+            return ValorThz.TEXTO(thz.lang.brasil.ThzBrasilEngine.formatarCep(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.consultarCep", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.consultarCep", args, 1, ctx);
+            return thz.lang.brasil.ThzBrasilEngine.consultarCep(args.get(0).formatar());
+        });
+        registrar(m, "BRASIL.cadastrarCep", (args, ctx, interp) -> {
+            if (args.size() < 7) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BRASIL.cadastrarCep exige 7 argumentos: cep, logradouro, bairro, cidade, uf, ibge, ddd.");
+            boolean ok = thz.lang.brasil.ThzInternalDatabase.cadastrarCep(
+                    args.get(0).formatar(), args.get(1).formatar(), args.get(2).formatar(),
+                    args.get(3).formatar(), args.get(4).formatar(), args.get(5).formatar(), args.get(6).formatar()
+            );
+            return ValorThz.LOGICO(ok);
+        });
+        registrar(m, "BRASIL.validarUf", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.validarUf", args, 1, ctx);
+            return ValorThz.LOGICO(thz.lang.brasil.ThzBrasilEngine.validarUf(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.regiaoUf", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.regiaoUf", args, 1, ctx);
+            return ValorThz.TEXTO(thz.lang.brasil.ThzBrasilEngine.regiaoUf(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.formatarEndereco", (args, ctx, interp) -> {
+            if (args.size() < 7) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BRASIL.formatarEndereco exige 7 argumentos: logradouro, numero, complemento, bairro, cidade, uf, cep.");
+            return ValorThz.TEXTO(thz.lang.brasil.ThzBrasilEngine.formatarEndereco(
+                    args.get(0).formatar(), args.get(1).formatar(), args.get(2).formatar(),
+                    args.get(3).formatar(), args.get(4).formatar(), args.get(5).formatar(), args.get(6).formatar()
+            ));
+        });
+        registrar(m, "BRASIL.pixCopiaECola", (args, ctx, interp) -> {
+            if (args.size() < 5) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BRASIL.pixCopiaECola exige chave, nome, cidade, valor, txId.");
+            String chave = args.get(0).formatar();
+            String nome = args.get(1).formatar();
+            String cidade = args.get(2).formatar();
+            java.math.BigDecimal valor = new java.math.BigDecimal(String.valueOf(extrairDoubleArg(args.get(3), ctx)));
+            String txId = args.get(4).formatar();
+            return ValorThz.TEXTO(thz.lang.brasil.ThzBrasilEngine.gerarPixCopiaECola(chave, nome, cidade, valor, txId));
+        });
+        registrar(m, "BRASIL.validarChavePix", (args, ctx, interp) -> {
+            if (args.isEmpty()) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BRASIL.validarChavePix exige a chave.");
+            String tipo = args.size() > 1 ? args.get(1).formatar() : "AUTO";
+            return ValorThz.LOGICO(thz.lang.brasil.ThzBrasilEngine.validarChavePix(args.get(0).formatar(), tipo));
+        });
+        registrar(m, "BRASIL.validarLinhaDigitavel", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.validarLinhaDigitavel", args, 1, ctx);
+            return ValorThz.LOGICO(thz.lang.brasil.ThzBrasilEngine.validarLinhaDigitavel(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.linhaParaCodigoBarras", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.linhaParaCodigoBarras", args, 1, ctx);
+            return ValorThz.TEXTO(thz.lang.brasil.ThzBrasilEngine.linhaDigitavelParaCodigoBarras(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.valorBoleto", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.valorBoleto", args, 1, ctx);
+            return ValorThz.DECIMAL(thz.lang.brasil.ThzBrasilEngine.extrairValorBoleto(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.formatarCpf", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.formatarCpf", args, 1, ctx);
+            return ValorThz.TEXTO(thz.lang.brasil.ThzBrasilEngine.formatarCpf(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.formatarCnpj", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.formatarCnpj", args, 1, ctx);
+            return ValorThz.TEXTO(thz.lang.brasil.ThzBrasilEngine.formatarCnpj(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.formatarTelefone", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.formatarTelefone", args, 1, ctx);
+            return ValorThz.TEXTO(thz.lang.brasil.ThzBrasilEngine.formatarTelefone(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.validarTituloEleitor", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.validarTituloEleitor", args, 1, ctx);
+            return ValorThz.LOGICO(thz.lang.brasil.ThzBrasilEngine.validarTituloEleitor(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.validarCnh", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.validarCnh", args, 1, ctx);
+            return ValorThz.LOGICO(thz.lang.brasil.ThzBrasilEngine.validarCnh(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.validarPis", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.validarPis", args, 1, ctx);
+            return ValorThz.LOGICO(thz.lang.brasil.ThzBrasilEngine.validarPis(args.get(0).formatar()));
+        });
+        registrar(m, "BRASIL.ehFeriadoNacional", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.ehFeriadoNacional", args, 1, ctx);
+            java.time.LocalDate dt = extrairDataArg(args.get(0));
+            return ValorThz.LOGICO(thz.lang.brasil.ThzBrasilEngine.ehFeriadoNacional(dt));
+        });
+        registrar(m, "BRASIL.ehDiaUtil", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.ehDiaUtil", args, 1, ctx);
+            java.time.LocalDate dt = extrairDataArg(args.get(0));
+            return ValorThz.LOGICO(thz.lang.brasil.ThzBrasilEngine.ehDiaUtil(dt));
+        });
+        registrar(m, "BRASIL.proximoDiaUtil", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.proximoDiaUtil", args, 1, ctx);
+            java.time.LocalDate dt = extrairDataArg(args.get(0));
+            java.time.LocalDate prox = thz.lang.brasil.ThzBrasilEngine.proximoDiaUtil(dt);
+            return ValorThz.TEXTO(prox.toString());
+        });
+        registrar(m, "BRASIL.valorPorExtenso", (args, ctx, interp) -> {
+            exigirAridade("BRASIL.valorPorExtenso", args, 1, ctx);
+            java.math.BigDecimal val = new java.math.BigDecimal(String.valueOf(extrairDoubleArg(args.get(0), ctx)));
+            return ValorThz.TEXTO(thz.lang.brasil.ThzBrasilEngine.valorPorExtenso(val));
+        });
+
+        // ---------------- SNAPSHOT & COMPACTACAO CACHE ----------------
+        registrar(m, "SNAPSHOT.criar", (args, ctx, interp) -> {
+            java.nio.file.Path origem = args.isEmpty() ? java.nio.file.Path.of(".") : java.nio.file.Path.of(args.get(0).formatar());
+            java.nio.file.Path destino = args.size() > 1 ? java.nio.file.Path.of(args.get(1).formatar()) : null;
+            try {
+                java.nio.file.Path criado = thz.lang.snapshot.ThzSnapshotEngine.criarSnapshot(origem, destino);
+                return ValorThz.TEXTO(criado.toAbsolutePath().toString().replace("\\", "/"));
+            } catch (Exception e) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] " + e.getMessage());
+            }
+        });
+        registrar(m, "SNAPSHOT.restaurar", (args, ctx, interp) -> {
+            java.nio.file.Path snap = args.isEmpty() ? null : java.nio.file.Path.of(args.get(0).formatar());
+            java.nio.file.Path destino = args.size() > 1 ? java.nio.file.Path.of(args.get(1).formatar()) : java.nio.file.Path.of(".");
+            try {
+                boolean ok = thz.lang.snapshot.ThzSnapshotEngine.restaurarSnapshot(snap, destino);
+                return ValorThz.LOGICO(ok);
+            } catch (Exception e) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Falha ao restaurar snapshot: " + e.getMessage());
+            }
+        });
+        registrar(m, "SNAPSHOT.tamanho", (args, ctx, interp) -> {
+            return ValorThz.INTEIRO(thz.lang.snapshot.ThzSnapshotEngine.obterTamanhoSnapshot());
+        });
+        registrar(m, "SNAPSHOT.limpar", (args, ctx, interp) -> {
+            return ValorThz.LOGICO(thz.lang.snapshot.ThzSnapshotEngine.limparSnapshot());
+        });
+        registrar(m, "SNAPSHOT.verificar", (args, ctx, interp) -> {
+            java.nio.file.Path snap = args.isEmpty() ? null : java.nio.file.Path.of(args.get(0).formatar());
+            return ValorThz.LOGICO(thz.lang.snapshot.ThzSnapshotEngine.verificarIntegridade(snap));
+        });
+
         // ---------------- NATIVO / RUST INLINE BRIDGE ----------------
         registrar(m, "NATIVO.somar_rapido", (args, ctx, interp) -> {
             exigirAridade("NATIVO.somar_rapido", args, 2, ctx);
@@ -1296,5 +1432,20 @@ public final class BibliotecaPadrao {
             try { return Double.parseDouble(t.valor().trim().replace(",", ".")); } catch (Exception ignored) {}
         }
         return 0.0;
+    }
+
+    private static java.time.LocalDate extrairDataArg(ValorThz v) {
+        if (v instanceof ValorThz.Data d) {
+            return java.time.LocalDate.of(d.valor().getAno(), d.valor().getMes(), d.valor().getDia());
+        }
+        if (v instanceof ValorThz.DataHora dh) {
+            return java.time.LocalDate.of(dh.valor().getData().getAno(), dh.valor().getData().getMes(), dh.valor().getData().getDia());
+        }
+        String iso = thz.lang.analytics.ThzDataQuality.parsearDataPtBr(v.formatar());
+        try {
+            return java.time.LocalDate.parse(iso);
+        } catch (Exception e) {
+            return java.time.LocalDate.now();
+        }
     }
 }

@@ -221,6 +221,36 @@ public final class AssinaturasStdlib {
         m.put("DADOS.removerDuplicatas", new Assinatura(1, 2, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
         m.put("DADOS.imputarNulos", new Assinatura(3, 3, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
 
+        // ---------------- BRASIL (CEP, PIX, Boleto, Documentos, Feriados) ----------------
+        m.put("BRASIL.cep", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("BRASIL.consultarCep", new Assinatura(1, 1, new TipoThz("REGISTRO", CategoriaTipo.REGISTRO, null, null, "REGISTRO", null)));
+        m.put("BRASIL.cadastrarCep", new Assinatura(7, 7, TIPO_LOGICO));
+        m.put("BRASIL.validarUf", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("BRASIL.regiaoUf", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("BRASIL.formatarEndereco", new Assinatura(7, 7, TIPO_TEXTO));
+        m.put("BRASIL.pixCopiaECola", new Assinatura(5, 5, TIPO_TEXTO));
+        m.put("BRASIL.validarChavePix", new Assinatura(1, 2, TIPO_LOGICO));
+        m.put("BRASIL.validarLinhaDigitavel", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("BRASIL.linhaParaCodigoBarras", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("BRASIL.valorBoleto", new Assinatura(1, 1, TIPO_DECIMAL_GENERICO));
+        m.put("BRASIL.formatarCpf", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("BRASIL.formatarCnpj", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("BRASIL.formatarTelefone", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("BRASIL.validarTituloEleitor", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("BRASIL.validarCnh", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("BRASIL.validarPis", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("BRASIL.ehFeriadoNacional", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("BRASIL.ehDiaUtil", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("BRASIL.proximoDiaUtil", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("BRASIL.valorPorExtenso", new Assinatura(1, 1, TIPO_TEXTO));
+
+        // ---------------- SNAPSHOT & COMPACTACAO CACHE ----------------
+        m.put("SNAPSHOT.criar", new Assinatura(0, 2, TIPO_TEXTO));
+        m.put("SNAPSHOT.restaurar", new Assinatura(0, 2, TIPO_LOGICO));
+        m.put("SNAPSHOT.tamanho", new Assinatura(0, 0, TIPO_INTEIRO_GENERICO));
+        m.put("SNAPSHOT.limpar", new Assinatura(0, 0, TIPO_LOGICO));
+        m.put("SNAPSHOT.verificar", new Assinatura(0, 1, TIPO_LOGICO));
+
         // ---- NATIVO ----
         m.put("NATIVO.somar_rapido", new Assinatura(2, 2, TIPO_INTEIRO_GENERICO));
         m.put("NATIVO.calcular_hash_customizado", new Assinatura(1, 1, TIPO_TEXTO));

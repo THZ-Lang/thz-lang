@@ -1,0 +1,74 @@
+PROGRAMA DemonstracaoBrasilPixBoletosDiaADia
+
+# ==============================================================================
+# THZ-LANG v3.0.0 — PIX, Boletos, Documentos, Feriados e Dia a Dia no Brasil
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "FintechBrasilDigital"
+    SUBDOMINIO: "OperacoesFinanceirasEBancarias"
+    CAMADA: "Servico"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "15ms"
+    CONFORMIDADE: "ISO-IEC-10967", "BCB-PIX-EMVco"
+FIM_METADADOS
+
+REGRA_NEGOCIO ProcessarOperacoesDiaADia
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "================================================================================"
+        EXIBA "   DEMONSTRACAO THZ-LANG: PIX, BOLETOS, DOCUMENTOS, FERIADOS E DIA A DIA"
+        EXIBA "================================================================================"
+
+        # 1. PIX (EMVco / BR Code & Validação de Chaves)
+        EXIBA "1. Geracao de Payload PIX Copia e Cola com Checksum CRC16..."
+        VARIAVEL chavePix : TEXTO <- "11222333000181"
+        VARIAVEL valorPix : DECIMAL <- 150.5000
+        VARIAVEL pixPayload : TEXTO <- BRASIL.pixCopiaECola(
+            chavePix,
+            "EMPRESA THZ TECNOLOGIA",
+            "SAO PAULO",
+            valorPix,
+            "PEDIDO9876"
+        )
+        EXIBA "-> Chave CNPJ e Valida para PIX? " + TEXTO.deLogico(BRASIL.validarChavePix(chavePix, "CNPJ"))
+        EXIBA "-> Payload BR Code Gerado:\n   " + pixPayload
+
+        # 2. Boletos Bancários (Validação, Linha Digitável e Código de Barras)
+        EXIBA "2. Validacao de Boleto Bancario Febraban e Conversao..."
+        VARIAVEL linhaDigitavel : TEXTO <- "00190.50095 40144.816069 06809.350314 3 37370000000100"
+        VARIAVEL linhaValida : LOGICO <- BRASIL.validarLinhaDigitavel(linhaDigitavel)
+        VARIAVEL codBarras : TEXTO <- BRASIL.linhaParaCodigoBarras(linhaDigitavel)
+        VARIAVEL valorBoleto : DECIMAL <- BRASIL.valorBoleto(linhaDigitavel)
+
+        EXIBA "-> Linha Digitavel e Valida? " + TEXTO.deLogico(linhaValida)
+        EXIBA "-> Codigo de Barras Febraban (44 posicoes): " + codBarras
+        EXIBA "-> Valor Nominal Extraido: R$ " + TEXTO.deDecimal(valorBoleto)
+
+        # 3. Documentos Oficiais e Formatações Brasileiras
+        EXIBA "3. Formatacao e Validacao de Documentos (CPF, CNPJ, CNH, PIS, Titulo)..."
+        EXIBA "-> CPF Formatado:      " + BRASIL.formatarCpf("52998224725")
+        EXIBA "-> CNPJ Formatado:     " + BRASIL.formatarCnpj("11222333000181")
+        EXIBA "-> Telefone Formatado: " + BRASIL.formatarTelefone("11987654321")
+        EXIBA "-> PIS 17033259504 e Valido? " + TEXTO.deLogico(BRASIL.validarPis("17033259504"))
+
+        # 4. Calendário Bancário & Feriados Nacionais
+        EXIBA "4. Calendario Bancario, Feriados Nacionais e Dias Uteis..."
+        EXIBA "-> 20/11/2026 (Consciencia Negra) e Feriado Nacional? " + TEXTO.deLogico(BRASIL.ehFeriadoNacional("2026-11-20"))
+        EXIBA "-> 25/12/2026 (Natal) e Feriado Nacional?             " + TEXTO.deLogico(BRASIL.ehFeriadoNacional("2026-12-25"))
+        EXIBA "-> 03/04/2026 (Sexta-Feira Santa) e Dia Util?         " + TEXTO.deLogico(BRASIL.ehDiaUtil("2026-04-03"))
+
+        VARIAVEL proximoUtil : TEXTO <- BRASIL.proximoDiaUtil("2026-04-03")
+        EXIBA "-> Vencimento caindo na Sexta Santa prorroga para:    " + proximoUtil
+
+        # 5. Valor por Extenso em Reais
+        EXIBA "5. Escrita de Valor Monetario por Extenso..."
+        VARIAVEL valorExtenso : TEXTO <- BRASIL.valorPorExtenso(1250.5000)
+        EXIBA "-> R$ 1.250,50 por Extenso: " + valorExtenso
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA
