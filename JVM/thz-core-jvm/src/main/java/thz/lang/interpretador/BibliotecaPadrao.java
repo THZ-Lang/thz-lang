@@ -742,6 +742,38 @@ public final class BibliotecaPadrao {
             return ValorThz.DECIMAL(thz.lang.runtime.DecimalFixo.deTexto(String.format(java.util.Locale.US, "%.6f", pred), 6));
         });
 
+        // ---------------- MENSAGERIA & STREAMING EDA ----------------
+        registrar(m, "MENSAGERIA.publicar", (args, ctx, interp) -> {
+            exigirAridade("MENSAGERIA.publicar", args, 2, ctx);
+            exigirClasse("MENSAGERIA.publicar", args.get(0), "TEXTO", ctx);
+            String topico = ((ValorThz.Texto) args.get(0)).valor();
+            ValorThz msg = args.get(1);
+            long offset = thz.lang.mensageria.ThzBarramentoEventos.publicar(topico, msg);
+            return ValorThz.INTEIRO(BigInteger.valueOf(offset));
+        });
+        registrar(m, "MENSAGERIA.consumir", (args, ctx, interp) -> {
+            if (args.isEmpty()) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] MENSAGERIA.consumir exige o tópico.");
+            exigirClasse("MENSAGERIA.consumir", args.get(0), "TEXTO", ctx);
+            String topico = ((ValorThz.Texto) args.get(0)).valor();
+            long timeout = args.size() > 1 && args.get(1) instanceof ValorThz.Inteiro in ? in.valor().longValue() : 500L;
+            var evento = thz.lang.mensageria.ThzBarramentoEventos.consumir(topico, timeout);
+            return evento != null ? evento.payload() : ValorThz.NULO;
+        });
+        registrar(m, "MENSAGERIA.tamanhoFila", (args, ctx, interp) -> {
+            exigirAridade("MENSAGERIA.tamanhoFila", args, 1, ctx);
+            exigirClasse("MENSAGERIA.tamanhoFila", args.get(0), "TEXTO", ctx);
+            String topico = ((ValorThz.Texto) args.get(0)).valor();
+            int sz = thz.lang.mensageria.ThzBarramentoEventos.tamanhoFila(topico);
+            return ValorThz.INTEIRO(BigInteger.valueOf(sz));
+        });
+        registrar(m, "MENSAGERIA.limparTopico", (args, ctx, interp) -> {
+            exigirAridade("MENSAGERIA.limparTopico", args, 1, ctx);
+            exigirClasse("MENSAGERIA.limparTopico", args.get(0), "TEXTO", ctx);
+            String topico = ((ValorThz.Texto) args.get(0)).valor();
+            thz.lang.mensageria.ThzBarramentoEventos.limparTopico(topico);
+            return ValorThz.LOGICO(true);
+        });
+
         // ---------------- LOG ----------------
         registrar(m, "LOG.info", (args, ctx, interp) -> {
             exigirAridade("LOG.info", args, 1, ctx);
