@@ -100,6 +100,10 @@ public enum TokenType {
     ASC,
     DESC,
 
+    // Código Nativo Rust Embutido
+    BLOCO_NATIVO_RUST,
+    FIM_BLOCO_NATIVO,
+
     IDENTIFICADOR,
     STRING_LITERAL,
     NUMERO_LITERAL,

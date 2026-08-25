@@ -1,6 +1,7 @@
 package thz.lang.sintatico;
 
 import thz.lang.ast.*;
+import thz.lang.lexico.DialetoLinguagem;
 import thz.lang.lexico.PalavrasReservadas;
 import thz.lang.lexico.Token;
 import thz.lang.lexico.TokenType;
@@ -57,6 +58,7 @@ public class ThzParser {
         List<EnumeracaoAst> enumeracoes = new ArrayList<>();
         List<RegraNegocioAst> regras = new ArrayList<>();
         List<ProcedimentoAst> procedimentos = new ArrayList<>();
+        List<String> blocosRust = new ArrayList<>();
 
         // Pragma opcional de compatibilidade: VERSAO_LINGUAGEM "2.4"
         if (match(TokenType.VERSAO_LINGUAGEM)) {
@@ -107,6 +109,8 @@ public class ThzParser {
                 importacoes.add(parseImportacao());
             } else if (match(TokenType.METADADOS_ARQUITETURA)) {
                 metadados = parseMetadados();
+            } else if (match(TokenType.BLOCO_NATIVO_RUST)) {
+                blocosRust.add(parseBlocoNativoRust());
             } else if (match(TokenType.ESTRUTURA)) {
                 estruturas.add(parseEstrutura());
             } else if (match(TokenType.ENUMERACAO)) {
@@ -122,7 +126,16 @@ public class ThzParser {
 
         consume(terminadorEsperado, "Esperado '" + tipoModulo.terminadorPadrao() + "' encerrando o bloco " + tipoModulo.descricao() + ".");
 
-        return new ProgramaAst(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos);
+        return new ProgramaAst(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos, DialetoLinguagem.PT_BR, blocosRust);
+    }
+
+    private String parseBlocoNativoRust() {
+        String codigo = "";
+        if (check(TokenType.STRING_LITERAL)) {
+            codigo = advance().value();
+        }
+        consume(TokenType.FIM_BLOCO_NATIVO, "Esperado 'FIM_BLOCO_NATIVO' para encerrar o bloco de código Rust.");
+        return codigo;
     }
 
     private ImportacaoAst parseImportacao() {

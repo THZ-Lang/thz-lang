@@ -108,10 +108,15 @@ public final class PalavrasReservadas {
         Map.entry("ONDE", new EntradaPalavra(TokenType.ONDE, CategoriaPalavra.CONTROLE)),
         Map.entry("ORDENAR_POR", new EntradaPalavra(TokenType.ORDENAR_POR, CategoriaPalavra.MODIFICADOR)),
         Map.entry("AGRUPAR_POR", new EntradaPalavra(TokenType.AGRUPAR_POR, CategoriaPalavra.MODIFICADOR)),
-        Map.entry("LIMITE", new EntradaPalavra(TokenType.LIMITE, CategoriaPalavra.MODIFICADOR)),
-        Map.entry("PULAR", new EntradaPalavra(TokenType.PULAR, CategoriaPalavra.MODIFICADOR)),
-        Map.entry("ASC", new EntradaPalavra(TokenType.ASC, CategoriaPalavra.MODIFICADOR)),
-        Map.entry("DESC", new EntradaPalavra(TokenType.DESC, CategoriaPalavra.MODIFICADOR))
+        Map.entry("LIMITE", new EntradaPalavra(TokenType.LIMITE, CategoriaPalavra.DECLARACAO)),
+        Map.entry("PULAR", new EntradaPalavra(TokenType.PULAR, CategoriaPalavra.DECLARACAO)),
+        Map.entry("ASC", new EntradaPalavra(TokenType.ASC, CategoriaPalavra.DECLARACAO)),
+        Map.entry("DESC", new EntradaPalavra(TokenType.DESC, CategoriaPalavra.DECLARACAO)),
+        Map.entry("BLOCO_NATIVO_RUST", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
+        Map.entry("NATIVO_RUST", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
+        Map.entry("CODIGO_RUST", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
+        Map.entry("FIM_BLOCO_NATIVO", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO)),
+        Map.entry("FIM_NATIVO", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO))
     );
 
     // 2. Tabela Equivalente EN-US
@@ -211,7 +216,12 @@ public final class PalavrasReservadas {
         Map.entry("LIMIT", new EntradaPalavra(TokenType.LIMITE, CategoriaPalavra.MODIFICADOR)),
         Map.entry("OFFSET", new EntradaPalavra(TokenType.PULAR, CategoriaPalavra.MODIFICADOR)),
         Map.entry("ASC", new EntradaPalavra(TokenType.ASC, CategoriaPalavra.MODIFICADOR)),
-        Map.entry("DESC", new EntradaPalavra(TokenType.DESC, CategoriaPalavra.MODIFICADOR))
+        Map.entry("DESC", new EntradaPalavra(TokenType.DESC, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("NATIVE_RUST_BLOCK", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
+        Map.entry("NATIVE_RUST", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
+        Map.entry("INLINE_RUST", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
+        Map.entry("END_NATIVE_BLOCK", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO)),
+        Map.entry("END_NATIVE", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO))
     );
 
     // Mapeamentos de Tradução Bidirecional

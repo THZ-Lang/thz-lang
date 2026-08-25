@@ -9,6 +9,13 @@
 param([Parameter(ValueFromRemainingArguments=$true)][string[]]$ArgsRest)
 
 $Raiz = $PSScriptRoot
+
+# Auto-detecção de Rust Portátil (.tools\rust)
+$RustLocalBin = "$Raiz\.tools\rust\cargo\bin"
+if (Test-Path "$RustLocalBin\cargo.exe") {
+    $env:PATH = "$RustLocalBin;$env:PATH"
+}
+
 if (-not $ArgsRest -or $ArgsRest.Count -eq 0) { $ArgsRest = @("gui") }
 # Normaliza --gui -> gui, --help -> --ajuda etc. (ThzCli espera sem -- para comandos)
 if ($ArgsRest.Count -ge 1) {

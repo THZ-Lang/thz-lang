@@ -896,6 +896,19 @@ public final class BibliotecaPadrao {
             return ValorThz.TEXTO(tela.gerarCodigoThz(nome));
         });
 
+        // ---------------- NATIVO / RUST INLINE BRIDGE ----------------
+        registrar(m, "NATIVO.somar_rapido", (args, ctx, interp) -> {
+            exigirAridade("NATIVO.somar_rapido", args, 2, ctx);
+            return thz.lang.rust.ThzRustRunner.invocarFuncaoNativa("somar_rapido", args);
+        });
+        registrar(m, "NATIVO.calcular_hash_customizado", (args, ctx, interp) -> {
+            exigirAridade("NATIVO.calcular_hash_customizado", args, 1, ctx);
+            return thz.lang.rust.ThzRustRunner.invocarFuncaoNativa("calcular_hash_customizado", args);
+        });
+        registrar(m, "NATIVO.versao_rust", (args, ctx, interp) -> {
+            return thz.lang.rust.ThzRustRunner.invocarFuncaoNativa("versao_rust", args);
+        });
+
         // Base imutável; extensões de módulos (registrar) são aplicadas sobre cópia concorrente
         return new java.util.concurrent.ConcurrentHashMap<>(m);
     }

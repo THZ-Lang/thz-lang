@@ -102,11 +102,50 @@ public class ThzLexer {
                 if (nxt == '=') { tokens.add(make(TokenType.OPERADOR_RELACIONAL, ">=")); advance(); advance(); continue; }
                 tokens.add(make(TokenType.OPERADOR_RELACIONAL, ">")); advance(); continue;
             }
-            if (Character.isLetter(c) || c == '_') { tokens.add(readIdentifier()); continue; }
+            if (Character.isLetter(c) || c == '_') {
+                Token tok = readIdentifier();
+                tokens.add(tok);
+                if (tok.type() == TokenType.BLOCO_NATIVO_RUST) {
+                    tokens.add(readRawNativeBlock());
+                }
+                continue;
+            }
             throw new ErroLexico(line, col, "Caractere não reconhecido pela gramática THZ: '" + c + "'.");
         }
         tokens.add(new Token(TokenType.EOF, "", line, col));
         return tokens;
+    }
+
+    private Token readRawNativeBlock() {
+        int startLine = line, startCol = col;
+        StringBuilder sb = new StringBuilder();
+        while (pos < input.length()) {
+            if (pos + 16 <= input.length()) {
+                String sub = input.substring(pos, pos + 16);
+                if (sub.equalsIgnoreCase("FIM_BLOCO_NATIVO") || sub.equalsIgnoreCase("END_NATIVE_BLOCK")) {
+                    break;
+                }
+            }
+            if (pos + 10 <= input.length()) {
+                String sub = input.substring(pos, pos + 10);
+                if (sub.equalsIgnoreCase("FIM_NATIVO") || sub.equalsIgnoreCase("END_NATIVE")) {
+                    break;
+                }
+            }
+
+            char c = input.charAt(pos);
+            if (c == '\n') {
+                line++;
+                col = 1;
+                pos++;
+                sb.append('\n');
+            } else {
+                sb.append(c);
+                pos++;
+                col++;
+            }
+        }
+        return new Token(TokenType.STRING_LITERAL, sb.toString().trim(), startLine, startCol);
     }
 
     private boolean verificarDiretivaCabecalho() {
