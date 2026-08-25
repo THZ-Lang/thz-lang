@@ -10,7 +10,7 @@ import java.util.List;
 public final class Formatador {
     private static final String IND = "    ";
     private Formatador() {}
-
+    
     private static String tipoCanonico(String tipo, DialetoLinguagem dialeto) {
         String base = tipo.replaceAll("\\s+", "").replace(",", ", ");
         if (dialeto == DialetoLinguagem.EN_US) {

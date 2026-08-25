@@ -68,6 +68,24 @@
     "bench:decimal": "node scripts/run-script.js gradle :thz-bench-jvm:jmh -Pbenchmark=DecimalBench",
     "bench:memoria": "node scripts/run-script.js gradle :thz-bench-jvm:jmh -Pbenchmark=BlocoMemoriaBench",
     "bench:layout": "node scripts/run-script.js gradle :thz-bench-jvm:jmh -Pbenchmark=LayoutBench",
-    "bench:build": "node scripts/run-script.js gradle :thz-bench-jvm:build"
+    "bench:build": "node scripts/run-script.js gradle :thz-bench-jvm:build",
+
+    "// === Contêineres (Docker & Podman) ===": "",
+    "docker:build": "node scripts/run-script.js docker build",
+    "docker:up": "node scripts/run-script.js docker up",
+    "docker:down": "node scripts/run-script.js docker down",
+    "docker:api": "node scripts/run-script.js docker api",
+    "docker:cli": "node scripts/run-script.js docker cli",
+    "docker:repl": "node scripts/run-script.js docker repl",
+    "docker:test": "node scripts/run-script.js docker test",
+    "docker:dev": "node scripts/run-script.js docker dev",
+    "podman:build": "node scripts/run-script.js docker build --podman",
+    "podman:up": "node scripts/run-script.js docker up --podman",
+    "podman:down": "node scripts/run-script.js docker down --podman",
+    "podman:api": "node scripts/run-script.js docker api --podman",
+    "podman:cli": "node scripts/run-script.js docker cli --podman",
+    "podman:repl": "node scripts/run-script.js docker repl --podman",
+    "podman:test": "node scripts/run-script.js docker test --podman",
+    "podman:dev": "node scripts/run-script.js docker dev --podman"
   }
 }

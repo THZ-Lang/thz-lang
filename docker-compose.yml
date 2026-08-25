@@ -1,0 +1,93 @@
+# ==============================================================================
+# THZ-LANG — Docker Compose / Podman Compose Specification
+# Suporta: docker compose, podman compose, podman-compose
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # API REST / WebSocket (Spring Boot 4.x + Java 25)
+  # Executa: http://localhost:8080
+  # ----------------------------------------------------------------------------
+  thz-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    image: thz-lang/api:latest
+    container_name: thz-api
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xmx1024m -XX:+UseG1GC -Dfile.encoding=UTF-8
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - thz-network
+
+  # ----------------------------------------------------------------------------
+  # CLI Runner / REPL Interativo (One-off / Ferramenta)
+  # Uso: docker compose run --rm thz-cli run exemplos/faturamento.thz
+  #      podman compose run --rm thz-cli repl
+  # ----------------------------------------------------------------------------
+  thz-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: cli
+    image: thz-lang/cli:latest
+    container_name: thz-cli
+    volumes:
+      - .:/workspace:z
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    profiles:
+      - tools
+      - cli
+    networks:
+      - thz-network
+
+  # ----------------------------------------------------------------------------
+  # Ambiente Dev Completo (Compilação, Testes, LLVM, Debugging)
+  # Uso: docker compose --profile dev up -d
+  # ----------------------------------------------------------------------------
+  thz-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    image: thz-lang/dev:latest
+    container_name: thz-dev
+    volumes:
+      - .:/workspace:z
+      - gradle-cache:/home/vscode/.gradle
+      - npm-cache:/home/vscode/.npm
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+      - "5007:5007"
+    environment:
+      - GRADLE_USER_HOME=/home/vscode/.gradle
+    stdin_open: true
+    tty: true
+    profiles:
+      - dev
+    networks:
+      - thz-network
+
+networks:
+  thz-network:
+    driver: bridge
+
+volumes:
+  gradle-cache:
+    name: thz-gradle-cache
+  npm-cache:
+    name: thz-npm-cache

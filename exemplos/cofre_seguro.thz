@@ -1,0 +1,50 @@
+PROGRAMA GestaoCofreCriptografico
+
+# ==============================================================================
+# THZ-LANG v2.5.0 — Demonstração de Cofres Seguros com Argon2id e AES-256-GCM
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "SegurancaECriptografia"
+    SUBDOMINIO: "CofreVeraVault"
+    CAMADA: "Infraestrutura"
+    VERSAO: "2.5.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "50ms"
+    CONFORMIDADE: "ISO-IEC-27001", "LGPD-Art46"
+FIM_METADADOS
+
+REGRA_NEGOCIO ProtecaoSegredosCorporativos
+    IDENTIFICADOR_REGRA: "SEC-VAULT-2026"
+    RASTREIO_REQUISITO: "REQ-SEC-VAULT-001"
+    DESCRICAO: "Derivação de chaves com Argon2id e salvamento em cofre autenticado com limpeza de memória."
+
+    OPERACAO ExecutarCofre() : LOGICO
+    INICIO
+        VARIAVEL senhaMestra : TEXTO <- "SenhaForteEmpresarial@2026!"
+        
+        # 1. Hashing e validação com Argon2id
+        VARIAVEL hashArgon : TEXTO <- SEGURANCA.argon2(senhaMestra)
+        VARIAVEL valido : LOGICO <- SEGURANCA.verificarArgon2(senhaMestra, hashArgon)
+        LOG.info("Hash Argon2id gerado com sucesso.")
+
+        # 2. Criptografia em fluxo ChaCha20-Poly1305
+        VARIAVEL textoConfidencial : TEXTO <- "Credenciais_Bancarias_PIX_API_KEY_998822"
+        VARIAVEL chaveHex : TEXTO <- "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        VARIAVEL payloadCifrado : TEXTO <- SEGURANCA.chacha20(textoConfidencial, chaveHex)
+        VARIAVEL textoDescriptografado : TEXTO <- SEGURANCA.descriptografarChaCha20(payloadCifrado, chaveHex)
+
+        VARIAVEL statusValidacao : TEXTO <- "OK"
+        SE valido = FALSO
+            statusValidacao <- "FALHA"
+        FIM_SE
+
+        LOG.info("ChaCha20 Decriptado: " + textoDescriptografado)
+        EXIBA "ChaCha20 Decriptado: " + textoDescriptografado
+        EXIBA "Validacao Argon2id: " + statusValidacao
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

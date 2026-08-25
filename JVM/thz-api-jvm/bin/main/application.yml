@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: thz-api-jvm
+
+thz:
+  api:
+    cors:
+      allowed-origins: "http://localhost:5173,http://localhost:3000"

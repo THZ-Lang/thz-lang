@@ -7,6 +7,8 @@
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/projects/jdk/25/)
 [![Gradle](https://img.shields.io/badge/Gradle-8.x-blue.svg)](https://gradle.org/)
 [![LLVM](https://img.shields.io/badge/LLVM-Clang%20AOT-red.svg)](https://llvm.org/)
+[![Docker & Podman](https://img.shields.io/badge/Containers-Docker%20%7C%20Podman-2496ED.svg)](docs/DOCKER_PODMAN_DEVCONTAINER.md)
+[![Dev Containers](https://img.shields.io/badge/Dev%20Containers-Ready-blueviolet.svg)](.devcontainer/devcontainer.json)
 [![Status](https://img.shields.io/badge/Testes-100%25%20PASSED-brightgreen.svg)](#-suíte-de-testes)
 
 **Linguagem Corporativa de Sistemas, Governança de Negócio, Arquitetura Viva e Processamento de Dados de Alta Performance.**
@@ -17,6 +19,7 @@
 [Arquétipos](#-arquétipos-de-módulo) •
 [Exemplo Canônico](#-exemplo-canônico) •
 [Quick Start](#-quick-start-5-minutos) •
+[Docker & Podman](docs/DOCKER_PODMAN_DEVCONTAINER.md) •
 [Documentação Oficial](#-documentação-oficial)
 
 </div>
@@ -177,12 +180,28 @@ powershell.exe -ExecutionPolicy Bypass -File scripts/build-llvm.ps1 -ArquivoThz 
 ./dist/bin/driver.exe
 ```
 
+### 5. Execução 100% Plug & Play via Docker, Podman e Devcontainers
+```bash
+# Sobe a API REST na porta 8080 (auto-detecta Podman ou Docker):
+npm run docker:up
+
+# Executa o REPL interativo dentro do contêiner:
+npm run docker:repl
+
+# Executa testes unitários dentro do contêiner:
+npm run docker:test
+
+# Ou abra diretamente no VS Code via Dev Containers (F1 > Reopen in Container)!
+```
+👉 [Consulte o Guia Completo de Docker, Podman e Devcontainers](docs/DOCKER_PODMAN_DEVCONTAINER.md)
+
 ---
 
 ## 📖 Documentação Oficial
 
 Explore os guias detalhados da documentação:
 
+- 🗺️ [**Roadmap Estratégico (v2.6 ~ v3.0)**](docs/ROADMAP.md) — Os 5 pilares: IA Nativa On-Device, LINQ Tipado, Streaming EDA, WebAssembly e Debugger DAP.
 - 📘 [**Manual Completo da Linguagem**](docs/MANUAL_LINGUAGEM.md) — Guia do iniciante ao avançado sobre sintaxe, tipos, contratos, UI e SIMD.
 - ⚙️ [**Arquitetura de Compilação Nativa — GraalVM, LLVM, IR/IL e Código de Máquina**](docs/ARQUITETURA_COMPILACAO_NATIVA.md) — Tratado completo sobre IR/IL, LLVM, GraalVM Native Image, geração AOT, velocidade (SIMD/SoA/Arenas) e execução segura.
 - 🔁 [**Self-Hosting**](docs/SELF_HOSTING.md) — Compilador em THZ, bootstrap `THZ→THZ-IR→LLVM`, paridade Java↔THZ.

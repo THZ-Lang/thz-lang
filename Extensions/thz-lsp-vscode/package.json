@@ -22,23 +22,6 @@
     "ddd"
   ],
   "activationEvents": [
-    "onLanguage:thz",
-    "onCommand:thz.run",
-    "onCommand:thz.check",
-    "onCommand:thz.previewArchitecture",
-    "onCommand:thz.previewUi",
-    "onCommand:thz.openRepl",
-    "onCommand:thz.openGui",
-    "onCommand:thz.showAudit",
-    "onCommand:thz.showIr",
-    "onCommand:thz.showLlvm",
-    "onCommand:thz.runTarget",
-    "onCommand:thz.refreshCockpit",
-    "onCommand:thz.toggleLintEstrito",
-    "onView:thz-cockpit-view",
-    "onView:thz-governance-view",
-    "onView:thz-gallery-view",
-    "onView:thz-environment-view"
   ],
   "main": "./dist/extension.js",
   "contributes": {

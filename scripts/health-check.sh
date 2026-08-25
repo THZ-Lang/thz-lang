@@ -70,7 +70,16 @@ else
     OK=false
 fi
 
-# 7. Módulos do Projeto
+# 7. Contêineres (Docker / Podman)
+if command -v podman >/dev/null 2>&1; then
+    echo -e "\033[0;32m[OK] Podman Container Runtime : $(command -v podman)\033[0m"
+elif command -v docker >/dev/null 2>&1; then
+    echo -e "\033[0;32m[OK] Docker Container Runtime : $(command -v docker)\033[0m"
+else
+    echo -e "\033[0;33m[INFO] Docker / Podman não encontrados (opcional)\033[0m"
+fi
+
+# 8. Módulos do Projeto
 for dir in "JVM/thz-core-jvm" "JVM/thz-cli-jvm" "JVM/thz-gui-jvm" "JVM/thz-lsp-jvm" "JVM/thz-api-jvm" "exemplos" "compilador"; do
     if [ -d "$RAIZ/$dir" ]; then
         echo -e "\033[0;32m[OK] Módulo $dir\033[0m"

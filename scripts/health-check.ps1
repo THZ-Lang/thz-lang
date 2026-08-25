@@ -51,6 +51,17 @@ if (-not (Test-Cmd "node" "Node.js" @())) { $ok = $false } else { & node -v | Fo
 # Gradle wrapper
 if (Test-Path "$Raiz\gradlew.bat") { Write-Host "[OK] Gradle Wrapper : $Raiz\gradlew.bat" -ForegroundColor Green } else { Write-Host "[FALTA] gradlew.bat" -ForegroundColor Red; $ok = $false }
 
+# Docker / Podman Containers
+$podmanCmd = Get-Command "podman" -ErrorAction SilentlyContinue
+$dockerCmd = Get-Command "docker" -ErrorAction SilentlyContinue
+if ($podmanCmd) {
+    Write-Host "[OK] Podman Container Runtime : $($podmanCmd.Source)" -ForegroundColor Green
+} elseif ($dockerCmd) {
+    Write-Host "[OK] Docker Container Runtime : $($dockerCmd.Source)" -ForegroundColor Green
+} else {
+    Write-Host "[INFO] Docker / Podman nao encontrados (opcional, para conteineres/devcontainer)" -ForegroundColor DarkGray
+}
+
 # Estrutura
 @("JVM/thz-core-jvm","JVM/thz-cli-jvm","JVM/thz-gui-jvm","exemplos") | ForEach-Object {
     if (Test-Path "$Raiz\$_") { Write-Host "[OK] $_" -ForegroundColor Green } else { Write-Host "[FALTA] $_" -ForegroundColor Red; $ok = $false }

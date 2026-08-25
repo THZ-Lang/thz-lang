@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Gradle & Builds
+.gradle
+build
+**/build
+target
+**/target
+dist
+**/dist
+out
+**/out
+.idea
+*.iml
+*.ipr
+*.iws
+
+# Node / JS
+node_modules
+**/node_modules
+npm-debug.log
+yarn-error.log
+
+# VS Code / IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.agents
+
+# Extra / Windows-only binaries
+extra/MSVC
+extra/
+
+# Logs & Temporaries
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db

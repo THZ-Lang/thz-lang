@@ -1,0 +1,53 @@
+PROGRAMA BuscaVetorialInteligente
+
+# ==============================================================================
+# THZ-LANG v2.5.0 — Demonstração de Busca Semântica e Álgebra Vetorial SIMD
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "InteligenciaArtificial"
+    SUBDOMINIO: "BuscaVetorialSemantica"
+    CAMADA: "Servico"
+    VERSAO: "2.5.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "ISO-IEC-10967", "LGPD-Art7"
+FIM_METADADOS
+
+REGRA_NEGOCIO ProcessarConsultaSemantica
+    IDENTIFICADOR_REGRA: "AI-VEC-2026"
+    RASTREIO_REQUISITO: "REQ-AI-VEC-001"
+    DESCRICAO: "Realiza busca vetorial por similaridade de cosseno em embeddings de IA."
+
+    OPERACAO ExecutarBusca() : LOGICO
+    INICIO
+        # 1. Definir vetor de consulta do usuário (embedding normalizado de 3 dimensões)
+        VARIAVEL consulta : TEXTO <- "[0.8944, 0.4472, 0.0000]"
+
+        # 2. Base de conhecimento documental (embeddings de artigos da empresa)
+        VARIAVEL doc1 : TEXTO <- "[0.8944, 0.4472, 0.0000]"   # Idêntico / Relevância Máxima
+        VARIAVEL doc2 : TEXTO <- "[0.7071, 0.7071, 0.0000]"   # Similaridade Alta
+        VARIAVEL doc3 : TEXTO <- "[0.0000, 1.0000, 0.0000]"   # Relevância Média
+        VARIAVEL doc4 : TEXTO <- "[0.0000, 0.0000, 1.0000]"   # Ortogonal / Irrelevante
+
+        # 3. Cálculo de similaridade de cosseno acelerado por SIMD
+        VARIAVEL sim1 : DECIMAL <- VETOR.similaridadeCosseno(consulta, doc1)
+        VARIAVEL sim2 : DECIMAL <- VETOR.similaridadeCosseno(consulta, doc2)
+        VARIAVEL sim3 : DECIMAL <- VETOR.similaridadeCosseno(consulta, doc3)
+        VARIAVEL sim4 : DECIMAL <- VETOR.similaridadeCosseno(consulta, doc4)
+
+        LOG.info("Similaridade Doc 1 (Exato): " + TEXTO.deDecimal(sim1))
+        LOG.info("Similaridade Doc 2 (Alto): " + TEXTO.deDecimal(sim2))
+        LOG.info("Similaridade Doc 3 (Medio): " + TEXTO.deDecimal(sim3))
+        LOG.info("Similaridade Doc 4 (Ortogonal): " + TEXTO.deDecimal(sim4))
+
+        EXIBA "Similaridade Doc 1 (Exato): " + TEXTO.deDecimal(sim1)
+        EXIBA "Similaridade Doc 2 (Alto): " + TEXTO.deDecimal(sim2)
+        EXIBA "Similaridade Doc 3 (Medio): " + TEXTO.deDecimal(sim3)
+        EXIBA "Similaridade Doc 4 (Ortogonal): " + TEXTO.deDecimal(sim4)
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

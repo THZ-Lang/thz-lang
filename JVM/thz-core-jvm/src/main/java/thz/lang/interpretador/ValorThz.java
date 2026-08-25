@@ -57,6 +57,7 @@ public sealed interface ValorThz permits
     static Enumerado ENUMERADO(String nomeEnum, String v) { return new Enumerado(nomeEnum, v); }
     static Data DATA(DataThz v) { return new Data(v); }
     static DataHora DATA_HORA(DataHoraThz v) { return new DataHora(v); }
+    static Fatia FATIA(List<ValorThz> elementos) { return new Fatia("QUALQUER", elementos); }
 
     /** Retorna nome da classe THZ para mensagens de erro com verificação exaustiva em tempo de compilação. */
     default String classe() {

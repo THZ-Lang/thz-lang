@@ -75,6 +75,23 @@ public final class BibliotecaPadrao {
         throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Esperado INTEIRO, recebido " + v.classe() + ".");
     }
 
+    private static float[] extrairVetorArg(ValorThz v, ExprAst ctx) {
+        if (v instanceof ValorThz.Texto t) {
+            return thz.lang.vetor.ThzVetorSimd.parseVetor(t.valor());
+        }
+        if (v instanceof ValorThz.Fatia fatia) {
+            float[] res = new float[fatia.elementos().size()];
+            for (int i = 0; i < fatia.elementos().size(); i++) {
+                ValorThz elem = fatia.elementos().get(i);
+                if (elem instanceof ValorThz.Decimal d) res[i] = Float.parseFloat(d.valor().formatar());
+                else if (elem instanceof ValorThz.Inteiro in) res[i] = in.valor().floatValue();
+                else if (elem instanceof ValorThz.Texto tx) res[i] = Float.parseFloat(tx.valor());
+            }
+            return res;
+        }
+        throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Esperado TEXTO formatado de vetor ou FATIA numérica, recebido " + v.classe() + ".");
+    }
+
     private static String sliceTexto(String texto, int ini, Integer fim) {
         int len = texto.length();
         int s = ini;
@@ -185,6 +202,22 @@ public final class BibliotecaPadrao {
                 else strs.add("");
             }
             return ValorThz.TEXTO(String.join(sep, strs));
+        });
+        registrar(m, "TEXTO.de", (args, ctx) -> {
+            exigirAridade("TEXTO.de", args, 1, ctx);
+            return ValorThz.TEXTO(args.get(0).formatar());
+        });
+        registrar(m, "TEXTO.deDecimal", (args, ctx) -> {
+            exigirAridade("TEXTO.deDecimal", args, 1, ctx);
+            return ValorThz.TEXTO(args.get(0).formatar());
+        });
+        registrar(m, "TEXTO.deInteiro", (args, ctx) -> {
+            exigirAridade("TEXTO.deInteiro", args, 1, ctx);
+            return ValorThz.TEXTO(args.get(0).formatar());
+        });
+        registrar(m, "TEXTO.deLogico", (args, ctx) -> {
+            exigirAridade("TEXTO.deLogico", args, 1, ctx);
+            return ValorThz.TEXTO(args.get(0).formatar());
         });
 
         // ---- MATEMATICA ----
@@ -525,12 +558,153 @@ public final class BibliotecaPadrao {
                     ((ValorThz.Texto) args.get(1)).valor()
             ));
         });
+        registrar(m, "SEGURANCA.argon2", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.argon2", args, 1, ctx);
+            exigirClasse("SEGURANCA.argon2", args.get(0), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.hashArgon2(((ValorThz.Texto) args.get(0)).valor()));
+        });
+        registrar(m, "SEGURANCA.verificarArgon2", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.verificarArgon2", args, 2, ctx);
+            exigirClasse("SEGURANCA.verificarArgon2", args.get(0), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.verificarArgon2", args.get(1), "TEXTO", ctx);
+            return ValorThz.LOGICO(thz.lang.security.ThzSecurity.verificarArgon2(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            ));
+        });
+        registrar(m, "SEGURANCA.chacha20", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.chacha20", args, 2, ctx);
+            exigirClasse("SEGURANCA.chacha20", args.get(0), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.chacha20", args.get(1), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.criptografarChaCha20(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            ));
+        });
+        registrar(m, "SEGURANCA.descriptografarChaCha20", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.descriptografarChaCha20", args, 2, ctx);
+            exigirClasse("SEGURANCA.descriptografarChaCha20", args.get(0), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.descriptografarChaCha20", args.get(1), "TEXTO", ctx);
+            return ValorThz.TEXTO(thz.lang.security.ThzSecurity.descriptografarChaCha20(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            ));
+        });
+        registrar(m, "SEGURANCA.cofreSalvar", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.cofreSalvar", args, 3, ctx);
+            exigirClasse("SEGURANCA.cofreSalvar", args.get(0), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.cofreSalvar", args.get(1), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.cofreSalvar", args.get(2), "TEXTO", ctx);
+            try {
+                thz.lang.security.ThzVault.salvarTexto(
+                        java.nio.file.Path.of(((ValorThz.Texto) args.get(0)).valor()),
+                        ((ValorThz.Texto) args.get(1)).valor(),
+                        ((ValorThz.Texto) args.get(2)).valor()
+                );
+                return ValorThz.LOGICO(true);
+            } catch (Exception e) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Falha ao salvar cofre: " + e.getMessage());
+            }
+        });
+        registrar(m, "SEGURANCA.cofreLer", (args, ctx, interp) -> {
+            exigirAridade("SEGURANCA.cofreLer", args, 2, ctx);
+            exigirClasse("SEGURANCA.cofreLer", args.get(0), "TEXTO", ctx);
+            exigirClasse("SEGURANCA.cofreLer", args.get(1), "TEXTO", ctx);
+            try {
+                String conteudo = thz.lang.security.ThzVault.lerTexto(
+                        java.nio.file.Path.of(((ValorThz.Texto) args.get(0)).valor()),
+                        ((ValorThz.Texto) args.get(1)).valor()
+                );
+                return ValorThz.TEXTO(conteudo);
+            } catch (Exception e) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Falha ao ler cofre: " + e.getMessage());
+            }
+        });
         registrar(m, "SEGURANCA.gerarToken", (args, ctx, interp) -> {
             int tamanho = args.isEmpty() ? 32 : ((ValorThz.Inteiro) args.get(0)).valor().intValue();
             return ValorThz.TEXTO(thz.lang.security.ThzSecurity.gerarToken(tamanho));
         });
         registrar(m, "SEGURANCA.uuid", (args, ctx, interp) -> {
             return ValorThz.TEXTO(thz.lang.security.ThzSecurity.gerarUuid());
+        });
+
+        // ---------------- VETOR (Álgebra & Busca Semântica SIMD) ----------------
+        registrar(m, "VETOR.criar", (args, ctx, interp) -> {
+            if (args.isEmpty()) return ValorThz.TEXTO("[]");
+            if (args.get(0) instanceof ValorThz.Fatia fatia) {
+                float[] v = new float[fatia.elementos().size()];
+                for (int i = 0; i < fatia.elementos().size(); i++) {
+                    ValorThz elem = fatia.elementos().get(i);
+                    if (elem instanceof ValorThz.Decimal d) v[i] = Float.parseFloat(d.valor().formatar());
+                    else if (elem instanceof ValorThz.Inteiro in) v[i] = in.valor().floatValue();
+                    else if (elem instanceof ValorThz.Texto t) v[i] = Float.parseFloat(t.valor());
+                }
+                return ValorThz.TEXTO(thz.lang.vetor.ThzVetorSimd.formatarVetor(v));
+            }
+            return ValorThz.TEXTO(args.get(0).formatar());
+        });
+        registrar(m, "VETOR.similaridadeCosseno", (args, ctx, interp) -> {
+            exigirAridade("VETOR.similaridadeCosseno", args, 2, ctx);
+            float[] a = extrairVetorArg(args.get(0), ctx);
+            float[] b = extrairVetorArg(args.get(1), ctx);
+            double sim = thz.lang.vetor.ThzVetorSimd.similaridadeCosseno(a, b);
+            return ValorThz.DECIMAL(thz.lang.runtime.DecimalFixo.deTexto(String.format(java.util.Locale.US, "%.6f", sim), 6));
+        });
+        registrar(m, "VETOR.distanciaEuclidiana", (args, ctx, interp) -> {
+            exigirAridade("VETOR.distanciaEuclidiana", args, 2, ctx);
+            float[] a = extrairVetorArg(args.get(0), ctx);
+            float[] b = extrairVetorArg(args.get(1), ctx);
+            double dist = thz.lang.vetor.ThzVetorSimd.distanciaEuclidiana(a, b);
+            return ValorThz.DECIMAL(thz.lang.runtime.DecimalFixo.deTexto(String.format(java.util.Locale.US, "%.6f", dist), 6));
+        });
+        registrar(m, "VETOR.produtoEscalar", (args, ctx, interp) -> {
+            exigirAridade("VETOR.produtoEscalar", args, 2, ctx);
+            float[] a = extrairVetorArg(args.get(0), ctx);
+            float[] b = extrairVetorArg(args.get(1), ctx);
+            double dot = thz.lang.vetor.ThzVetorSimd.produtoEscalar(a, b);
+            return ValorThz.DECIMAL(thz.lang.runtime.DecimalFixo.deTexto(String.format(java.util.Locale.US, "%.6f", dot), 6));
+        });
+        registrar(m, "VETOR.normalizar", (args, ctx, interp) -> {
+            exigirAridade("VETOR.normalizar", args, 1, ctx);
+            float[] a = extrairVetorArg(args.get(0), ctx);
+            float[] norm = thz.lang.vetor.ThzVetorSimd.normalizar(a);
+            return ValorThz.TEXTO(thz.lang.vetor.ThzVetorSimd.formatarVetor(norm));
+        });
+
+        // ---------------- IA & ML ON-DEVICE (Zero Python) ----------------
+        registrar(m, "IA.embedding", (args, ctx, interp) -> {
+            if (args.isEmpty()) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] IA.embedding exige o texto como 1º argumento.");
+            exigirClasse("IA.embedding", args.get(0), "TEXTO", ctx);
+            String texto = ((ValorThz.Texto) args.get(0)).valor();
+            int dim = args.size() > 1 && args.get(1) instanceof ValorThz.Inteiro in ? in.valor().intValue() : thz.lang.ia.ThzIaEngine.DIMENSAO_PADRAO;
+            float[] emb = thz.lang.ia.ThzIaEngine.gerarEmbedding(texto, dim);
+            return ValorThz.TEXTO(thz.lang.vetor.ThzVetorSimd.formatarVetor(emb));
+        });
+        registrar(m, "IA.similaridade", (args, ctx, interp) -> {
+            exigirAridade("IA.similaridade", args, 2, ctx);
+            exigirClasse("IA.similaridade", args.get(0), "TEXTO", ctx);
+            exigirClasse("IA.similaridade", args.get(1), "TEXTO", ctx);
+            double sim = thz.lang.ia.ThzIaEngine.similaridadeSemantica(
+                    ((ValorThz.Texto) args.get(0)).valor(),
+                    ((ValorThz.Texto) args.get(1)).valor()
+            );
+            return ValorThz.DECIMAL(thz.lang.runtime.DecimalFixo.deTexto(String.format(java.util.Locale.US, "%.6f", sim), 6));
+        });
+        registrar(m, "ML.classificar", (args, ctx, interp) -> {
+            exigirAridade("ML.classificar", args, 3, ctx);
+            float[] features = extrairVetorArg(args.get(0), ctx);
+            float[] pesos = extrairVetorArg(args.get(1), ctx);
+            float bias = args.get(2) instanceof ValorThz.Decimal d ? Float.parseFloat(d.valor().formatar()) : ((ValorThz.Inteiro) args.get(2)).valor().floatValue();
+            double prob = thz.lang.ia.ThzMlEngine.classificarProbabilidade(features, pesos, bias);
+            return ValorThz.DECIMAL(thz.lang.runtime.DecimalFixo.deTexto(String.format(java.util.Locale.US, "%.6f", prob), 6));
+        });
+        registrar(m, "ML.predizer", (args, ctx, interp) -> {
+            exigirAridade("ML.predizer", args, 3, ctx);
+            float[] features = extrairVetorArg(args.get(0), ctx);
+            float[] coeficientes = extrairVetorArg(args.get(1), ctx);
+            float intercepto = args.get(2) instanceof ValorThz.Decimal d ? Float.parseFloat(d.valor().formatar()) : ((ValorThz.Inteiro) args.get(2)).valor().floatValue();
+            double pred = thz.lang.ia.ThzMlEngine.predizerRegressao(features, coeficientes, intercepto);
+            return ValorThz.DECIMAL(thz.lang.runtime.DecimalFixo.deTexto(String.format(java.util.Locale.US, "%.6f", pred), 6));
         });
 
         // ---------------- LOG ----------------
@@ -561,9 +735,44 @@ public final class BibliotecaPadrao {
 
         // ---------------- BANCO ----------------
         registrar(m, "BANCO.conectar", (args, ctx, interp) -> {
-            exigirAridade("BANCO.conectar", args, 1, ctx);
-            exigirClasse("BANCO.conectar", args.get(0), "TEXTO", ctx);
-            thz.lang.db.ThzDb.conectar(((ValorThz.Texto) args.get(0)).valor());
+            if (args.isEmpty()) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BANCO.conectar exige pelo menos a URL de conexão.");
+            }
+            String url = ((ValorThz.Texto) args.get(0)).valor();
+            if (args.size() == 1) {
+                thz.lang.db.ThzDb.conectar(url);
+            } else if (args.size() == 3) {
+                thz.lang.db.ThzDb.conectar("padrao", url, ((ValorThz.Texto) args.get(1)).valor(), ((ValorThz.Texto) args.get(2)).valor());
+            } else if (args.size() >= 4) {
+                thz.lang.db.ThzDb.conectar(((ValorThz.Texto) args.get(0)).valor(), ((ValorThz.Texto) args.get(1)).valor(), ((ValorThz.Texto) args.get(2)).valor(), ((ValorThz.Texto) args.get(3)).valor());
+            }
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "BANCO.executar", (args, ctx, interp) -> {
+            if (args.isEmpty()) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BANCO.executar exige SQL.");
+            }
+            String sql = ((ValorThz.Texto) args.get(0)).valor();
+            List<ValorThz> params = args.size() > 1 && args.get(1) instanceof ValorThz.Fatia f ? f.elementos() : java.util.Collections.emptyList();
+            long afetadas = thz.lang.db.ThzDb.executar(sql, params);
+            return ValorThz.INTEIRO(afetadas);
+        });
+        registrar(m, "BANCO.consultar", (args, ctx, interp) -> {
+            if (args.isEmpty()) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BANCO.consultar exige SQL.");
+            }
+            String sql = ((ValorThz.Texto) args.get(0)).valor();
+            List<ValorThz> params = args.size() > 1 && args.get(1) instanceof ValorThz.Fatia f ? f.elementos() : java.util.Collections.emptyList();
+            var linhas = thz.lang.db.ThzDb.consultar(sql, params);
+            List<ValorThz> lista = new java.util.ArrayList<>(linhas);
+            return ValorThz.FATIA(lista);
+        });
+        registrar(m, "BANCO.fechar", (args, ctx, interp) -> {
+            if (args.isEmpty()) {
+                thz.lang.db.ThzDb.fechar();
+            } else {
+                thz.lang.db.ThzDb.fechar(((ValorThz.Texto) args.get(0)).valor());
+            }
             return ValorThz.LOGICO(true);
         });
 

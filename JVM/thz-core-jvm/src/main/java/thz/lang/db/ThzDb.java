@@ -47,8 +47,32 @@ public final class ThzDb {
             if (conexaoPadrao == null || "padrao".equals(nome)) {
                 conexaoPadrao = conn;
             }
+            // Otimizações automáticas para SQLite (Foreign Keys & WAL)
+            if (url != null && url.startsWith("jdbc:sqlite:") && !url.contains(":memory:")) {
+                try (var s = conn.createStatement()) {
+                    s.execute("PRAGMA foreign_keys = ON;");
+                    s.execute("PRAGMA journal_mode = WAL;");
+                    s.execute("PRAGMA synchronous = NORMAL;");
+                } catch (SQLException ignored) {}
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Falha ao conectar ao banco '" + nome + "': " + e.getMessage(), e);
+        }
+    }
+
+    public static synchronized void fechar() {
+        fechar("padrao");
+    }
+
+    public static synchronized void fechar(String nome) {
+        Connection conn = CONEXOES.remove(nome != null ? nome : "padrao");
+        if (conn != null) {
+            try {
+                if (!conn.isClosed()) conn.close();
+            } catch (SQLException ignored) {}
+        }
+        if (conexaoPadrao == conn) {
+            conexaoPadrao = CONEXOES.values().stream().findFirst().orElse(null);
         }
     }
 
@@ -135,10 +159,14 @@ public final class ThzDb {
     private static ValorThz converterParaThz(Object obj, int sqlType) {
         if (obj == null)
             return ValorThz.NULO;
-        if (obj instanceof String s)
-            return ValorThz.TEXTO(s);
         if (obj instanceof Boolean b)
             return ValorThz.LOGICO(b);
+        if (sqlType == Types.BOOLEAN || sqlType == Types.BIT) {
+            if (obj instanceof Number n) return ValorThz.LOGICO(n.intValue() != 0);
+            return ValorThz.LOGICO(Boolean.parseBoolean(obj.toString()));
+        }
+        if (obj instanceof String s)
+            return ValorThz.TEXTO(s);
         if (obj instanceof Number n) {
             if (obj instanceof BigDecimal bd) {
                 return ValorThz.DECIMAL(DecimalFixo.deTexto(bd.toPlainString(), bd.scale()));

@@ -36,6 +36,12 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api:2.23.1")
     implementation("org.apache.logging.log4j:log4j-core:2.23.1")
 
+    // Banco de Dados Local (SQLite JDBC)
+    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+
+    // Criptografia Avançada (Argon2id, AES-XTS, ChaCha20)
+    implementation("org.bouncycastle:bcprov-jdk18on:1.79")
+
     // Testes Automatizados
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
