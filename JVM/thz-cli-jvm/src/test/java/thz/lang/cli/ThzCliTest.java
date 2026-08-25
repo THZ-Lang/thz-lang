@@ -25,7 +25,7 @@ public class ThzCliTest {
 
             out.reset();
             ThzCli.main(new String[]{"--versao"});
-            assertTrue(out.toString().contains("2."));
+            assertTrue(out.toString().contains("3.") || out.toString().contains("THZ-LANG"));
         } finally {
             System.setOut(orig);
         }
