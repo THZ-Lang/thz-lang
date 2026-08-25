@@ -6,6 +6,7 @@ pub mod arena;
 pub mod simd_math;
 pub mod crypto;
 pub mod ml;
+pub mod wasm;
 
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;

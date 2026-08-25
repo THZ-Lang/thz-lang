@@ -1,0 +1,33 @@
+PROGRAMA RegraFiscalUniversalWasm
+
+# ==============================================================================
+# THZ-LANG v3.0.0 — Compilação para WebAssembly (WASM Universal / Browser & Edge)
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "Tributario"
+    SUBDOMINIO: "CalculoImpostosWasm"
+    CAMADA: "Servico"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "1ms"
+    CONFORMIDADE: "ISO-IEC-10967", "W3C-WASM"
+FIM_METADADOS
+
+ESTRUTURA ParametroCalculo
+    baseCalculo: DECIMAL
+    aliquota: DECIMAL
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO CalcularImpostoUniversal
+    OPERACAO Executar() : DECIMAL
+    INICIO
+        VARIAVEL param : ParametroCalculo <- CRIAR ParametroCalculo(baseCalculo: 100000.00, aliquota: 0.1800)
+        VARIAVEL imposto : DECIMAL <- param.baseCalculo * param.aliquota
+
+        EXIBA "Calculado no WebAssembly: R$ " + TEXTO.deDecimal(imposto)
+        RETORNE imposto
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

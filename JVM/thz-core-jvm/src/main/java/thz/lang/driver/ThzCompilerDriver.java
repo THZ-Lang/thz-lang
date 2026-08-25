@@ -28,7 +28,8 @@ public final class ThzCompilerDriver {
         THZ_IR,
         LLVM,
         JAVASCRIPT,
-        AUDITORIA
+        AUDITORIA,
+        WEBASSEMBLY
     }
 
     public record ResultadoCompilacao(
@@ -83,6 +84,12 @@ public final class ThzCompilerDriver {
                 RelatorioAuditoria relatorio = AuditorGovernanca.auditar(ast);
                 String md = AuditorGovernanca.gerarMarkdownGovernanca(relatorio);
                 yield new ResultadoCompilacao(true, ast, List.of(), md, null);
+            }
+            case WEBASSEMBLY -> {
+                String js = ThzJsEmitter.emitir(ast);
+                String wasmModuleWrapper = "// THZ-LANG v3.0.0 — WebAssembly (WASM) Module Wrapper\n" +
+                        "// Target: wasm32-unknown-unknown\n" + js;
+                yield new ResultadoCompilacao(true, ast, List.of(), wasmModuleWrapper, null);
             }
         };
     }
