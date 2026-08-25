@@ -578,15 +578,43 @@ public final class ThzGui extends JFrame implements BarraMenuGui.AcoesGui {
         BlocoMemoria bloco = new BlocoMemoria(64);
         bloco.alocar(2048);
 
-        InterpretadorThz interp = new InterpretadorThz(ast, logs::add, () -> "");
-        ProcedimentoAst procPrincipal = ast.procedimentos() != null ?
-                ast.procedimentos().stream().filter(p -> p.nome().equalsIgnoreCase("Principal")).findFirst().orElse(null) : null;
+        String dom = ast.metadados() != null ? ast.metadados().dominio() : "Geral";
+        String slo = ast.metadados() != null ? ast.metadados().sloLatencia() : "N/A";
+        String conf = ast.metadados() != null && ast.metadados().conformidade() != null
+                ? String.join(", ", ast.metadados().conformidade()) : "Padrão THZ";
 
-        if (procPrincipal != null) {
+        logs.add("================================================================================");
+        logs.add("   EXECUTANDO MOTOR NATIVO THZ-LANG: " + ast.nome() + " (v" + thz.lang.version.ThzVersion.ATUAL + ")");
+        logs.add("================================================================================");
+        logs.add("[ARQUITETURA] Domínio: " + dom + " | SLO: " + slo);
+        logs.add("[CONFORMIDADE] Diretrizes ativas: " + conf);
+        logs.add("");
+
+        InterpretadorThz interp = new InterpretadorThz(ast, logs::add, () -> "");
+
+        // 1. Se for uma interface declarativa TELA ou arquivo .thzui, renderiza formulário Swing
+        if (ast.tipoModulo() == thz.lang.ast.TipoModulo.TELA
+                || (arquivoSelecionado != null && arquivoSelecionado.getName().toLowerCase().endsWith(".thzui"))) {
             try {
-                interp.executarProcedimento(procPrincipal.nome(), Map.of());
+                thz.lang.gui.ui.ThzUiSwingRenderer.renderizarOuExibir(ast, interp);
+                logs.add("[TELA] Interface declarativa renderizada na janela Swing com sucesso.");
+            } catch (Exception exUi) {
+                logs.add("[TELA] Aviso na renderização visual: " + exUi.getMessage());
+            }
+        }
+
+        // 2. Execução de Procedimentos (Principal ou primeiro disponível)
+        var procs = interp.listarProcedimentos();
+        if (!procs.isEmpty()) {
+            var proc = procs.stream().filter(p -> p.nome().equalsIgnoreCase("Principal")).findFirst()
+                    .orElse(procs.get(0));
+            logs.add("[PROCEDIMENTO] " + proc.nome() + "()\n");
+            try {
+                Map<String, ValorThz> a = proc.parametros().isEmpty() ? Map.of()
+                        : InjetorLoteDemo.construirArgsProc(proc, p -> null);
+                interp.executarProcedimento(proc.nome(), a);
                 bloco.liberarTudo();
-                logs.add("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
+                logs.add("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso em O(1).");
                 saida.setText(String.join("\n", logs));
                 barraStatus.definirStatus("✓ Execução concluída com sucesso.", new Color(34, 197, 94));
             } catch (Exception ex) {
@@ -599,16 +627,22 @@ public final class ThzGui extends JFrame implements BarraMenuGui.AcoesGui {
             return;
         }
 
+        // 3. Execução de Operações de Regra de Negócio (caso não haja procedimento)
         var opsExec = interp.listarOperacoesExecutaveis();
         if (!opsExec.isEmpty()) {
             var prim = opsExec.get(0);
+            logs.add("[REGRA] " + prim.regra().nome()
+                    + (prim.regra().identificador() != null ? " (" + prim.regra().identificador() + ")" : "")
+                    + " :: " + prim.operacao().nome() + "()\n");
             try {
                 Map<String, ValorThz> args = InjetorLoteDemo.construirArgsOperacao(prim.operacao(), ast, interp::validarInvariantes, p -> null);
                 ValorThz ret = interp.executarOperacao(prim.operacao().nome(), args);
+                if (ret != null) {
+                    logs.add("\n--------------------------------------------------------------");
+                    logs.add("[RESULTADO] " + interp.formatar(ret));
+                }
                 bloco.liberarTudo();
-                logs.add("[REGRA] " + prim.regra().nome() + " :: " + prim.operacao().nome() + "()");
-                if (ret != null) logs.add("[RESULTADO] " + interp.formatar(ret));
-                logs.add("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
+                logs.add("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso em O(1).");
                 saida.setText(String.join("\n", logs));
                 barraStatus.definirStatus("✓ Operação executada com sucesso.", new Color(34, 197, 94));
             } catch (Exception ex) {
@@ -618,11 +652,14 @@ public final class ThzGui extends JFrame implements BarraMenuGui.AcoesGui {
                 marcarErrosNoEditor(saida.getText());
                 barraStatus.definirStatus("✗ Erro na execução.", new Color(239, 68, 68));
             }
-        } else {
-            bloco.liberarTudo();
-            saida.setText("[AVISO] Nenhum PROCEDIMENTO Principal() ou OPERACAO executável encontrada.");
-            barraStatus.definirStatus("Aviso: Nada para executar.", new Color(234, 179, 8));
+            return;
         }
+
+        bloco.liberarTudo();
+        logs.add("[INFO] Programa sem ponto de entrada executável (procedimento ou operação).");
+        logs.add("       Declarações de estruturas, enums e metadados validadas com sucesso.");
+        saida.setText(String.join("\n", logs));
+        barraStatus.definirStatus("✓ Código e Estruturas validados.", new Color(34, 197, 94));
     }
 
     @Override
