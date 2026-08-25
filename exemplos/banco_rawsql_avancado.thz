@@ -1,0 +1,49 @@
+PROGRAMA DemonstracaoBancoRawSqlAvancado
+
+# ==============================================================================
+# THZ-LANG v3.0.0 — Raw SQL Avançado, Transações e Consultas Escalares
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "AuditoriaContabil"
+    SUBDOMINIO: "RawSqlTransacional"
+    CAMADA: "Dominio"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+REGRA_NEGOCIO ExecutarOperacoesRawSql
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "=== DEMONSTRACAO DE RAW SQL PURO NO THZ-LANG ==="
+
+        # 1. Execução de DDL com Raw SQL
+        BANCO.executarScript("CREATE TABLE IF NOT EXISTS contas_financeiras (id TEXT PRIMARY KEY, titular TEXT, saldo NUMERIC, ativo INTEGER);")
+
+        # 2. Transação Explícita (Commit)
+        BANCO.iniciarTransacao()
+
+        BANCO.executar("INSERT OR REPLACE INTO contas_financeiras (id, titular, saldo, ativo) VALUES (?, ?, ?, ?)", ["CTA-001", "Empresa Alpha", 150000.00, 1])
+        BANCO.executar("INSERT OR REPLACE INTO contas_financeiras (id, titular, saldo, ativo) VALUES (?, ?, ?, ?)", ["CTA-002", "Empresa Beta", 85000.00, 1])
+
+        BANCO.confirmarTransacao()
+        EXIBA "Transacao confirmada com sucesso via Raw SQL!"
+
+        # 3. Consulta Escalar Direta (COUNT / SUM)
+        VARIAVEL totalContas : INTEIRO <- BANCO.consultarValor("SELECT COUNT(*) FROM contas_financeiras WHERE ativo = ?", [1])
+        VARIAVEL saldoTotal : DECIMAL <- BANCO.consultarValor("SELECT SUM(saldo) FROM contas_financeiras WHERE ativo = ?", [1])
+
+        EXIBA "Total de Contas Ativas: " + TEXTO.deInteiro(totalContas)
+        EXIBA "Saldo Consolidado Total: R$ " + TEXTO.deDecimal(saldoTotal)
+
+        # 4. Consulta Tabular com JOIN / Filtros Parametrizados
+        VARIAVEL linhas : FATIA[REGISTRO] <- BANCO.consultar("SELECT titular, saldo FROM contas_financeiras WHERE saldo > ? ORDER BY saldo DESC", [100000.00])
+        EXIBA "Conta VIP encontrada: " + linhas[0].titular + " com Saldo R$ " + TEXTO.deDecimal(linhas[0].saldo)
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

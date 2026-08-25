@@ -540,6 +540,18 @@ public final class BibliotecaPadrao {
             }
             return ValorThz.LOGICO(true);
         });
+        registrar(m, "CONFIG.projeto.nome", (args, ctx, interp) -> {
+            return ValorThz.TEXTO(thz.lang.config.ThzProjectConfig.obterConfig().projeto().nome());
+        });
+        registrar(m, "CONFIG.projeto.versao", (args, ctx, interp) -> {
+            return ValorThz.TEXTO(thz.lang.config.ThzProjectConfig.obterConfig().projeto().versao());
+        });
+        registrar(m, "CONFIG.projeto.autor", (args, ctx, interp) -> {
+            return ValorThz.TEXTO(thz.lang.config.ThzProjectConfig.obterConfig().projeto().autor());
+        });
+        registrar(m, "CONFIG.projeto.dialeto", (args, ctx, interp) -> {
+            return ValorThz.TEXTO(thz.lang.config.ThzProjectConfig.obterConfig().projeto().dialeto());
+        });
 
         // ---------------- SEGURANCA ----------------
         registrar(m, "SEGURANCA.sha256", (args, ctx, interp) -> {
@@ -742,13 +754,13 @@ public final class BibliotecaPadrao {
             return ValorThz.DECIMAL(thz.lang.runtime.DecimalFixo.deTexto(String.format(java.util.Locale.US, "%.6f", pred), 6));
         });
 
-        // ---------------- MENSAGERIA & STREAMING EDA ----------------
+        // ---------------- MENSAGERIA & STREAMING EDA UNIVERSAL ----------------
         registrar(m, "MENSAGERIA.publicar", (args, ctx, interp) -> {
             exigirAridade("MENSAGERIA.publicar", args, 2, ctx);
             exigirClasse("MENSAGERIA.publicar", args.get(0), "TEXTO", ctx);
             String topico = ((ValorThz.Texto) args.get(0)).valor();
             ValorThz msg = args.get(1);
-            long offset = thz.lang.mensageria.ThzBarramentoEventos.publicar(topico, msg);
+            long offset = thz.lang.mensageria.ThzMessagingBridge.publicar(topico, msg);
             return ValorThz.INTEIRO(BigInteger.valueOf(offset));
         });
         registrar(m, "MENSAGERIA.consumir", (args, ctx, interp) -> {
@@ -756,21 +768,38 @@ public final class BibliotecaPadrao {
             exigirClasse("MENSAGERIA.consumir", args.get(0), "TEXTO", ctx);
             String topico = ((ValorThz.Texto) args.get(0)).valor();
             long timeout = args.size() > 1 && args.get(1) instanceof ValorThz.Inteiro in ? in.valor().longValue() : 500L;
-            var evento = thz.lang.mensageria.ThzBarramentoEventos.consumir(topico, timeout);
+            var evento = thz.lang.mensageria.ThzMessagingBridge.consumir(topico, timeout);
             return evento != null ? evento.payload() : ValorThz.NULO;
         });
         registrar(m, "MENSAGERIA.tamanhoFila", (args, ctx, interp) -> {
             exigirAridade("MENSAGERIA.tamanhoFila", args, 1, ctx);
             exigirClasse("MENSAGERIA.tamanhoFila", args.get(0), "TEXTO", ctx);
             String topico = ((ValorThz.Texto) args.get(0)).valor();
-            int sz = thz.lang.mensageria.ThzBarramentoEventos.tamanhoFila(topico);
+            int sz = thz.lang.mensageria.ThzMessagingBridge.tamanhoFila(topico);
             return ValorThz.INTEIRO(BigInteger.valueOf(sz));
         });
         registrar(m, "MENSAGERIA.limparTopico", (args, ctx, interp) -> {
             exigirAridade("MENSAGERIA.limparTopico", args, 1, ctx);
             exigirClasse("MENSAGERIA.limparTopico", args.get(0), "TEXTO", ctx);
             String topico = ((ValorThz.Texto) args.get(0)).valor();
-            thz.lang.mensageria.ThzBarramentoEventos.limparTopico(topico);
+            thz.lang.mensageria.ThzMessagingBridge.limparTopico(topico);
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "MENSAGERIA.driverAtivo", (args, ctx, interp) -> {
+            return ValorThz.TEXTO(thz.lang.mensageria.ThzMessagingBridge.driverAtivo());
+        });
+        registrar(m, "MENSAGERIA.statusConexao", (args, ctx, interp) -> {
+            return ValorThz.LOGICO(thz.lang.mensageria.ThzMessagingBridge.statusConexao());
+        });
+        registrar(m, "MENSAGERIA.urlAtiva", (args, ctx, interp) -> {
+            return ValorThz.TEXTO(thz.lang.mensageria.ThzMessagingBridge.urlAtiva());
+        });
+        registrar(m, "MENSAGERIA.conectar", (args, ctx, interp) -> {
+            if (args.isEmpty()) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] MENSAGERIA.conectar exige o driver.");
+            exigirClasse("MENSAGERIA.conectar", args.get(0), "TEXTO", ctx);
+            String driver = ((ValorThz.Texto) args.get(0)).valor();
+            String url = args.size() > 1 && args.get(1) instanceof ValorThz.Texto t ? t.valor() : "auto";
+            thz.lang.mensageria.ThzMessagingBridge.conectar(driver, url);
             return ValorThz.LOGICO(true);
         });
 
@@ -800,7 +829,7 @@ public final class BibliotecaPadrao {
             return ValorThz.LOGICO(true);
         });
 
-        // ---------------- BANCO ----------------
+        // ---------------- BANCO (UNIVERSAL / RAW SQL & ORM JPA-LIKE) ----------------
         registrar(m, "BANCO.conectar", (args, ctx, interp) -> {
             if (args.isEmpty()) {
                 throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BANCO.conectar exige pelo menos a URL de conexão.");
@@ -824,6 +853,16 @@ public final class BibliotecaPadrao {
             long afetadas = thz.lang.db.ThzDb.executar(sql, params);
             return ValorThz.INTEIRO(afetadas);
         });
+        registrar(m, "BANCO.executarEm", (args, ctx, interp) -> {
+            if (args.size() < 2) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BANCO.executarEm exige conexaoNome e SQL.");
+            }
+            String nomeConn = ((ValorThz.Texto) args.get(0)).valor();
+            String sql = ((ValorThz.Texto) args.get(1)).valor();
+            List<ValorThz> params = args.size() > 2 && args.get(2) instanceof ValorThz.Fatia f ? f.elementos() : java.util.Collections.emptyList();
+            long afetadas = thz.lang.db.ThzDb.executarEm(nomeConn, sql, params);
+            return ValorThz.INTEIRO(afetadas);
+        });
         registrar(m, "BANCO.consultar", (args, ctx, interp) -> {
             if (args.isEmpty()) {
                 throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BANCO.consultar exige SQL.");
@@ -832,6 +871,95 @@ public final class BibliotecaPadrao {
             List<ValorThz> params = args.size() > 1 && args.get(1) instanceof ValorThz.Fatia f ? f.elementos() : java.util.Collections.emptyList();
             var linhas = thz.lang.db.ThzDb.consultar(sql, params);
             List<ValorThz> lista = new java.util.ArrayList<>(linhas);
+            return ValorThz.FATIA(lista);
+        });
+        registrar(m, "BANCO.consultarEm", (args, ctx, interp) -> {
+            if (args.size() < 2) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BANCO.consultarEm exige conexaoNome e SQL.");
+            }
+            String nomeConn = ((ValorThz.Texto) args.get(0)).valor();
+            String sql = ((ValorThz.Texto) args.get(1)).valor();
+            List<ValorThz> params = args.size() > 2 && args.get(2) instanceof ValorThz.Fatia f ? f.elementos() : java.util.Collections.emptyList();
+            var linhas = thz.lang.db.ThzDb.consultarEm(nomeConn, sql, params);
+            List<ValorThz> lista = new java.util.ArrayList<>(linhas);
+            return ValorThz.FATIA(lista);
+        });
+        registrar(m, "BANCO.consultarValor", (args, ctx, interp) -> {
+            if (args.isEmpty()) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BANCO.consultarValor exige SQL.");
+            }
+            String sql = ((ValorThz.Texto) args.get(0)).valor();
+            List<ValorThz> params = args.size() > 1 && args.get(1) instanceof ValorThz.Fatia f ? f.elementos() : java.util.Collections.emptyList();
+            return thz.lang.db.ThzDb.consultarValor(sql, params);
+        });
+        registrar(m, "BANCO.iniciarTransacao", (args, ctx, interp) -> {
+            if (args.isEmpty()) thz.lang.db.ThzDb.iniciarTransacao();
+            else thz.lang.db.ThzDb.iniciarTransacaoEm(((ValorThz.Texto) args.get(0)).valor());
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "BANCO.confirmarTransacao", (args, ctx, interp) -> {
+            if (args.isEmpty()) thz.lang.db.ThzDb.confirmarTransacao();
+            else thz.lang.db.ThzDb.confirmarTransacaoEm(((ValorThz.Texto) args.get(0)).valor());
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "BANCO.cancelarTransacao", (args, ctx, interp) -> {
+            if (args.isEmpty()) thz.lang.db.ThzDb.cancelarTransacao();
+            else thz.lang.db.ThzDb.cancelarTransacaoEm(((ValorThz.Texto) args.get(0)).valor());
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "BANCO.executarScript", (args, ctx, interp) -> {
+            exigirAridade("BANCO.executarScript", args, 1, ctx);
+            exigirClasse("BANCO.executarScript", args.get(0), "TEXTO", ctx);
+            thz.lang.db.ThzDb.executarScript(((ValorThz.Texto) args.get(0)).valor());
+            return ValorThz.LOGICO(true);
+        });
+        registrar(m, "BANCO.driverAtivo", (args, ctx, interp) -> {
+            return ValorThz.TEXTO(thz.lang.db.ThzDatabaseBridge.driverAtivo());
+        });
+        registrar(m, "BANCO.salvar", (args, ctx, interp) -> {
+            exigirAridade("BANCO.salvar", args, 2, ctx);
+            exigirClasse("BANCO.salvar", args.get(0), "TEXTO", ctx);
+            String tabela = ((ValorThz.Texto) args.get(0)).valor();
+            return thz.lang.db.ThzDatabaseBridge.salvar(tabela, args.get(1));
+        });
+        registrar(m, "BANCO.buscarPorId", (args, ctx, interp) -> {
+            exigirAridade("BANCO.buscarPorId", args, 2, ctx);
+            exigirClasse("BANCO.buscarPorId", args.get(0), "TEXTO", ctx);
+            String tabela = ((ValorThz.Texto) args.get(0)).valor();
+            return thz.lang.db.ThzDatabaseBridge.buscarPorId(tabela, args.get(1));
+        });
+        registrar(m, "BANCO.removerPorId", (args, ctx, interp) -> {
+            exigirAridade("BANCO.removerPorId", args, 2, ctx);
+            exigirClasse("BANCO.removerPorId", args.get(0), "TEXTO", ctx);
+            String tabela = ((ValorThz.Texto) args.get(0)).valor();
+            return ValorThz.LOGICO(thz.lang.db.ThzDatabaseBridge.removerPorId(tabela, args.get(1)));
+        });
+        registrar(m, "BANCO.criarTabela", (args, ctx, interp) -> {
+            exigirAridade("BANCO.criarTabela", args, 2, ctx);
+            exigirClasse("BANCO.criarTabela", args.get(0), "TEXTO", ctx);
+            String tabela = ((ValorThz.Texto) args.get(0)).valor();
+            java.util.Map<String, String> colunas = new java.util.LinkedHashMap<>();
+            if (args.get(1) instanceof ValorThz.Registro reg) {
+                reg.campos().forEach((k, v) -> colunas.put(k, v.formatar()));
+            } else if (args.get(1) instanceof ValorThz.Texto t) {
+                // Formato "id:INTEGER, nome:TEXT, valor:DECIMAL"
+                for (String par : t.valor().split(",")) {
+                    String[] kv = par.trim().split(":");
+                    if (kv.length == 2) colunas.put(kv[0].trim(), kv[1].trim());
+                }
+            }
+            return ValorThz.LOGICO(thz.lang.db.ThzDatabaseBridge.criarTabela(tabela, colunas));
+        });
+        registrar(m, "BANCO.consultarVetorial", (args, ctx, interp) -> {
+            if (args.size() < 3) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] BANCO.consultarVetorial exige tabela, colunaVetor e vetorBusca.");
+            exigirClasse("BANCO.consultarVetorial", args.get(0), "TEXTO", ctx);
+            exigirClasse("BANCO.consultarVetorial", args.get(1), "TEXTO", ctx);
+            String tabela = ((ValorThz.Texto) args.get(0)).valor();
+            String colunaVetor = ((ValorThz.Texto) args.get(1)).valor();
+            float[] vetorBusca = extrairVetorArg(args.get(2), ctx);
+            int limite = args.size() > 3 && args.get(3) instanceof ValorThz.Inteiro in ? in.valor().intValue() : 5;
+            var registros = thz.lang.db.ThzDatabaseBridge.consultarVetorial(tabela, colunaVetor, vetorBusca, limite);
+            List<ValorThz> lista = new java.util.ArrayList<>(registros);
             return ValorThz.FATIA(lista);
         });
         registrar(m, "BANCO.fechar", (args, ctx, interp) -> {

@@ -76,10 +76,25 @@ public final class ThzDb {
         }
     }
 
+    public static boolean temConexao(String nome) {
+        Connection conn = nome != null ? CONEXOES.get(nome) : conexaoPadrao;
+        try {
+            return conn != null && !conn.isClosed();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     public static Connection obterConexao(String nome) {
         Connection conn = nome != null ? CONEXOES.get(nome) : conexaoPadrao;
         if (conn == null)
             conn = conexaoPadrao;
+        if (conn == null) {
+            // Auto-conecta utilizando a configuração padrão do manifesto thz.config.json
+            thz.lang.db.ThzDatabaseBridge.inicializarPadrao();
+            conn = nome != null ? CONEXOES.get(nome) : conexaoPadrao;
+            if (conn == null) conn = conexaoPadrao;
+        }
         if (conn == null) {
             throw new IllegalStateException("Nenhuma conexão de banco ativa. Use BANCO.conectar(url).");
         }
@@ -128,6 +143,103 @@ public final class ThzDb {
         return linhas;
     }
 
+    public static ValorThz consultarValor(String sql, List<ValorThz> parametros) {
+        return consultarValorEm("padrao", sql, parametros);
+    }
+
+    public static ValorThz consultarValorEm(String conexaoNome, String sql, List<ValorThz> parametros) {
+        Connection conn = obterConexao(conexaoNome);
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            vincularParametros(stmt, parametros);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    ResultSetMetaData meta = rs.getMetaData();
+                    Object val = rs.getObject(1);
+                    return converterParaThz(val, meta.getColumnType(1));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao consultar valor escalar SQL: " + e.getMessage(), e);
+        }
+        return ValorThz.NULO;
+    }
+
+    public static void iniciarTransacao() {
+        iniciarTransacaoEm("padrao");
+    }
+
+    public static void iniciarTransacaoEm(String conexaoNome) {
+        Connection conn = obterConexao(conexaoNome);
+        try {
+            conn.setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao iniciar transação: " + e.getMessage(), e);
+        }
+    }
+
+    public static void confirmarTransacao() {
+        confirmarTransacaoEm("padrao");
+    }
+
+    public static void confirmarTransacaoEm(String conexaoNome) {
+        Connection conn = obterConexao(conexaoNome);
+        try {
+            conn.commit();
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao confirmar transação: " + e.getMessage(), e);
+        }
+    }
+
+    public static void cancelarTransacao() {
+        cancelarTransacaoEm("padrao");
+    }
+
+    public static void cancelarTransacaoEm(String conexaoNome) {
+        Connection conn = obterConexao(conexaoNome);
+        try {
+            conn.rollback();
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao cancelar transação: " + e.getMessage(), e);
+        }
+    }
+
+    public static void executarScript(String sqlMultiplo) {
+        executarScriptEm("padrao", sqlMultiplo);
+    }
+
+    public static void executarScriptEm(String conexaoNome, String sqlMultiplo) {
+        Connection conn = obterConexao(conexaoNome);
+        try (var stmt = conn.createStatement()) {
+            for (String comando : sqlMultiplo.split(";")) {
+                String limpo = comando.trim();
+                if (!limpo.isEmpty()) {
+                    stmt.execute(limpo);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao executar script SQL: " + e.getMessage(), e);
+        }
+    }
+
+    public static String obterDriverNome(String conexaoNome) {
+        try {
+            Connection conn = obterConexao(conexaoNome);
+            String url = conn.getMetaData().getURL();
+            if (url != null) {
+                if (url.startsWith("jdbc:sqlite:")) return "SQLITE";
+                if (url.startsWith("jdbc:postgresql:")) return "POSTGRES";
+                if (url.startsWith("jdbc:mysql:") || url.startsWith("jdbc:mariadb:")) return "MYSQL";
+                if (url.startsWith("jdbc:oracle:")) return "ORACLE";
+                if (url.startsWith("jdbc:sqlserver:")) return "SQLSERVER";
+            }
+            return conn.getMetaData().getDatabaseProductName().toUpperCase();
+        } catch (Exception e) {
+            return "DESCONHECIDO";
+        }
+    }
+
     private static void vincularParametros(PreparedStatement stmt, List<ValorThz> params) throws SQLException {
         if (params == null)
             return;
@@ -174,7 +286,8 @@ public final class ThzDb {
             if (obj instanceof Long || obj instanceof Integer || obj instanceof Short || obj instanceof Byte) {
                 return ValorThz.INTEIRO(n.longValue());
             }
-            return ValorThz.DECIMAL(DecimalFixo.deTexto(n.toString(), 4));
+            BigDecimal bd = new BigDecimal(n.toString());
+            return ValorThz.DECIMAL(DecimalFixo.deTexto(bd.toPlainString(), 4));
         }
         if (obj instanceof java.sql.Date d) {
             return ValorThz.DATA(DataThz.deTexto(d.toString()));

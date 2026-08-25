@@ -1,0 +1,78 @@
+PROGRAMA DemonstracaoSqliteFisicoEVetorialReal
+
+# ==============================================================================
+# THZ-LANG v3.0.0 — Teste Físico de SQLite e SQLite Vetorial em Disco (.db)
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "PersistenciaFisica"
+    SUBDOMINIO: "BancoDadosLocal"
+    CAMADA: "Infraestrutura"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "15ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA FaturaCorporativa
+    id: TEXTO
+    cliente: TEXTO
+    valor: DECIMAL
+    status: TEXTO
+    vetorDescricao: TEXTO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO PersistirDadosEmDiscoReal
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "=== DEMONSTRACAO DE SQLITE FISICO EM DISCO (.db) E BUSCA VETORIAL ==="
+
+        # Conecta diretamente a um arquivo .db físico no diretório dados/
+        VARIAVEL caminhoDb : TEXTO <- "jdbc:sqlite:dados/banco_producao_real.db"
+        BANCO.conectar(caminhoDb)
+
+        EXIBA "Conexao estabelecida com o arquivo fisico: dados/banco_producao_real.db"
+        EXIBA "Driver de Banco Ativo: " + BANCO.driverAtivo()
+
+        # 1. Criação da tabela física
+        BANCO.criarTabela("faturas_fiscais", "id:TEXT PRIMARY KEY, cliente:TEXT, valor:NUMERIC, status:TEXT, vetorDescricao:TEXT")
+
+        # 2. Geração de Embeddings e Persistência via JPA/ORM
+        VARIAVEL emb1 : TEXTO <- IA.embedding("Licenciamento de Software Enterprise e Suporte Dedicado 24x7")
+        VARIAVEL emb2 : TEXTO <- IA.embedding("Consultoria e Auditoria em Seguranca da Informacao e LGPD")
+        VARIAVEL emb3 : TEXTO <- IA.embedding("Servicos de Frete Rodoviario e Logistica de Cargas Pesadas")
+
+        VARIAVEL fat1 : FaturaCorporativa <- CRIAR FaturaCorporativa(id: "FAT-001", cliente: "TechCorp Global", valor: 75000.00, status: "PAGA", vetorDescricao: emb1)
+        VARIAVEL fat2 : FaturaCorporativa <- CRIAR FaturaCorporativa(id: "FAT-002", cliente: "CyberSec Brasil", valor: 32000.00, status: "PENDENTE", vetorDescricao: emb2)
+        VARIAVEL fat3 : FaturaCorporativa <- CRIAR FaturaCorporativa(id: "FAT-003", cliente: "Logistica Rapida", valor: 18500.00, status: "PAGA", vetorDescricao: emb3)
+
+        BANCO.salvar("faturas_fiscais", fat1)
+        BANCO.salvar("faturas_fiscais", fat2)
+        BANCO.salvar("faturas_fiscais", fat3)
+        EXIBA "3 Faturas com embeddings gravadas com sucesso no arquivo fisico!"
+
+        # 3. Transações e Raw SQL no banco em disco
+        BANCO.iniciarTransacao()
+        BANCO.executar("UPDATE faturas_fiscais SET status = ? WHERE id = ?", ["LIQUIDADA", "FAT-001"])
+        BANCO.confirmarTransacao()
+        EXIBA "Transacao de baixa de fatura confirmada no disco (Commit Real)!"
+
+        # 4. Consulta Escalar Direta
+        VARIAVEL totalRegistros : INTEIRO <- BANCO.consultarValor("SELECT COUNT(*) FROM faturas_fiscais", [])
+        VARIAVEL valorTotal : DECIMAL <- BANCO.consultarValor("SELECT SUM(valor) FROM faturas_fiscais", [])
+        EXIBA "Total de Faturas no .db: " + TEXTO.deInteiro(totalRegistros)
+        EXIBA "Volume Financeiro no .db: R$ " + TEXTO.deDecimal(valorTotal)
+
+        # 5. Busca Semântica Vetorial KNN no arquivo físico
+        EXIBA "--- Executando Busca Vetorial Semantica KNN no SQLite ---"
+        VARIAVEL vetorConsulta : TEXTO <- IA.embedding("Auditoria de vulnerabilidades, pentest e conformidade LGPD")
+        VARIAVEL maisSimilares : FATIA[REGISTRO] <- BANCO.consultarVetorial("faturas_fiscais", "vetorDescricao", vetorConsulta, 2)
+
+        EXIBA "• Top 1 Mais Aderente: " + maisSimilares[0].cliente + " | Similaridade IA: " + TEXTO.deDecimal(maisSimilares[0]._similaridade)
+        EXIBA "• Top 2 Mais Aderente: " + maisSimilares[1].cliente + " | Similaridade IA: " + TEXTO.deDecimal(maisSimilares[1]._similaridade)
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA
