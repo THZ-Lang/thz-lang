@@ -122,6 +122,8 @@ npm run compile
 
 ## ⚡ 5. Compilação Nativa AOT (Zero JVM Runtime)
 
+> **Tratado completo:** para fundamentos de IR/IL, arquitetura LLVM e GraalVM Native Image, geração de código de máquina, trade-offs AOT vs JIT e a relação com velocidade e execução segura, consulte [`ARQUITETURA_COMPILACAO_NATIVA.md`](ARQUITETURA_COMPILACAO_NATIVA.md).
+
 O THZ-LANG disponibiliza dois fluxos de compilação nativa Ahead-Of-Time (AOT):
 
 ### 5.1 Compilação AOT via LLVM Clang Dual-OS (`scripts/build-llvm.ps1`)

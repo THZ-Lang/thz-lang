@@ -2,6 +2,8 @@
 
 **Arquitetura Interna, Motor de Compilação AOT, Semântica SIMD/SoA, Runtime Dual-OS e Self-Hosting**
 
+> **Aprofundamento:** para o tratado completo sobre GraalVM, LLVM, IR/IL, geração de código nativo, velocidade e execução segura, consulte [`ARQUITETURA_COMPILACAO_NATIVA.md`](ARQUITETURA_COMPILACAO_NATIVA.md).
+
 ---
 
 ## 1. Visão Geral da Arquitetura do Sistema

@@ -35,7 +35,7 @@ dependency-reduced-pom.xml
 surefire-reports/
 
 # VS Code Extension Packaging
-*.vsix
+# *.vsix
 Extensions/thz-lsp-vscode/dist/
 Extensions/thz-lsp-vscode/out/
 
