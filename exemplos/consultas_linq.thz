@@ -1,0 +1,46 @@
+PROGRAMA DemonstracaoConsultasLinq
+
+# ==============================================================================
+# THZ-LANG v2.7.0 — Consultas Tipadas Nativas (LINQ / Query DSL Type-Safe)
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "VendasERetencao"
+    SUBDOMINIO: "FiltroDeClientes"
+    CAMADA: "Servico"
+    VERSAO: "2.7.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA FaturaCliente
+    cliente: TEXTO
+    score: INTEIRO
+    valor: DECIMAL
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO FiltrarFaturasAltaPrioridade
+    OPERACAO Executar() : INTEIRO
+    INICIO
+        VARIAVEL f1 : FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Alpha", score: 850, valor: 45000.00)
+        VARIAVEL f2 : FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Beta", score: 620, valor: 12000.00)
+        VARIAVEL f3 : FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Gama", score: 910, valor: 89000.00)
+        VARIAVEL f4 : FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Delta", score: 500, valor: 5000.00)
+
+        VARIAVEL todasFaturas : FATIA[FaturaCliente] <- [f1, f2, f3, f4]
+
+        # Consulta nativa LINQ tipada com filtro, ordenação e limite
+        VARIAVEL faturasVip : FATIA[FaturaCliente] <- CONSULTAR DE todasFaturas
+                                                      ONDE valor > 10000.00 E score >= 700
+                                                      ORDENAR_POR valor DESC
+                                                      LIMITE 2
+
+        EXIBA "Total de Faturas Selecionadas: " + TEXTO.deInteiro(FATIA.tamanho(faturasVip))
+        EXIBA "Maior Fatura: " + faturasVip[0].cliente + " - R$ " + TEXTO.deDecimal(faturasVip[0].valor)
+
+        RETORNE FATIA.tamanho(faturasVip)
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

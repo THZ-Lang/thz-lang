@@ -90,6 +90,16 @@ public enum TokenType {
     FACA,
     FIM_VETORIZAR,
 
+    // Consultas Tipadas (LINQ / Query DSL)
+    CONSULTAR,
+    ONDE,
+    ORDENAR_POR,
+    AGRUPAR_POR,
+    LIMITE,
+    PULAR,
+    ASC,
+    DESC,
+
     IDENTIFICADOR,
     STRING_LITERAL,
     NUMERO_LITERAL,

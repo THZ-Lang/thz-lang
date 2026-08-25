@@ -312,6 +312,7 @@ public class InterpretadorThz {
                 visitarRaizes(ob.direita(), escopo, raizes);
             }
             case ExprAst.OpUnaria ou -> visitarRaizes(ou.operando(), escopo, raizes);
+            case ExprAst.ConsultaTipada ct -> visitarRaizes(ct.fonte(), escopo, raizes);
             case ExprAst.LiteralInteiro _,ExprAst.LiteralDecimal _,ExprAst.LiteralTexto _,ExprAst.LiteralLogico _,ExprAst.Nulo _ ->
                 {
                 }
@@ -323,16 +324,16 @@ public class InterpretadorThz {
             return exigirLogico(avaliar(expr, escopo), "cláusula de contrato");
         }
         String nome = raizes.get(indice);
-        ValorThz fatia = escopo.resolver(nome);
-        if (!(fatia instanceof ValorThz.Fatia f))
+        ValorThz valor = escopo.resolver(nome);
+        if (!(valor instanceof ValorThz.Fatia fatia)) {
             return quantificar(expr, escopo, raizes, indice + 1);
-        if (f.elementos().isEmpty())
-            return true;
-        for (ValorThz elemento : f.elementos()) {
-            Escopo sombra = new Escopo(escopo);
-            sombra.definir(nome, elemento);
-            if (!quantificar(expr, sombra, raizes, indice + 1))
+        }
+        for (ValorThz elemento : fatia.elementos()) {
+            Escopo sub = new Escopo(escopo);
+            sub.definir(nome, elemento);
+            if (!quantificar(expr, sub, raizes, indice + 1)) {
                 return false;
+            }
         }
         return true;
     }
@@ -353,7 +354,73 @@ public class InterpretadorThz {
             case ExprAst.AcessoCampo ac -> avaliarAcessoCampo(ac, escopo);
             case ExprAst.OpUnaria ou -> avaliarOpUnaria(ou, escopo);
             case ExprAst.OpBinaria ob -> avaliarOpBinaria(ob, escopo);
+            case ExprAst.ConsultaTipada ct -> avaliarConsultaTipada(ct, escopo);
         };
+    }
+
+    private ValorThz avaliarConsultaTipada(ExprAst.ConsultaTipada ct, Escopo escopo) {
+        ValorThz fonteVal = avaliar(ct.fonte(), escopo);
+        if (!(fonteVal instanceof ValorThz.Fatia fatia)) {
+            throw new ErroExecucao("[Erro de Execução][Linha " + ct.linha() + ":" + ct.coluna() + "] CONSULTAR exige como fonte uma FATIA, recebido: " + fonteVal.classe());
+        }
+
+        List<ValorThz> resultado = new ArrayList<>();
+        for (ValorThz item : fatia.elementos()) {
+            if (ct.onde() == null) {
+                resultado.add(item);
+                continue;
+            }
+
+            Escopo subEscopo = new Escopo(escopo);
+            if (item instanceof ValorThz.Registro reg) {
+                for (Map.Entry<String, ValorThz> entry : reg.campos().entrySet()) {
+                    subEscopo.definir(entry.getKey(), entry.getValue());
+                }
+            } else {
+                subEscopo.definir("item", item);
+                subEscopo.definir("it", item);
+            }
+
+            ValorThz cond = avaliar(ct.onde(), subEscopo);
+            if (cond instanceof ValorThz.Logico l && l.valor()) {
+                resultado.add(item);
+            }
+        }
+
+        if (ct.campoOrdenacao() != null) {
+            String campo = ct.campoOrdenacao();
+            boolean asc = ct.asc();
+            resultado.sort((a, b) -> {
+                ValorThz valA = a instanceof ValorThz.Registro ra ? ra.campos().get(campo) : a;
+                ValorThz valB = b instanceof ValorThz.Registro rb ? rb.campos().get(campo) : b;
+                if (valA == null && valB == null) return 0;
+                if (valA == null) return asc ? -1 : 1;
+                if (valB == null) return asc ? 1 : -1;
+                Integer cmp = ordemNumerica(valA, valB, ct);
+                if (cmp != null) return asc ? cmp : -cmp;
+                int strCmp = valA.formatar().compareTo(valB.formatar());
+                return asc ? strCmp : -strCmp;
+            });
+        }
+
+        int start = 0;
+        if (ct.pular() != null) {
+            ValorThz pularVal = avaliar(ct.pular(), escopo);
+            if (pularVal instanceof ValorThz.Inteiro i) {
+                start = Math.max(0, Math.min(i.valor().intValue(), resultado.size()));
+            }
+        }
+
+        int end = resultado.size();
+        if (ct.limite() != null) {
+            ValorThz limiteVal = avaliar(ct.limite(), escopo);
+            if (limiteVal instanceof ValorThz.Inteiro i) {
+                end = Math.min(start + Math.max(0, i.valor().intValue()), resultado.size());
+            }
+        }
+
+        List<ValorThz> slice = resultado.subList(start, end);
+        return new ValorThz.Fatia(fatia.tipoInterno(), new ArrayList<>(slice));
     }
 
     private ValorThz avaliarFatiaLiteral(ExprAst.FatiaLiteral fl, Escopo escopo) {
@@ -409,6 +476,13 @@ public class InterpretadorThz {
     private ValorThz avaliarIndexacao(ExprAst.Indexacao idx, Escopo escopo) {
         ValorThz alvo = avaliar(idx.alvo(), escopo);
         ValorThz indice = avaliar(idx.indice(), escopo);
+        if (indice instanceof ValorThz.Texto t && alvo instanceof ValorThz.Registro r) {
+            ValorThz val = r.campos().get(t.valor());
+            if (val == null) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + idx.linha() + ":" + idx.coluna() + "] Campo '" + t.valor() + "' não existe na estrutura " + r.nomeEstrutura());
+            }
+            return val;
+        }
         if (!(indice instanceof ValorThz.Inteiro))
             throw new ErroExecucao("[Erro de Execução][Linha " + idx.linha() + ":" + idx.coluna()
                     + "] Índice deve ser INTEIRO, recebido " + indice.classe());

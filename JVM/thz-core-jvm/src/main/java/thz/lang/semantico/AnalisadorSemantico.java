@@ -485,13 +485,59 @@ public final class AnalisadorSemantico {
             case ExprAst.CriarRegistro cr -> inferirCriarRegistro(cr, escopo);
             case ExprAst.OpUnaria ou -> inferirOpUnaria(ou, escopo);
             case ExprAst.OpBinaria ob -> inferirBinaria(ob, escopo);
+            case ExprAst.ConsultaTipada ct -> inferirConsultaTipada(ct, escopo);
         };
+    }
+
+    private TipoThz inferirConsultaTipada(ExprAst.ConsultaTipada ct, EscopoTipos escopo) {
+        TipoThz tipoFonte = inferir(ct.fonte(), escopo);
+        if (tipoFonte == null) return null;
+        if (ct.onde() != null) {
+            EscopoTipos subEscopo = new EscopoTipos(escopo);
+            String nomeElem = tipoFonte.interno() != null ? tipoFonte.interno() : tipoFonte.nome();
+            var est = estruturas.get(nomeElem);
+            if (est != null) {
+                for (var campo : est.campos()) {
+                    subEscopo.definir(campo.nome(), tipoValido(campo.tipo(), ct.linha(), ct.coluna()), ct.linha(), ct.coluna(), erros);
+                }
+            }
+            subEscopo.definir("item", tipoFonte, ct.linha(), ct.coluna(), erros);
+            subEscopo.definir("it", tipoFonte, ct.linha(), ct.coluna(), erros);
+            TipoThz tipoCond = inferir(ct.onde(), subEscopo);
+            if (tipoCond != null && !"LOGICO".equals(tipoCond.nome())) {
+                erros.add(new ErroSemantico(ct.linha(), ct.coluna(), "Condição ONDE em CONSULTAR deve ser LOGICO; obtido " + Tipos.descrever(tipoCond) + "."));
+            }
+        }
+        if (ct.limite() != null) {
+            TipoThz tipoLim = inferir(ct.limite(), escopo);
+            if (tipoLim != null && !Tipos.ehInteiro(tipoLim)) {
+                erros.add(new ErroSemantico(ct.linha(), ct.coluna(), "LIMITE deve ser inteiro; obtido " + Tipos.descrever(tipoLim) + "."));
+            }
+        }
+        if (ct.pular() != null) {
+            TipoThz tipoPular = inferir(ct.pular(), escopo);
+            if (tipoPular != null && !Tipos.ehInteiro(tipoPular)) {
+                erros.add(new ErroSemantico(ct.linha(), ct.coluna(), "PULAR deve ser inteiro; obtido " + Tipos.descrever(tipoPular) + "."));
+            }
+        }
+        return tipoFonte.categoria() == CategoriaTipo.FATIA ? tipoFonte : new TipoThz("FATIA[" + tipoFonte.nome() + "]", CategoriaTipo.FATIA, null, null, tipoFonte.nome(), null);
     }
 
     private TipoThz inferirIndexacao(ExprAst.Indexacao idx, EscopoTipos escopo) {
         TipoThz alvo = inferir(idx.alvo(), escopo);
         TipoThz indice = inferir(idx.indice(), escopo);
-        if (indice != null && !Tipos.ehInteiro(indice))
+        if (indice != null && indice.categoria() == CategoriaTipo.PRIMITIVO && "TEXTO".equals(indice.nome())) {
+            if (alvo != null && alvo.categoria() == CategoriaTipo.REGISTRO) {
+                var est = estruturas.get(alvo.nome());
+                if (est != null && idx.indice() instanceof ExprAst.LiteralTexto lt) {
+                    var campo = est.campos().stream().filter(c -> c.nome().equals(lt.valor())).findFirst();
+                    if (campo.isPresent()) {
+                        return tipoValido(campo.get().tipo(), idx.linha(), idx.coluna());
+                    }
+                }
+            }
+        }
+        if (indice != null && !Tipos.ehInteiro(indice) && !"TEXTO".equals(indice.nome()))
             erros.add(new ErroSemantico(idx.linha(), idx.coluna(), "Índice deve ser inteiro; obtido " + Tipos.descrever(indice) + "."));
         if (alvo == null) return null;
         if (alvo.categoria() == CategoriaTipo.FATIA) {
@@ -504,6 +550,9 @@ public final class AnalisadorSemantico {
             return new TipoThz(interno, CategoriaTipo.PRIMITIVO);
         }
         if (alvo.nome().equals("TEXTO")) return TIPO_TEXTO;
+        if (alvo.categoria() == CategoriaTipo.REGISTRO && indice != null && "TEXTO".equals(indice.nome())) {
+            return null;
+        }
         erros.add(new ErroSemantico(idx.linha(), idx.coluna(), "Indexação exige FATIA ou TEXTO; obtido " + Tipos.descrever(alvo) + "."));
         return null;
     }

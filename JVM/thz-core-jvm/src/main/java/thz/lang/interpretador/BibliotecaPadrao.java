@@ -220,6 +220,41 @@ public final class BibliotecaPadrao {
             return ValorThz.TEXTO(args.get(0).formatar());
         });
 
+        // ---- FATIA (Coleções) ----
+        registrar(m, "FATIA.tamanho", (args, ctx) -> {
+            exigirAridade("FATIA.tamanho", args, 1, ctx);
+            if (args.get(0) instanceof ValorThz.Fatia f) {
+                return ValorThz.INTEIRO(BigInteger.valueOf(f.elementos().size()));
+            }
+            if (args.get(0) instanceof ValorThz.Texto t) {
+                return ValorThz.INTEIRO(BigInteger.valueOf(t.valor().length()));
+            }
+            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] FATIA.tamanho exige FATIA ou TEXTO.");
+        });
+        registrar(m, "FATIA.primeiro", (args, ctx) -> {
+            exigirAridade("FATIA.primeiro", args, 1, ctx);
+            if (args.get(0) instanceof ValorThz.Fatia f) {
+                if (f.elementos().isEmpty()) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] FATIA vazia.");
+                return f.elementos().get(0);
+            }
+            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] FATIA.primeiro exige FATIA.");
+        });
+        registrar(m, "FATIA.ultimo", (args, ctx) -> {
+            exigirAridade("FATIA.ultimo", args, 1, ctx);
+            if (args.get(0) instanceof ValorThz.Fatia f) {
+                if (f.elementos().isEmpty()) throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] FATIA vazia.");
+                return f.elementos().get(f.elementos().size() - 1);
+            }
+            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] FATIA.ultimo exige FATIA.");
+        });
+        registrar(m, "FATIA.vazia", (args, ctx) -> {
+            exigirAridade("FATIA.vazia", args, 1, ctx);
+            if (args.get(0) instanceof ValorThz.Fatia f) {
+                return ValorThz.LOGICO(f.elementos().isEmpty());
+            }
+            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] FATIA.vazia exige FATIA.");
+        });
+
         // ---- MATEMATICA ----
         registrar(m, "MATEMATICA.abs", (args, ctx) -> {
             exigirAridade("MATEMATICA.abs", args, 1, ctx);

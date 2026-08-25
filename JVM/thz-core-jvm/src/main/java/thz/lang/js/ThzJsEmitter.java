@@ -239,6 +239,24 @@ public final class ThzJsEmitter {
                 };
                 yield "(" + emitirExpr(ob.esquerda()) + " " + op + " " + emitirExpr(ob.direita()) + ")";
             }
+            case ExprAst.ConsultaTipada ct -> {
+                StringBuilder sb = new StringBuilder("(");
+                sb.append(emitirExpr(ct.fonte()));
+                if (ct.onde() != null) {
+                    sb.append(").filter(item => { with(item) { return ").append(emitirExpr(ct.onde())).append("; } })");
+                } else {
+                    sb.append(")");
+                }
+                if (ct.campoOrdenacao() != null) {
+                    sb.append(".slice().sort((a, b) => ").append(ct.asc() ? "a." + ct.campoOrdenacao() + " > b." + ct.campoOrdenacao() + " ? 1 : -1" : "a." + ct.campoOrdenacao() + " < b." + ct.campoOrdenacao() + " ? 1 : -1").append(")");
+                }
+                if (ct.pular() != null || ct.limite() != null) {
+                    String start = ct.pular() != null ? emitirExpr(ct.pular()) : "0";
+                    String end = ct.limite() != null ? start + " + " + emitirExpr(ct.limite()) : "undefined";
+                    sb.append(".slice(").append(start).append(", ").append(end).append(")");
+                }
+                yield sb.toString();
+            }
         };
     }
 }

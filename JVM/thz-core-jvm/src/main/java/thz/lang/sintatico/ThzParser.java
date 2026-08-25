@@ -767,6 +767,46 @@ public class ThzParser {
             return parsePosfixo(base);
         }
 
+        if (t.type() == TokenType.CONSULTAR) {
+            advance();
+            if (check(TokenType.DE)) {
+                advance();
+            }
+            ExprAst fonte = parseExprPrimaria();
+            ExprAst onde = null;
+            String campoOrdenacao = null;
+            boolean asc = true;
+            ExprAst limite = null;
+            ExprAst pular = null;
+
+            while (true) {
+                if (check(TokenType.ONDE) && onde == null) {
+                    advance();
+                    onde = parseExpressao();
+                } else if (check(TokenType.ORDENAR_POR) && campoOrdenacao == null) {
+                    advance();
+                    campoOrdenacao = consumeIdentificador("Esperado nome do campo para ORDENAR_POR.").value();
+                    if (check(TokenType.DESC)) {
+                        advance();
+                        asc = false;
+                    } else if (check(TokenType.ASC)) {
+                        advance();
+                        asc = true;
+                    }
+                } else if (check(TokenType.LIMITE) && limite == null) {
+                    advance();
+                    limite = parseExpressao();
+                } else if (check(TokenType.PULAR) && pular == null) {
+                    advance();
+                    pular = parseExpressao();
+                } else {
+                    break;
+                }
+            }
+            ExprAst base = new ExprAst.ConsultaTipada(fonte, onde, campoOrdenacao, asc, limite, pular, t.line(), t.column());
+            return parsePosfixo(base);
+        }
+
         if (t.type() == TokenType.IDENTIFICADOR || t.type() == TokenType.TELA) {
             List<String> caminho = parseAcessoCaminho();
             ExprAst base;
@@ -795,12 +835,20 @@ public class ThzParser {
 
     private ExprAst parsePosfixo(ExprAst base) {
         ExprAst cur = base;
-        while (check(TokenType.ABRE_COLCHETE)) {
-            Token inicio = peek();
-            advance();
-            ExprAst indice = parseExpressao();
-            consume(TokenType.FECHA_COLCHETE, "Esperado ']' após índice.");
-            cur = new ExprAst.Indexacao(cur, indice, inicio.line(), inicio.column());
+        while (true) {
+            if (check(TokenType.ABRE_COLCHETE)) {
+                Token inicio = peek();
+                advance();
+                ExprAst indice = parseExpressao();
+                consume(TokenType.FECHA_COLCHETE, "Esperado ']' após índice.");
+                cur = new ExprAst.Indexacao(cur, indice, inicio.line(), inicio.column());
+            } else if (check(TokenType.PONTO)) {
+                Token ponto = advance();
+                String campo = consumeIdentificador("Esperado nome do campo após '.'.").value();
+                cur = new ExprAst.Indexacao(cur, new ExprAst.LiteralTexto(campo, ponto.line(), ponto.column()), ponto.line(), ponto.column());
+            } else {
+                break;
+            }
         }
         return cur;
     }
@@ -878,6 +926,7 @@ public class ThzParser {
             case ExprAst.CriarRegistro cr -> "CRIAR " + cr.nomeEstrutura() + "(" + cr.campos().stream().map(c -> c.nome() + ": " + textoCanonicoDe(c.valor())).collect(Collectors.joining(", ")) + ")";
             case ExprAst.OpUnaria ou -> ("-".equals(ou.operador()) ? "-" : "NAO ") + textoCanonicoDe(ou.operando());
             case ExprAst.OpBinaria ob -> textoCanonicoDe(ob.esquerda()) + " " + ob.operador() + " " + textoCanonicoDe(ob.direita());
+            case ExprAst.ConsultaTipada ct -> "CONSULTAR DE " + textoCanonicoDe(ct.fonte()) + (ct.onde() != null ? " ONDE " + textoCanonicoDe(ct.onde()) : "") + (ct.campoOrdenacao() != null ? " ORDENAR_POR " + ct.campoOrdenacao() + (ct.asc() ? " ASC" : " DESC") : "");
         };
     }
 

@@ -102,7 +102,16 @@ public final class PalavrasReservadas {
         Map.entry("NULO", new EntradaPalavra(TokenType.NULO, CategoriaPalavra.LITERAL)),
         Map.entry("E", new EntradaPalavra(TokenType.OPERADOR_LOGICO, CategoriaPalavra.CONECTIVO_LOGICO)),
         Map.entry("OU", new EntradaPalavra(TokenType.OPERADOR_LOGICO, CategoriaPalavra.CONECTIVO_LOGICO)),
-        Map.entry("NAO", new EntradaPalavra(TokenType.OPERADOR_LOGICO, CategoriaPalavra.CONECTIVO_LOGICO))
+        Map.entry("NAO", new EntradaPalavra(TokenType.OPERADOR_LOGICO, CategoriaPalavra.CONECTIVO_LOGICO)),
+        // Consultas Tipadas (LINQ)
+        Map.entry("CONSULTAR", new EntradaPalavra(TokenType.CONSULTAR, CategoriaPalavra.CONTROLE)),
+        Map.entry("ONDE", new EntradaPalavra(TokenType.ONDE, CategoriaPalavra.CONTROLE)),
+        Map.entry("ORDENAR_POR", new EntradaPalavra(TokenType.ORDENAR_POR, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("AGRUPAR_POR", new EntradaPalavra(TokenType.AGRUPAR_POR, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("LIMITE", new EntradaPalavra(TokenType.LIMITE, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("PULAR", new EntradaPalavra(TokenType.PULAR, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("ASC", new EntradaPalavra(TokenType.ASC, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("DESC", new EntradaPalavra(TokenType.DESC, CategoriaPalavra.MODIFICADOR))
     );
 
     // 2. Tabela Equivalente EN-US
@@ -147,12 +156,14 @@ public final class PalavrasReservadas {
         Map.entry("END_INPUT_CONTRACT", new EntradaPalavra(TokenType.FIM_CONTRATO_ENTRADA, CategoriaPalavra.CONTRATO)),
         Map.entry("OUTPUT_CONTRACT", new EntradaPalavra(TokenType.CONTRATO_SAIDA, CategoriaPalavra.CONTRATO)),
         Map.entry("END_OUTPUT_CONTRACT", new EntradaPalavra(TokenType.FIM_CONTRATO_SAIDA, CategoriaPalavra.CONTRATO)),
+        Map.entry("START", new EntradaPalavra(TokenType.INICIO, CategoriaPalavra.CONTROLE)),
         Map.entry("BEGIN", new EntradaPalavra(TokenType.INICIO, CategoriaPalavra.CONTROLE)),
         Map.entry("IF", new EntradaPalavra(TokenType.SE, CategoriaPalavra.CONTROLE)),
         Map.entry("ELSE", new EntradaPalavra(TokenType.SENAO, CategoriaPalavra.CONTROLE)),
         Map.entry("WHILE", new EntradaPalavra(TokenType.ENQUANTO, CategoriaPalavra.CONTROLE)),
         Map.entry("RETURN", new EntradaPalavra(TokenType.RETORNE, CategoriaPalavra.CONTROLE)),
         Map.entry("FAIL_WITH", new EntradaPalavra(TokenType.FALHAR_COM, CategoriaPalavra.CONTROLE)),
+        Map.entry("DISPLAY", new EntradaPalavra(TokenType.EXIBA, CategoriaPalavra.CONTROLE)),
         Map.entry("PRINT", new EntradaPalavra(TokenType.EXIBA, CategoriaPalavra.CONTROLE)),
         Map.entry("READ", new EntradaPalavra(TokenType.LER, CategoriaPalavra.CONTROLE)),
         Map.entry("VECTORIZE_FOR", new EntradaPalavra(TokenType.VETORIZAR_PARA, CategoriaPalavra.CONTROLE)),
@@ -191,7 +202,16 @@ public final class PalavrasReservadas {
         Map.entry("NULL", new EntradaPalavra(TokenType.NULO, CategoriaPalavra.LITERAL)),
         Map.entry("AND", new EntradaPalavra(TokenType.OPERADOR_LOGICO, CategoriaPalavra.CONECTIVO_LOGICO)),
         Map.entry("OR", new EntradaPalavra(TokenType.OPERADOR_LOGICO, CategoriaPalavra.CONECTIVO_LOGICO)),
-        Map.entry("NOT", new EntradaPalavra(TokenType.OPERADOR_LOGICO, CategoriaPalavra.CONECTIVO_LOGICO))
+        Map.entry("NOT", new EntradaPalavra(TokenType.OPERADOR_LOGICO, CategoriaPalavra.CONECTIVO_LOGICO)),
+        // Query DSL EN-US
+        Map.entry("QUERY", new EntradaPalavra(TokenType.CONSULTAR, CategoriaPalavra.CONTROLE)),
+        Map.entry("WHERE", new EntradaPalavra(TokenType.ONDE, CategoriaPalavra.CONTROLE)),
+        Map.entry("ORDER_BY", new EntradaPalavra(TokenType.ORDENAR_POR, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("GROUP_BY", new EntradaPalavra(TokenType.AGRUPAR_POR, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("LIMIT", new EntradaPalavra(TokenType.LIMITE, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("OFFSET", new EntradaPalavra(TokenType.PULAR, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("ASC", new EntradaPalavra(TokenType.ASC, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("DESC", new EntradaPalavra(TokenType.DESC, CategoriaPalavra.MODIFICADOR))
     );
 
     // Mapeamentos de Tradução Bidirecional
