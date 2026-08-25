@@ -216,21 +216,30 @@ public final class ThzUiVaadinEmitter {
                 if (!acao) return;
                 const btn = document.getElementById(idBotao);
                 const orig = btn ? btn.textContent : '';
-                if (btn) { btn.disabled = true; btn.textContent = 'Executando no Servidor...'; }
+                if (btn) { btn.disabled = true; btn.textContent = 'Executando...'; }
                 try {
-                    const resp = await fetch('/api/rpc/invocar', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ acao, estado: window.vaadinEstado })
-                    });
+                    let resp;
+                    try {
+                        resp = await fetch('/thz-bridge/rpc', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ canal: acao, payload: JSON.stringify({ estado: window.vaadinEstado }) })
+                        });
+                    } catch(e1) {
+                        resp = await fetch('/api/rpc/invocar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ acao, estado: window.vaadinEstado })
+                        });
+                    }
                     const res = await resp.json();
                     if (res && res.status === 'ok') {
-                        vaadinNotificar('✓ ' + (res.resultado || res.mensagem || 'Ação concluída com sucesso.'), 'sucesso');
+                        vaadinNotificar('\\u2713 ' + (res.resultado || res.mensagem || 'Ação concluída com sucesso.'), 'sucesso');
                     } else {
-                        vaadinNotificar('✗ ' + (res.erro || res.mensagem || 'Falha na execução'), 'erro');
+                        vaadinNotificar('\\u2717 ' + (res.erro || res.mensagem || 'Falha na execução'), 'erro');
                     }
                 } catch(e) {
-                    vaadinNotificar('✗ Erro de comunicação: ' + e.message, 'erro');
+                    vaadinNotificar('\\u2717 Erro de comunicação: ' + e.message, 'erro');
                 } finally {
                     if (btn) { btn.disabled = false; btn.textContent = orig; }
                 }

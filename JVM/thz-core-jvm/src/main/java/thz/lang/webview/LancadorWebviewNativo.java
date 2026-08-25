@@ -40,9 +40,30 @@ public final class LancadorWebviewNativo {
     }
 
     public static synchronized String abrirHtml(String titulo, String html, int largura, int altura) {
+        // Fecha processo anterior do Edge se estiver rodando (evita conflito de perfil)
+        if (processoNativo != null && processoNativo.isAlive()) {
+            try { processoNativo.destroyForcibly(); Thread.sleep(300); } catch (Exception ignore) {}
+            processoNativo = null;
+        }
+
         // Sempre serve via bridge para ter porta conhecida
         ThzWebviewBridge.iniciar(html);
         String url = ThzWebviewBridge.getUrl();
+
+        // Aguarda servidor HTTP estar pronto antes de abrir o navegador
+        for (int i = 0; i < 10; i++) {
+            try {
+                var conn = new java.net.URL(url).openConnection();
+                conn.setConnectTimeout(500);
+                conn.setReadTimeout(500);
+                conn.connect();
+                conn.getInputStream().close();
+                break;
+            } catch (Exception e) {
+                try { Thread.sleep(200); } catch (InterruptedException ignore) {}
+            }
+        }
+
         JanelaConfig cfg = new JanelaConfig(titulo, url, largura, altura);
         if (!lancarNativo(url, cfg)) {
             abrirNavegadorFallback(url);
