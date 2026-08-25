@@ -19,8 +19,8 @@ fi
 COMANDO="$1"
 shift
 
-# Se o primeiro argumento for um arquivo .thz, assume comando=run
-if [[ "$COMANDO" == *.thz ]]; then
+# Se o primeiro argumento for um arquivo .thz ou .thzui, assume comando=run
+if [[ "$COMANDO" == *.thz || "$COMANDO" == *.thzui ]]; then
     ARQUIVO="$COMANDO"
     COMANDO="run"
     ARGS_CLI=("$COMANDO" "$ARQUIVO" "$@")

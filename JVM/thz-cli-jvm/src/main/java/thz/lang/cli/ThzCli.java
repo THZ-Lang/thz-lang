@@ -71,6 +71,20 @@ public class ThzCli {
         argumentos.remove(0);
         boolean estrito = argumentos.contains("--estrito");
 
+        Set<String> comandosConhecidos = Set.of(
+                "init", "inicializar", "repl", "gui", "livro", "manual", "book",
+                "compile-all", "compilar-tudo", "compile", "compilar", "build",
+                "dev", "serve", "check", "ast", "fmt", "run", "audit", "doc", "ir", "ui"
+        );
+
+        if (!comandosConhecidos.contains(comando.toLowerCase())) {
+            var achado = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(comandoRaw, Path.of("."), List.of(".thz", ".thzui"));
+            if (achado.isPresent()) {
+                argumentos.add(0, achado.get().toString());
+                comando = "run";
+            }
+        }
+
         if (comando.equals("init") || comando.equals("inicializar")) {
             Path arquivoConfig = Path.of("thz.config.json");
             if (Files.exists(arquivoConfig)) {
@@ -322,7 +336,35 @@ public class ThzCli {
                     return;
                 }
                 if (comando.equals("ui")) {
-                    boolean html = argumentos.contains("--html");
+                    boolean html = argumentos.contains("--html") || argumentos.contains("--web") || argumentos.contains("--webview");
+                    boolean swing = argumentos.contains("--swing") || argumentos.contains("--gui");
+
+                    if (swing || (!html && !java.awt.GraphicsEnvironment.isHeadless())) {
+                        try {
+                            boolean precisaEntrada = precisaEntrada(ast);
+                            java.util.function.Supplier<String> entrada = precisaEntrada ? criarLeitorEntrada() : null;
+                            InterpretadorThz interp = new InterpretadorThz(ast, System.out::println, entrada);
+                            Object frame = thz.lang.gui.ui.ThzUiSwingRenderer.renderizarOuExibir(ast, interp);
+                            if (frame instanceof javax.swing.JFrame jf) {
+                                System.out.println("[THZ-UI SWING] Interface gráfica declarativa '" + ast.nome() + "' exibida com sucesso.");
+                                if (!Boolean.getBoolean("thz.test.mode")) {
+                                    synchronized (ThzCli.class) {
+                                        while (jf.isDisplayable()) {
+                                            try {
+                                                ThzCli.class.wait(1000);
+                                            } catch (InterruptedException ignore) {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                return;
+                            }
+                        } catch (Throwable t) {
+                            System.err.println("[THZ-UI] Display gráfico indisponível (" + t.getMessage() + "). Alternando para modo HTML/Web...");
+                        }
+                    }
+
                     var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
                         c.adicionar(thz.lang.ui.ThzUiMaker.card("card_" + ast.nome(), ast.nome(), card -> {
                             card.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_modulo", "info",
@@ -335,7 +377,9 @@ public class ThzCli {
                         }));
                     });
                     if (html) {
-                        System.out.println(maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass()));
+                        String codigoHtml = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
+                        String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), codigoHtml, 1024, 768);
+                        System.out.println("[THZ-UI WEB] Interface '" + ast.nome() + "' aberta via Web / WebView em: " + url);
                     } else {
                         System.out.println(maker.gerarCodigoThz(ast.nome()));
                     }
@@ -411,7 +455,7 @@ public class ThzCli {
                     if (check) {
                         if (!fonte.equals(formatado)) {
                             System.err.println(
-                                    "[THZ FMT] Arquivo não está formatado. Use `thz fmt --escrever` para corrigir.");
+                                     "[THZ FMT] Arquivo não está formatado. Use `thz fmt --escrever` para corrigir.");
                             String[] a = fonte.split("\n", -1);
                             String[] b = formatado.split("\n", -1);
                             for (int i = 0; i < Math.max(a.length, b.length); i++)
@@ -444,9 +488,86 @@ public class ThzCli {
                     return;
                 }
                 if (comando.equals("run")) {
+                    boolean ehArquivoUi = arquivo.toLowerCase().endsWith(".thzui")
+                            || (ast.tipoModulo() == thz.lang.ast.TipoModulo.TELA)
+                            || (ast.tipoModulo() == thz.lang.ast.TipoModulo.PROGRAMA_VISUAL)
+                            || argumentos.contains("--gui")
+                            || argumentos.contains("--swing")
+                            || argumentos.contains("--web")
+                            || argumentos.contains("--webview");
+
+                    // =========================================================
+                    // 1. Arquivos .thzui ou interfaces declarativas -> GUI / Web
+                    // =========================================================
+                    if (ehArquivoUi) {
+                        boolean executarModoWeb = modoWeb
+                                || argumentos.contains("--web")
+                                || argumentos.contains("--html")
+                                || argumentos.contains("--webview")
+                                || java.awt.GraphicsEnvironment.isHeadless();
+
+                        boolean precisaEntrada = precisaEntrada(ast);
+                        java.util.function.Supplier<String> entrada = precisaEntrada ? criarLeitorEntrada() : null;
+                        InterpretadorThz interp = new InterpretadorThz(ast, System.out::println, entrada);
+
+                        if (executarModoWeb) {
+                            System.out.println("================================================================================");
+                            System.out.println("   EXECUTANDO INTERFACE DECLARATIVA THZ-UI (MODO WEB / HTML5): " + ast.nome());
+                            System.out.println("================================================================================\n");
+                            var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
+                                c.adicionar(thz.lang.ui.ThzUiMaker.card("card_" + ast.nome(), ast.nome(), card -> {
+                                    card.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_modulo", "info",
+                                            "Tela: " + ast.nome() + " [" + ast.tipoModulo() + "]"));
+                                    if (ast.procedimentos() != null) {
+                                        for (var p : ast.procedimentos()) {
+                                            card.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_" + p.nome(), p.nome(), p.nome()));
+                                        }
+                                    }
+                                }));
+                            });
+                            String html = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
+                            String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
+                            System.out.println("[THZ-UI WEB] Interface declarativa '" + ast.nome() + "' aberta via Web / WebView em: " + url);
+                            return;
+                        }
+
+                        // Modo Desktop Swing + FlatLaf
+                        System.out.println("================================================================================");
+                        System.out.println("   EXECUTANDO INTERFACE DECLARATIVA THZ-UI (MODO SWING GUI): " + ast.nome());
+                        System.out.println("================================================================================\n");
+                        try {
+                            Object frame = thz.lang.gui.ui.ThzUiSwingRenderer.renderizarOuExibir(ast, interp);
+                            if (frame instanceof javax.swing.JFrame jf) {
+                                System.out.println("[THZ-UI SWING] Janela gráfica interativa '" + ast.nome() + "' exibida com sucesso.");
+                                if (!Boolean.getBoolean("thz.test.mode")) {
+                                    synchronized (ThzCli.class) {
+                                        while (jf.isDisplayable()) {
+                                            try {
+                                                ThzCli.class.wait(1000);
+                                            } catch (InterruptedException ignore) {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                return;
+                            }
+                        } catch (Throwable t) {
+                            System.err.println("[THZ-UI SWING] Display gráfico indisponível (" + t.getMessage() + "). Alternando para modo Web...");
+                            var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {});
+                            String html = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
+                            String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
+                            System.out.println("[THZ-UI WEB] Interface aberta em: " + url);
+                            return;
+                        }
+                    }
+
+                    // =========================================================
+                    // 2. Arquivos .thz -> Execução CLI (Console stdout & arena)
+                    // =========================================================
                     System.out.println(
                             "================================================================================");
-                    System.out.println("   EXECUTANDO MOTOR NATIVO THZ-LANG: " + ast.nome());
+                    System.out.println("   EXECUTANDO MOTOR NATIVO THZ-LANG (MODO CLI): " + ast.nome());
                     System.out.println(
                             "================================================================================\n");
                     BlocoMemoria blocoMemoria = new BlocoMemoria(64);

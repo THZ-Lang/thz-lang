@@ -106,6 +106,79 @@ public class ThzCliTest {
     }
 
     @Test
+    @DisplayName("ThzCli deve despachar .thz para CLI e .thzui para Swing/Web automaticamente")
+    void testDespachoThzEThzUi(@TempDir Path tempDir) throws Exception {
+        System.setProperty("thz.test.mode", "true");
+
+        // 1. Arquivo .thz -> CLI
+        Path arqThz = tempDir.resolve("servico_negocio.thz");
+        String srcThz = """
+                PROGRAMA ServicoNegocio
+                METADADOS_ARQUITETURA
+                    DOMINIO: "Sistemas"
+                    CAMADA: "Servico"
+                    VERSAO: "3.0.0"
+                    AUTOR: "Engenharia"
+                    SLO_LATENCIA_MAXIMA: "50ms"
+                FIM_METADADOS
+                
+                PROCEDIMENTO Principal()
+                INICIO
+                    EXIBA "Executado via CLI Nativo"
+                FIM
+                FIM_PROGRAMA
+                """;
+        ThzIO.escreverTexto(arqThz.toString(), srcThz);
+
+        // 2. Arquivo .thzui -> Declarative UI
+        Path arqThzUi = tempDir.resolve("painel_financeiro.thzui");
+        String srcThzUi = """
+                TELA PainelFinanceiro
+                METADADOS_ARQUITETURA
+                    DOMINIO: "Financeiro"
+                    CAMADA: "Interface"
+                    VERSAO: "3.0.0"
+                    AUTOR: "Design"
+                    SLO_LATENCIA_MAXIMA: "16ms"
+                FIM_METADADOS
+                
+                PROCEDIMENTO AoClicar()
+                INICIO
+                    EXIBA "Acao Disparada"
+                FIM
+                FIM_TELA
+                """;
+        ThzIO.escreverTexto(arqThzUi.toString(), srcThzUi);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream orig = System.out;
+        try {
+            System.setOut(new PrintStream(out));
+
+            // A. Execução direta thz <arquivo.thz> -> CLI
+            out.reset();
+            ThzCli.main(new String[]{arqThz.toString()});
+            String outThz = out.toString();
+            assertTrue(outThz.contains("MODO CLI") || outThz.contains("Executado via CLI Nativo"), "Deve executar .thz via CLI");
+
+            // B. Execução thz <arquivo.thzui> --web -> Webview/HTML5
+            out.reset();
+            ThzCli.main(new String[]{"run", arqThzUi.toString(), "--web"});
+            String outWeb = out.toString();
+            assertTrue(outWeb.contains("MODO WEB") || outWeb.contains("THZ-UI WEB"), "Deve executar .thzui via Web/HTML5");
+
+            // C. Execução direta thz <arquivo.thzui> -> Swing GUI ou Web Fallback
+            out.reset();
+            ThzCli.main(new String[]{arqThzUi.toString()});
+            String outSwing = out.toString();
+            assertTrue(outSwing.contains("MODO SWING GUI") || outSwing.contains("THZ-UI SWING") || outSwing.contains("MODO WEB"), "Deve executar .thzui via Swing GUI");
+        } finally {
+            System.setOut(orig);
+            System.clearProperty("thz.test.mode");
+        }
+    }
+
+    @Test
     @DisplayName("BibliotecaConsole deve registrar e executar funcoes de console")
     void testBibliotecaConsole() {
         BibliotecaConsole.registrar();

@@ -15,8 +15,8 @@ $ErrorActionPreference = "Stop"
 $Raiz = Resolve-Path "$PSScriptRoot\.."
 Set-Location $Raiz
 
-# Se primeiro arg parece arquivo .thz, assume comando=run
-if ($Comando -like "*.thz" -and -not $Arquivo) { $Arquivo = $Comando; $Comando = "run" }
+# Se primeiro arg parece arquivo .thz ou .thzui, assume comando=run
+if (($Comando -like "*.thz" -or $Comando -like "*.thzui") -and -not $Arquivo) { $Arquivo = $Comando; $Comando = "run" }
 
 $argsStr = @($Comando)
 if ($Arquivo) { $argsStr += $Arquivo }
