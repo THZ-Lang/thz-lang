@@ -183,6 +183,10 @@ public final class ThzUiMaker {
         return ThzUiHtmlEmitter.renderizarPaginaCompleta(titulo, construir(), tema != null ? tema : ThzUiTema.escuroGlass());
     }
 
+    public String renderizarVaadin(String titulo, boolean temaEscuro) {
+        return ThzUiVaadinEmitter.renderizarPaginaVaadin(titulo, construir(), temaEscuro);
+    }
+
     public String gerarCodigoThz(String nomePrograma) {
         return ThzUiCodeGenerator.gerarCodigoThz(nomePrograma, construir());
     }

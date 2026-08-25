@@ -15,10 +15,14 @@ public final class ThzDevServer {
     private static ThzEmbeddedWebServer servidorAtivo;
 
     public static synchronized void iniciar(String caminhoArquivo, int porta) throws Exception {
-        iniciar(caminhoArquivo, porta, false);
+        iniciar(caminhoArquivo, porta, false, false);
     }
 
     public static synchronized void iniciar(String caminhoArquivo, int porta, boolean abrirNavegador) throws Exception {
+        iniciar(caminhoArquivo, porta, abrirNavegador, false);
+    }
+
+    public static synchronized void iniciar(String caminhoArquivo, int porta, boolean abrirNavegador, boolean usarVaadin) throws Exception {
         Path path = Path.of(caminhoArquivo);
         if (!Files.exists(path)) {
             System.err.println("[THZ DEV] Arquivo não encontrado: " + caminhoArquivo);
@@ -30,7 +34,7 @@ public final class ThzDevServer {
         }
 
         System.out.println("================================================================================");
-        System.out.println("   ⚡ SERVIDOR WEB EMBUTIDO THZ-LANG (JAVA 25 VIRTUAL THREADS)");
+        System.out.println("   ⚡ SERVIDOR WEB EMBUTIDO THZ-LANG (JAVA 25 VIRTUAL THREADS)" + (usarVaadin ? " [VAADIN FLOW]" : ""));
         System.out.println("================================================================================\n");
 
         servidorAtivo = new ThzEmbeddedWebServer();
@@ -39,7 +43,8 @@ public final class ThzDevServer {
                 "0.0.0.0",
                 true,
                 abrirNavegador,
-                thz.lang.ui.ThzUiTema.escuroGlass()
+                thz.lang.ui.ThzUiTema.escuroGlass(),
+                usarVaadin
         );
 
         String url = servidorAtivo.iniciar(path, config);

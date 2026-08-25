@@ -42,10 +42,15 @@ public final class ThzEmbeddedWebServer {
             String host,
             boolean autoAlocarPortaLivre,
             boolean abrirNavegador,
-            ThzUiTema tema
+            ThzUiTema tema,
+            boolean usarVaadin
     ) {
         public static ConfiguracaoServidor padrao(int porta) {
-            return new ConfiguracaoServidor(porta, "0.0.0.0", true, false, ThzUiTema.escuroGlass());
+            return new ConfiguracaoServidor(porta, "0.0.0.0", true, false, ThzUiTema.escuroGlass(), false);
+        }
+
+        public static ConfiguracaoServidor vaadin(int porta) {
+            return new ConfiguracaoServidor(porta, "0.0.0.0", true, false, ThzUiTema.escuroGlass(), true);
         }
     }
 
@@ -121,7 +126,7 @@ public final class ThzEmbeddedWebServer {
                 return;
             }
 
-            String html = gerarHtmlPagina(cfg.tema());
+            String html = gerarHtmlPagina(cfg);
             enviarResposta(exchange, 200, html, "text/html; charset=utf-8");
         });
 
@@ -203,8 +208,8 @@ public final class ThzEmbeddedWebServer {
         });
     }
 
-    private String gerarHtmlPagina(ThzUiTema tema) {
-        ThzUiTema t = (tema != null) ? tema : ThzUiTema.escuroGlass();
+    private String gerarHtmlPagina(ConfiguracaoServidor cfg) {
+        ThzUiTema t = (cfg != null && cfg.tema() != null) ? cfg.tema() : ThzUiTema.escuroGlass();
         String titulo = (astAtiva != null) ? astAtiva.nome() : "THZ Application";
 
         var maker = ThzUiMaker.container("app_raiz", c -> {
@@ -219,6 +224,10 @@ public final class ThzEmbeddedWebServer {
                 }
             }));
         });
+
+        if (cfg != null && cfg.usarVaadin()) {
+            return thz.lang.ui.ThzUiVaadinEmitter.renderizarPaginaVaadin(titulo, maker.construir(), true);
+        }
 
         return maker.renderizarHtml(titulo, t);
     }

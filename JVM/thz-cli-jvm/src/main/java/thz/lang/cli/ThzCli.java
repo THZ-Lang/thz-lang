@@ -277,7 +277,7 @@ public class ThzCli {
             System.out.println("[THZ COMPILE] " + arquivo + " compilado com sucesso para IR, LLVM e WASM em: " + raizSaida.toAbsolutePath());
             return;
         }
-        if (comando.equals("dev") || comando.equals("serve") || comando.equals("web")) {
+        if (comando.equals("dev") || comando.equals("serve") || comando.equals("web") || comando.equals("vaadin")) {
             int porta = 8080;
             int idxPorta = argumentos.indexOf("--porta");
             if (idxPorta < 0) idxPorta = argumentos.indexOf("-p");
@@ -288,7 +288,8 @@ public class ThzCli {
                 } catch (NumberFormatException ignored) {}
             }
             boolean abrir = argumentos.contains("--abrir") || argumentos.contains("--open");
-            ThzDevServer.iniciar(arquivo, porta, abrir);
+            boolean vaadin = argumentos.contains("--vaadin") || comando.equals("vaadin");
+            ThzDevServer.iniciar(arquivo, porta, abrir, vaadin);
             if (!Boolean.getBoolean("thz.test.mode")) {
                 synchronized (ThzCli.class) {
                     try {
@@ -519,7 +520,10 @@ public class ThzCli {
                                 || argumentos.contains("--web")
                                 || argumentos.contains("--html")
                                 || argumentos.contains("--webview")
+                                || argumentos.contains("--vaadin")
                                 || java.awt.GraphicsEnvironment.isHeadless();
+
+                        boolean usarVaadin = argumentos.contains("--vaadin");
 
                         boolean precisaEntrada = precisaEntrada(ast);
                         java.util.function.Supplier<String> entrada = precisaEntrada ? criarLeitorEntrada() : null;
@@ -527,7 +531,7 @@ public class ThzCli {
 
                         if (executarModoWeb) {
                             System.out.println("================================================================================");
-                            System.out.println("   EXECUTANDO INTERFACE DECLARATIVA THZ-UI (MODO WEB / HTML5): " + ast.nome());
+                            System.out.println("   EXECUTANDO INTERFACE DECLARATIVA THZ-UI (MODO " + (usarVaadin ? "VAADIN FLOW" : "WEB / HTML5") + "): " + ast.nome());
                             System.out.println("================================================================================\n");
 
                             List<String> logsExecucao = new ArrayList<>();
@@ -574,9 +578,16 @@ public class ThzCli {
                                     }
                                 }));
                             });
-                            String html = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
+
+                            String html;
+                            if (usarVaadin) {
+                                html = maker.renderizarVaadin(ast.nome(), true);
+                            } else {
+                                html = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
+                            }
+
                             String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
-                            System.out.println("[THZ-UI WEB] Interface declarativa '" + ast.nome() + "' aberta via Web / WebView em: " + url);
+                            System.out.println("[THZ-UI " + (usarVaadin ? "VAADIN" : "WEB") + "] Interface declarativa '" + ast.nome() + "' aberta em: " + url);
                             return;
                         }
 
