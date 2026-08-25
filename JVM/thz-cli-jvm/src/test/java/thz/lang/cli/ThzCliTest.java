@@ -167,12 +167,14 @@ public class ThzCliTest {
             String outWeb = out.toString();
             assertTrue(outWeb.contains("MODO WEB") || outWeb.contains("THZ-UI WEB"), "Deve executar .thzui via Web/HTML5");
 
-            // C. Execução direta thz <arquivo.thzui> -> Swing GUI ou Web Fallback
+            // D. Execução thz serve <arquivo.thzui> --porta 0
             out.reset();
-            ThzCli.main(new String[]{arqThzUi.toString()});
-            String outSwing = out.toString();
-            assertTrue(outSwing.contains("MODO SWING GUI") || outSwing.contains("THZ-UI SWING") || outSwing.contains("MODO WEB"), "Deve executar .thzui via Swing GUI");
+            ThzCli.main(new String[]{"serve", arqThzUi.toString(), "--porta", "0"});
+            String outServe = out.toString();
+            assertTrue(outServe.contains("SERVIDOR WEB EMBUTIDO THZ-LANG") || outServe.contains("THZ EMBEDDED"), "Deve iniciar o servidor web embutido");
+            ThzDevServer.parar();
         } finally {
+            ThzDevServer.parar();
             System.setOut(orig);
             System.clearProperty("thz.test.mode");
         }

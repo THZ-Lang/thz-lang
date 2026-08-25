@@ -1,50 +1,64 @@
 package thz.lang.cli;
 
+import thz.lang.net.ThzEmbeddedWebServer;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-
-import thz.lang.ast.ProgramaAst;
-import thz.lang.lexico.ThzLexer;
-import thz.lang.lexico.Token;
-import thz.lang.net.ThzHttpServer;
-import thz.lang.sintatico.ThzParser;
-import thz.lang.ui.ThzUiMaker;
 
 /**
  * Servidor de Desenvolvimento em Tempo Real (Live Reload & Native Dev Server).
- * Utiliza ThzHttpServer com Virtual Threads (JVM 25) para servir interfaces
- * .thzui
- * com auto-reload e reatividade granular.
+ * Utiliza ThzEmbeddedWebServer com Virtual Threads (JVM 25) para servir interfaces .thzui
+ * com auto-reload, RPC bidirecional e reatividade granular.
  */
 public final class ThzDevServer {
 
-    public static void iniciar(String caminhoArquivo, int porta) throws Exception {
+    private static ThzEmbeddedWebServer servidorAtivo;
+
+    public static synchronized void iniciar(String caminhoArquivo, int porta) throws Exception {
+        iniciar(caminhoArquivo, porta, false);
+    }
+
+    public static synchronized void iniciar(String caminhoArquivo, int porta, boolean abrirNavegador) throws Exception {
         Path path = Path.of(caminhoArquivo);
         if (!Files.exists(path)) {
             System.err.println("[THZ DEV] Arquivo não encontrado: " + caminhoArquivo);
             return;
         }
 
-        System.out.println("⚡ [THZ DEV] Servidor Dev ativado na porta " + porta + "...");
-        System.out.println("🔗 [THZ DEV] Acesse: http://localhost:" + porta + "/");
+        if (servidorAtivo != null && servidorAtivo.estaRodando()) {
+            servidorAtivo.parar();
+        }
 
-        ThzHttpServer.iniciar(porta);
+        System.out.println("================================================================================");
+        System.out.println("   ⚡ SERVIDOR WEB EMBUTIDO THZ-LANG (JAVA 25 VIRTUAL THREADS)");
+        System.out.println("================================================================================\n");
 
-        ThzHttpServer.registrarRota("POST", "/api/evento", req -> ThzHttpServer.Resposta.ok("{\"status\":\"ok\"}"));
+        servidorAtivo = new ThzEmbeddedWebServer();
+        var config = new ThzEmbeddedWebServer.ConfiguracaoServidor(
+                porta > 0 ? porta : 8080,
+                "0.0.0.0",
+                true,
+                abrirNavegador,
+                thz.lang.ui.ThzUiTema.escuroGlass()
+        );
 
-        // Gerar HTML5 inicial a partir do arquivo THZ-UI
-        String codigoFonte = Files.readString(path);
-        List<Token> tokens = new ThzLexer(codigoFonte).tokenize();
-        ProgramaAst ast = new ThzParser(tokens).parse();
-        ThzUiMaker uiMaker = ThzUiMaker.card("card_dev", ast.nome(), c -> {
-            c.adicionar(ThzUiMaker.alerta("alerta_live", "success", "Live Reload & Virtual Threads Ativas"));
-        });
-        String html5 = uiMaker.renderizarHtml("THZ-LANG Live Dev - " + ast.nome(), null);
+        String url = servidorAtivo.iniciar(path, config);
 
-        ThzHttpServer.registrarRota("GET", "/",
-                req -> new ThzHttpServer.Resposta(200, html5, "text/html; charset=utf-8", java.util.Map.of()));
+        System.out.println("🚀 [THZ EMBEDDED] Servidor pronto e escutando!");
+        System.out.println("🔗 [THZ EMBEDDED] Acesso direto: " + url);
+        System.out.println("📡 [THZ EMBEDDED] Health Check:  " + url + "api/health");
+        System.out.println("📦 [THZ EMBEDDED] RPC Endpoint:  " + url + "api/rpc/invocar");
+        System.out.println("\nPressione Ctrl+C para encerrar o servidor.");
+    }
 
-        System.out.println("✅ [THZ DEV] Interface declarativa renderizada com sucesso (Virtual Threads prontas).");
+    public static synchronized void parar() {
+        if (servidorAtivo != null) {
+            servidorAtivo.parar();
+            servidorAtivo = null;
+        }
+    }
+
+    public static ThzEmbeddedWebServer getServidorAtivo() {
+        return servidorAtivo;
     }
 }

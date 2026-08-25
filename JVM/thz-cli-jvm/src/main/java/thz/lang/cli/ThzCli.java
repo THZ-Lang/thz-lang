@@ -277,10 +277,25 @@ public class ThzCli {
             System.out.println("[THZ COMPILE] " + arquivo + " compilado com sucesso para IR, LLVM e WASM em: " + raizSaida.toAbsolutePath());
             return;
         }
-        if (comando.equals("dev") || comando.equals("serve")) {
-            String arquivoDev = resolverArquivo(argumentos);
+        if (comando.equals("dev") || comando.equals("serve") || comando.equals("web")) {
             int porta = 8080;
-            ThzDevServer.iniciar(arquivoDev, porta);
+            int idxPorta = argumentos.indexOf("--porta");
+            if (idxPorta < 0) idxPorta = argumentos.indexOf("-p");
+            if (idxPorta < 0) idxPorta = argumentos.indexOf("--port");
+            if (idxPorta >= 0 && idxPorta + 1 < argumentos.size()) {
+                try {
+                    porta = Integer.parseInt(argumentos.get(idxPorta + 1));
+                } catch (NumberFormatException ignored) {}
+            }
+            boolean abrir = argumentos.contains("--abrir") || argumentos.contains("--open");
+            ThzDevServer.iniciar(arquivo, porta, abrir);
+            if (!Boolean.getBoolean("thz.test.mode")) {
+                synchronized (ThzCli.class) {
+                    try {
+                        ThzCli.class.wait();
+                    } catch (InterruptedException ignore) {}
+                }
+            }
             return;
         }
         if (comando.equals("check") || comando.equals("ast") || comando.equals("fmt") || comando.equals("run")
