@@ -5,6 +5,7 @@ import thz.lang.interpretador.ValorThz;
 import thz.lang.runtime.DecimalFixo;
 import thz.lang.vetor.ThzVetorSimd;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,15 +31,8 @@ public final class ThzDatabaseBridge {
         if (url == null || url.isBlank() || "auto".equalsIgnoreCase(url)) {
             url = "jdbc:sqlite:dados/app.db";
         }
+        url = thz.lang.io.ThzLocalizadorRecursos.resolverUrlBancoSqlite(url, Path.of("."));
         try {
-            // Garante criação do diretório de banco se for SQLite em arquivo
-            if (url.startsWith("jdbc:sqlite:") && !url.contains(":memory:")) {
-                String caminhoArquivo = url.substring("jdbc:sqlite:".length());
-                java.nio.file.Path p = java.nio.file.Path.of(caminhoArquivo);
-                if (p.getParent() != null) {
-                    java.nio.file.Files.createDirectories(p.getParent());
-                }
-            }
             ThzDb.conectar("padrao", url, cfg.usuario().isEmpty() ? null : cfg.usuario(), cfg.senha().isEmpty() ? null : cfg.senha());
         } catch (Exception e) {
             // Fallback para SQLite em memória se o caminho falhar

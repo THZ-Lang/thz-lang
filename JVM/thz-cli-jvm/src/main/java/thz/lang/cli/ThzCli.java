@@ -227,9 +227,16 @@ public class ThzCli {
                     + " <caminho.thz|caminho.thzui>");
             System.exit(1);
         }
+
+        // Resolução inteligente e recursiva antes de qualquer falha
+        var arquivoResolvidoOpt = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(arquivo, Path.of("."), List.of(".thz", ".thzui"));
+        if (arquivoResolvidoOpt.isPresent()) {
+            arquivo = arquivoResolvidoOpt.get().toString();
+        }
+
         if (comando.equals("compile") || comando.equals("compilar") || comando.equals("build")) {
             if (!Files.exists(Path.of(arquivo))) {
-                System.err.println("[ERRO] Arquivo não encontrado: " + arquivo);
+                System.err.println("[ERRO] Arquivo não encontrado após pesquisa recursiva: " + arquivo);
                 System.exit(1);
             }
             String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);

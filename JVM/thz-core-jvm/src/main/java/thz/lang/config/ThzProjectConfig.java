@@ -52,12 +52,13 @@ public final class ThzProjectConfig {
     }
 
     public static ProjetoConfig carregarDoDiretorio(Path diretorio) {
-        Path p = diretorio.resolve(ARQUIVO_CONFIG_PADRAO);
-        if (!Files.exists(p)) {
-            p = diretorio.resolve(ARQUIVO_CONFIG_ALT);
+        var opt = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(ARQUIVO_CONFIG_PADRAO, diretorio, List.of(".json"));
+        if (opt.isEmpty()) {
+            opt = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(ARQUIVO_CONFIG_ALT, diretorio, List.of(".json"));
         }
 
-        if (Files.exists(p) && !Files.isDirectory(p)) {
+        if (opt.isPresent()) {
+            Path p = opt.get();
             try {
                 String json = Files.readString(p, StandardCharsets.UTF_8);
                 ProjetoConfig cfg = parsearJson(json, p);

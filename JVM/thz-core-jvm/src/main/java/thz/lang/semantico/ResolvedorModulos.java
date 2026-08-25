@@ -38,13 +38,14 @@ public class ResolvedorModulos {
             fonte = modulosVirtuais.get(chave);
         } else if (modulosVirtuais.containsKey(importacao.modulo())) {
             fonte = modulosVirtuais.get(importacao.modulo());
-        } else if (importacao.caminho() != null) {
-            Path p = diretorioBase != null ? diretorioBase.resolve(importacao.caminho()) : Path.of(importacao.caminho());
-            if (Files.exists(p)) {
+        } else {
+            String termo = importacao.caminho() != null ? importacao.caminho() : importacao.modulo();
+            var encontrado = thz.lang.io.ThzLocalizadorRecursos.localizarModulo(termo, diretorioBase);
+            if (encontrado.isPresent()) {
                 try {
-                    fonte = Files.readString(p);
+                    fonte = Files.readString(encontrado.get());
                 } catch (IOException e) {
-                    throw new IllegalStateException("Erro ao ler arquivo de importação: " + importacao.caminho(), e);
+                    throw new IllegalStateException("Erro ao ler arquivo de importação: " + encontrado.get(), e);
                 }
             }
         }

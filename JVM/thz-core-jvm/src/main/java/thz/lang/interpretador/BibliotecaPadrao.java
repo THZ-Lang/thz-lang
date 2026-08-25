@@ -475,10 +475,24 @@ public final class BibliotecaPadrao {
         });
 
         // ---------------- ARQUIVO & DIRETORIO ----------------
+        registrar(m, "ARQUIVO.localizar", (args, ctx, interp) -> {
+            exigirAridade("ARQUIVO.localizar", args, 1, ctx);
+            exigirClasse("ARQUIVO.localizar", args.get(0), "TEXTO", ctx);
+            String termo = ((ValorThz.Texto) args.get(0)).valor();
+            var opt = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(termo, java.nio.file.Path.of("."), null);
+            return opt.map(path -> ValorThz.TEXTO(path.toAbsolutePath().toString().replace("\\", "/"))).orElse(ValorThz.TEXTO(""));
+        });
         registrar(m, "ARQUIVO.lerTexto", (args, ctx, interp) -> {
             exigirAridade("ARQUIVO.lerTexto", args, 1, ctx);
             exigirClasse("ARQUIVO.lerTexto", args.get(0), "TEXTO", ctx);
-            return ValorThz.TEXTO(thz.lang.io.ThzIO.lerTexto(((ValorThz.Texto) args.get(0)).valor()));
+            String caminho = ((ValorThz.Texto) args.get(0)).valor();
+            if (!thz.lang.io.ThzIO.existe(caminho)) {
+                var opt = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(caminho, java.nio.file.Path.of("."), null);
+                if (opt.isPresent()) {
+                    caminho = opt.get().toString();
+                }
+            }
+            return ValorThz.TEXTO(thz.lang.io.ThzIO.lerTexto(caminho));
         });
         registrar(m, "ARQUIVO.escreverTexto", (args, ctx, interp) -> {
             exigirAridade("ARQUIVO.escreverTexto", args, 2, ctx);

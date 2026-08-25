@@ -8,6 +8,7 @@ Todas as mudanças notáveis deste projeto são documentadas aqui. Formato basea
 
 ### Adicionado
 - **Manifesto de Configuração Centralizada (`thz.config.json` / `thz.json`):** Padronização de projeto, dialeto (`pt-BR`), drivers de banco e mensageria, IA e conformidade de governança, com comando `thz init` e auto-detecção no CLI.
+- **Resolução e Pesquisa Inteligente Recursiva de Recursos (`ThzLocalizadorRecursos`):** Motor centralizado de busca progressiva e recursiva para arquivos-fonte `.thz`/`.thzui`, módulos (`IMPORTAR "..."`), manifestos de projeto e bancos SQLite com subida hierárquica à raiz e varredura profunda com descarte de diretórios ignorados.
 - **Bridge Universal de Mensageria (`MENSAGERIA.*`):** Suporte transparente a RabbitMQ (AMQP/REST), Apache Kafka, AWS SQS, AWS SNS e Barramento Embutido (Virtual Threads) com auto-detecção de brokers locais e failover de zero latência.
 - **Bridge Universal de Banco de Dados & ORM JPA-Like (`BANCO.*`):** Persistência automatizada (`BANCO.salvar`, `BANCO.buscarPorId`, `BANCO.removerPorId`, `BANCO.criarTabela`), Raw SQL de alta performance (`BANCO.consultar`, `BANCO.executar`, `BANCO.consultarValor`, `BANCO.iniciarTransacao`, `BANCO.confirmarTransacao`, `BANCO.cancelarTransacao`, `BANCO.executarScript`) e Busca Semântica Vetorial KNN (`BANCO.consultarVetorial`).
 - **Target WebAssembly (WASM):** Módulo `src/runtime_rs/src/wasm.rs` e alvo `Alvo.WEBASSEMBLY` no `ThzCompilerDriver` para execução universal em navegadores e Edge Workers.

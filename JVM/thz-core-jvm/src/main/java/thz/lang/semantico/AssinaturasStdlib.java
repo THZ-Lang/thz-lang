@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Assinaturas estáticas de tipos e aridade para as 28 funções da biblioteca padrão da THZ-LANG.
+ * Assinaturas estáticas de tipos e aridade para as funções da biblioteca padrão da THZ-LANG v3.0.
  */
 public final class AssinaturasStdlib {
 
@@ -20,6 +20,7 @@ public final class AssinaturasStdlib {
     private static final TipoThz TIPO_LOGICO = Tipos.TIPOS_PRIMITIVOS.get("LOGICO");
     private static final TipoThz TIPO_TEXTO = Tipos.TIPOS_PRIMITIVOS.get("TEXTO");
     private static final TipoThz TIPO_INTEIRO_GENERICO = new TipoThz("INTEIRO64", CategoriaTipo.INTEIRO);
+    private static final TipoThz TIPO_DECIMAL_GENERICO = new TipoThz("DECIMAL", CategoriaTipo.DECIMAL, 4, null, null, null);
     private static final TipoThz TIPO_DATA = Tipos.TIPOS_PRIMITIVOS.get("DATA");
     private static final TipoThz TIPO_DATA_HORA = Tipos.TIPOS_PRIMITIVOS.get("DATA_HORA");
 
@@ -48,6 +49,9 @@ public final class AssinaturasStdlib {
         m.put("TEXTO.substituir", new Assinatura(3, 3, TIPO_TEXTO));
         m.put("TEXTO.dividir", new Assinatura(2, 2, new TipoThz("FATIA[TEXTO]", CategoriaTipo.FATIA, null, null, "TEXTO", null)));
         m.put("TEXTO.juntar", new Assinatura(2, 2, TIPO_TEXTO));
+        m.put("TEXTO.deDecimal", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("TEXTO.deInteiro", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("TEXTO.deLogico", new Assinatura(1, 1, TIPO_TEXTO));
 
         // ---- MATEMATICA ----
         m.put("MATEMATICA.abs", new Assinatura(1, 1, (Function<List<TipoThz>, TipoThz>) args -> Tipos.ehInteiro(args.get(0)) ? TIPO_INTEIRO_GENERICO : args.get(0)));
@@ -89,6 +93,7 @@ public final class AssinaturasStdlib {
         m.put("VERSAO.satisfaz", new Assinatura(2, 2, TIPO_LOGICO));
 
         // ---- ARQUIVO & DIRETORIO ----
+        m.put("ARQUIVO.localizar", new Assinatura(1, 1, TIPO_TEXTO));
         m.put("ARQUIVO.lerTexto", new Assinatura(1, 1, TIPO_TEXTO));
         m.put("ARQUIVO.escreverTexto", new Assinatura(2, 2, TIPO_LOGICO));
         m.put("ARQUIVO.anexarTexto", new Assinatura(2, 2, TIPO_LOGICO));
@@ -100,6 +105,10 @@ public final class AssinaturasStdlib {
         // ---- CONFIG ----
         m.put("CONFIG.obter", new Assinatura(1, 2, TIPO_TEXTO));
         m.put("CONFIG.carregarEnv", new Assinatura(0, 1, TIPO_LOGICO));
+        m.put("CONFIG.projeto.nome", new Assinatura(0, 0, TIPO_TEXTO));
+        m.put("CONFIG.projeto.versao", new Assinatura(0, 0, TIPO_TEXTO));
+        m.put("CONFIG.projeto.autor", new Assinatura(0, 0, TIPO_TEXTO));
+        m.put("CONFIG.projeto.dialeto", new Assinatura(0, 0, TIPO_TEXTO));
 
         // ---- SEGURANCA ----
         m.put("SEGURANCA.sha256", new Assinatura(1, 1, TIPO_TEXTO));
@@ -109,8 +118,37 @@ public final class AssinaturasStdlib {
         m.put("SEGURANCA.descriptografarAes", new Assinatura(2, 2, TIPO_TEXTO));
         m.put("SEGURANCA.hashSenha", new Assinatura(1, 1, TIPO_TEXTO));
         m.put("SEGURANCA.verificarSenha", new Assinatura(2, 2, TIPO_LOGICO));
+        m.put("SEGURANCA.argon2", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("SEGURANCA.verificarArgon2", new Assinatura(2, 2, TIPO_LOGICO));
+        m.put("SEGURANCA.chacha20", new Assinatura(2, 2, TIPO_TEXTO));
+        m.put("SEGURANCA.descriptografarChaCha20", new Assinatura(2, 2, TIPO_TEXTO));
+        m.put("SEGURANCA.cofreSalvar", new Assinatura(3, 3, TIPO_LOGICO));
+        m.put("SEGURANCA.cofreLer", new Assinatura(2, 2, TIPO_TEXTO));
         m.put("SEGURANCA.gerarToken", new Assinatura(0, 1, TIPO_TEXTO));
         m.put("SEGURANCA.uuid", new Assinatura(0, 0, TIPO_TEXTO));
+
+        // ---- VETOR ----
+        m.put("VETOR.criar", new Assinatura(0, 1, TIPO_TEXTO));
+        m.put("VETOR.similaridadeCosseno", new Assinatura(2, 2, TIPO_DECIMAL_GENERICO));
+        m.put("VETOR.distanciaEuclidiana", new Assinatura(2, 2, TIPO_DECIMAL_GENERICO));
+        m.put("VETOR.produtoEscalar", new Assinatura(2, 2, TIPO_DECIMAL_GENERICO));
+        m.put("VETOR.normalizar", new Assinatura(1, 1, TIPO_TEXTO));
+
+        // ---- IA & ML ----
+        m.put("IA.embedding", new Assinatura(1, 2, TIPO_TEXTO));
+        m.put("IA.similaridade", new Assinatura(2, 2, TIPO_DECIMAL_GENERICO));
+        m.put("ML.classificar", new Assinatura(3, 3, TIPO_DECIMAL_GENERICO));
+        m.put("ML.predizer", new Assinatura(3, 3, TIPO_DECIMAL_GENERICO));
+
+        // ---- MENSAGERIA ----
+        m.put("MENSAGERIA.publicar", new Assinatura(2, 2, TIPO_INTEIRO_GENERICO));
+        m.put("MENSAGERIA.consumir", new Assinatura(1, 2, TIPO_TEXTO));
+        m.put("MENSAGERIA.tamanhoFila", new Assinatura(1, 1, TIPO_INTEIRO_GENERICO));
+        m.put("MENSAGERIA.limparTopico", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("MENSAGERIA.driverAtivo", new Assinatura(0, 0, TIPO_TEXTO));
+        m.put("MENSAGERIA.statusConexao", new Assinatura(0, 0, TIPO_LOGICO));
+        m.put("MENSAGERIA.urlAtiva", new Assinatura(0, 0, TIPO_TEXTO));
+        m.put("MENSAGERIA.conectar", new Assinatura(1, 2, TIPO_LOGICO));
 
         // ---- LOG ----
         m.put("LOG.info", new Assinatura(1, 1, TIPO_LOGICO));
@@ -119,7 +157,23 @@ public final class AssinaturasStdlib {
         m.put("LOG.auditoria", new Assinatura(3, 3, TIPO_LOGICO));
 
         // ---- BANCO ----
-        m.put("BANCO.conectar", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("BANCO.conectar", new Assinatura(1, 4, TIPO_LOGICO));
+        m.put("BANCO.executar", new Assinatura(1, 2, TIPO_INTEIRO_GENERICO));
+        m.put("BANCO.executarEm", new Assinatura(2, 3, TIPO_INTEIRO_GENERICO));
+        m.put("BANCO.consultar", new Assinatura(1, 2, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+        m.put("BANCO.consultarEm", new Assinatura(2, 3, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+        m.put("BANCO.consultarValor", new Assinatura(1, 2, TIPO_TEXTO));
+        m.put("BANCO.iniciarTransacao", new Assinatura(0, 1, TIPO_LOGICO));
+        m.put("BANCO.confirmarTransacao", new Assinatura(0, 1, TIPO_LOGICO));
+        m.put("BANCO.cancelarTransacao", new Assinatura(0, 1, TIPO_LOGICO));
+        m.put("BANCO.executarScript", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("BANCO.driverAtivo", new Assinatura(0, 0, TIPO_TEXTO));
+        m.put("BANCO.salvar", new Assinatura(2, 2, (Function<List<TipoThz>, TipoThz>) args -> args.size() > 1 ? args.get(1) : TIPO_TEXTO));
+        m.put("BANCO.buscarPorId", new Assinatura(2, 2, new TipoThz("REGISTRO", CategoriaTipo.REGISTRO, null, null, "REGISTRO", null)));
+        m.put("BANCO.removerPorId", new Assinatura(2, 2, TIPO_LOGICO));
+        m.put("BANCO.criarTabela", new Assinatura(2, 2, TIPO_LOGICO));
+        m.put("BANCO.consultarVetorial", new Assinatura(3, 4, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+        m.put("BANCO.fechar", new Assinatura(0, 1, TIPO_LOGICO));
 
         // ---- WEBVIEW ----
         m.put("WEBVIEW.iniciar", new Assinatura(1, 1, TIPO_TEXTO));
@@ -130,6 +184,11 @@ public final class AssinaturasStdlib {
         m.put("UI.temaPadrao", new Assinatura(0, 0, TIPO_TEXTO));
         m.put("UI.renderizarHtml", new Assinatura(2, 2, TIPO_TEXTO));
         m.put("UI.gerarCodigo", new Assinatura(1, 1, TIPO_TEXTO));
+
+        // ---- NATIVO ----
+        m.put("NATIVO.somar_rapido", new Assinatura(2, 2, TIPO_INTEIRO_GENERICO));
+        m.put("NATIVO.calcular_hash_customizado", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("NATIVO.versao_rust", new Assinatura(0, 0, TIPO_TEXTO));
 
         return Collections.unmodifiableMap(m);
     }

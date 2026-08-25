@@ -193,3 +193,9 @@ A implementação desta suíte seguiu o padrão de **Commits Atômicos e Determi
    - Criação do tratado oficial `docs/CONECTORES_BANCO_E_MENSAGERIA.md`.
    - Atualização do `README.md`, `CHANGELOG.md` e `.gitignore`.
 
+6. **`feat(io): implementar localizador e resolucao inteligente recursiva de modulos, arquivos e manifestos`**
+   - Motor centralizado `ThzLocalizadorRecursos.java` com busca progressiva (direta, extensões, subida hierárquica à raiz do projeto e varredura profunda protegida por FileVisitor).
+   - Integração total no CLI (`ThzCli.java`), importação de módulos (`ResolvedorModulos.java`), carregador de manifesto (`ThzProjectConfig.java`), intermediador de banco SQLite (`ThzDatabaseBridge.java`) e biblioteca padrão (`ARQUIVO.localizar`, `ARQUIVO.lerTexto`).
+   - Suíte completa de testes unitários `ThzLocalizadorRecursosTest.java`.
+
+

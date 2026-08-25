@@ -38,6 +38,10 @@ public final class Tipos {
     public static TipoThz analisarNomeTipo(String verbatim) {
         TipoThz prim = TIPOS_PRIMITIVOS.get(verbatim);
         if (prim != null) return prim;
+        if ("DECIMAL".equals(verbatim)) return new TipoThz("DECIMAL", CategoriaTipo.DECIMAL, 4, null, null, null);
+        if ("INTEIRO".equals(verbatim)) return new TipoThz("INTEIRO64", CategoriaTipo.INTEIRO);
+        if ("NATURAL".equals(verbatim)) return new TipoThz("NATURAL64", CategoriaTipo.INTEIRO);
+        if ("MONETARIO".equals(verbatim)) return new TipoThz("MONETARIO", CategoriaTipo.MONETARIO, null, "BRL", null, null);
         Matcher m;
         m = Pattern.compile("^DECIMAL\\s*\\(\\s*\\d+\\s*,\\s*(\\d+)\\s*\\)$").matcher(verbatim);
         if (m.matches()) return new TipoThz(verbatim.replaceAll("\\s+", ""), CategoriaTipo.DECIMAL, Integer.parseInt(m.group(1)), null, null, null);
