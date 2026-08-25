@@ -41,7 +41,9 @@ public final class Tipos {
         if ("DECIMAL".equals(verbatim)) return new TipoThz("DECIMAL", CategoriaTipo.DECIMAL, 4, null, null, null);
         if ("INTEIRO".equals(verbatim)) return new TipoThz("INTEIRO64", CategoriaTipo.INTEIRO);
         if ("NATURAL".equals(verbatim)) return new TipoThz("NATURAL64", CategoriaTipo.INTEIRO);
-        if ("MONETARIO".equals(verbatim)) return new TipoThz("MONETARIO", CategoriaTipo.MONETARIO, null, "BRL", null, null);
+        if ("MONETARIO".equals(verbatim) || "DINHEIRO".equals(verbatim)) return new TipoThz("MONETARIO", CategoriaTipo.MONETARIO, null, "BRL", null, null);
+        if ("REGISTRO".equals(verbatim) || "RECORD".equals(verbatim)) return new TipoThz("REGISTRO", CategoriaTipo.REGISTRO, null, null, "REGISTRO", null);
+        if ("MAPA".equals(verbatim) || "MAP".equals(verbatim)) return new TipoThz("MAPA", CategoriaTipo.MAPA, null, null, "MAPA", null);
         Matcher m;
         m = Pattern.compile("^DECIMAL\\s*\\(\\s*\\d+\\s*,\\s*(\\d+)\\s*\\)$").matcher(verbatim);
         if (m.matches()) return new TipoThz(verbatim.replaceAll("\\s+", ""), CategoriaTipo.DECIMAL, Integer.parseInt(m.group(1)), null, null, null);
@@ -65,6 +67,8 @@ public final class Tipos {
         if (origem.nome().equals(destino.nome())) return true;
         if (ehInteiro(origem) && ehInteiro(destino)) return true;
         if (ehNumerico(origem) && destino.categoria() == CategoriaTipo.DECIMAL) return true;
+        if (origem.categoria() == CategoriaTipo.REGISTRO && destino.categoria() == CategoriaTipo.REGISTRO) return true;
+        if (origem.categoria() == CategoriaTipo.MAPA && destino.categoria() == CategoriaTipo.MAPA) return true;
         return false;
     }
     public static String descrever(TipoThz t) {
