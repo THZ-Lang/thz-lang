@@ -95,6 +95,17 @@ public class InterpretadorThz {
         return ast;
     }
 
+    private thz.lang.dap.ThzDebugListener debugListener;
+    private String operacaoAtual = "Principal";
+
+    public void setDebugListener(thz.lang.dap.ThzDebugListener debugListener) {
+        this.debugListener = debugListener;
+    }
+
+    public thz.lang.dap.ThzDebugListener getDebugListener() {
+        return debugListener;
+    }
+
     // ---- Helpers STDLIB ----
 
     public static boolean ehStdlib(String nome) {
@@ -892,6 +903,9 @@ public class InterpretadorThz {
     }
 
     private void executarComando(ComandoAst cmd, Escopo escopo) {
+        if (debugListener != null) {
+            debugListener.aoExecutarLinha(cmd.linha(), operacaoAtual, escopo);
+        }
         switch (cmd) {
             case ComandoAst.DeclVariavel decl -> executarDeclVariavel(decl, escopo);
             case ComandoAst.Atribuicao atr -> executarAtribuicao(atr, escopo);

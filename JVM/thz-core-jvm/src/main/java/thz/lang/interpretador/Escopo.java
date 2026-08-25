@@ -55,4 +55,17 @@ public class Escopo {
     public Escopo getPai() {
         return pai;
     }
+
+    public Map<String, ValorThz> getVariaveisLocais() {
+        return Map.copyOf(variaveis);
+    }
+
+    public Map<String, ValorThz> getTodasVariaveis() {
+        Map<String, ValorThz> todas = new HashMap<>();
+        if (pai != null) {
+            todas.putAll(pai.getTodasVariaveis());
+        }
+        todas.putAll(variaveis);
+        return Map.copyOf(todas);
+    }
 }
