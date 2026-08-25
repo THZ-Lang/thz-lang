@@ -223,7 +223,15 @@ public final class EditorThz extends JPanel {
             }
             String line = text.substring(lineStart, caret);
             String trimmed = line.stripTrailing();
-            if (trimmed.equals("INICIO") || trimmed.equals("METADADOS_ARQUITETURA") || trimmed.equals("ESTRUTURA") || trimmed.equals("ENUMERACAO") || trimmed.equals("REGRA_NEGOCIO") || trimmed.equals("OPERACAO") || trimmed.equals("CONTRATO_ENTRADA") || trimmed.equals("CONTRATO_SAIDA") || trimmed.equals("PIPELINE_DADOS") || trimmed.equals("FONTE_ENTRADA") || trimmed.equals("DESTINO_SAIDA") || trimmed.equals("TRANSFORMACAO") || trimmed.equals("TELA") || trimmed.endsWith(" INICIO") || trimmed.endsWith(" ENTAO") || trimmed.endsWith(" FACA")) {
+            if (trimmed.equals("INICIO") || trimmed.equals("METADADOS_ARQUITETURA") || trimmed.equals("ESTRUTURA")
+                    || trimmed.equals("ENUMERACAO") || trimmed.equals("REGRA_NEGOCIO") || trimmed.equals("OPERACAO")
+                    || trimmed.equals("PROCEDIMENTO") || trimmed.equals("CONTRATO_ENTRADA") || trimmed.equals("CONTRATO_SAIDA")
+                    || trimmed.equals("PIPELINE_DADOS") || trimmed.equals("FONTE_ENTRADA") || trimmed.equals("DESTINO_SAIDA")
+                    || trimmed.equals("TRANSFORMACAO") || trimmed.equals("TELA") || trimmed.equals("BLOCO_NATIVO_RUST")
+                    || trimmed.equals("NATIVO_RUST") || trimmed.equals("CASO_RESULTADO") || trimmed.equals("SUCESSO")
+                    || trimmed.equals("ERRO") || trimmed.endsWith(" INICIO") || trimmed.endsWith(" ENTAO")
+                    || trimmed.endsWith(" FACA") || trimmed.startsWith("SE ") || trimmed.startsWith("PARA ")
+                    || trimmed.startsWith("ENQUANTO ") || trimmed.startsWith("CONSULTAR ") || trimmed.equals("SENAO")) {
                 indent.append("    ");
             }
             final String toInsert = indent.toString();
@@ -364,14 +372,19 @@ public final class EditorThz extends JPanel {
                 }
             }
             if (tokens != null) {
-                for (Token tok : tokens) {
+                for (int i = 0; i < tokens.size(); i++) {
+                    Token tok = tokens.get(i);
                     if (tok.type() == TokenType.EOF) continue;
                     int start = offsetDe(tok.line(), tok.column(), lineStarts);
                     if (start < 0 || start >= len) continue;
                     int rawLen = comprimentoBruto(tok, text, start);
                     if (rawLen <= 0) continue;
                     if (start + rawLen > len) rawLen = len - start;
-                    doc.setCharacterAttributes(start, rawLen, paleta.atributoPara(tok), true);
+
+                    Token anterior = (i > 0) ? tokens.get(i - 1) : null;
+                    Token proximo = (i + 1 < tokens.size()) ? tokens.get(i + 1) : null;
+
+                    doc.setCharacterAttributes(start, rawLen, paleta.atributoPara(tok, anterior, proximo), true);
                 }
             }
         } catch (Exception ignore) {
