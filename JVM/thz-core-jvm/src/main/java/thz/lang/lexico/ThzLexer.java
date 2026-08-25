@@ -88,6 +88,13 @@ public class ThzLexer {
                 }
                 tokens.add(make(TokenType.OPERADOR_ARITMETICO, "-")); advance(); continue;
             }
+            if (c == '!') {
+                char nxt = pos + 1 < input.length() ? input.charAt(pos + 1) : 0;
+                if (nxt == '=') {
+                    tokens.add(make(TokenType.OPERADOR_RELACIONAL, "<>"));
+                    advance(); advance(); continue;
+                }
+            }
             if (c == '*') { tokens.add(make(TokenType.OPERADOR_ARITMETICO, "*")); advance(); continue; }
             if (c == '/') { tokens.add(make(TokenType.OPERADOR_ARITMETICO, "/")); advance(); continue; }
             if (c == '<') {
