@@ -529,6 +529,40 @@ public class ThzCli {
                             System.out.println("================================================================================");
                             System.out.println("   EXECUTANDO INTERFACE DECLARATIVA THZ-UI (MODO WEB / HTML5): " + ast.nome());
                             System.out.println("================================================================================\n");
+
+                            List<String> logsExecucao = new ArrayList<>();
+                            InterpretadorThz interpWeb = new InterpretadorThz(ast, logsExecucao::add, entrada);
+                            thz.lang.webview.ThzWebviewBridge.setFallbackRpcHandler(acao -> {
+                                logsExecucao.clear();
+                                ProcedimentoAst proc = ast.procedimentos() != null ? ast.procedimentos().stream()
+                                        .filter(p -> p.nome().equalsIgnoreCase(acao)).findFirst().orElse(null) : null;
+                                if (proc != null) {
+                                    try {
+                                        interpWeb.executarProcedimento(proc.nome(), Map.of());
+                                        String log = logsExecucao.isEmpty()
+                                                ? "Procedimento '" + proc.nome() + "' executado com sucesso."
+                                                : String.join("\n", logsExecucao);
+                                        return thz.lang.webview.ThzJson.okMensagem(log);
+                                    } catch (Exception ex) {
+                                        return thz.lang.webview.ThzJson.erro(ex.getMessage());
+                                    }
+                                }
+                                var op = interpWeb.listarOperacoesExecutaveis().stream()
+                                        .filter(o -> o.operacao().nome().equalsIgnoreCase(acao)).findFirst().orElse(null);
+                                if (op != null) {
+                                    try {
+                                        ValorThz res = interpWeb.executarOperacao(op.operacao().nome(), Map.of());
+                                        String log = !logsExecucao.isEmpty()
+                                                ? String.join("\n", logsExecucao) + "\nResultado: " + interpWeb.formatar(res)
+                                                : "Resultado: " + (res != null ? interpWeb.formatar(res) : "OK");
+                                        return thz.lang.webview.ThzJson.okMensagem(log);
+                                    } catch (Exception ex) {
+                                        return thz.lang.webview.ThzJson.erro(ex.getMessage());
+                                    }
+                                }
+                                return thz.lang.webview.ThzJson.okMensagem("Ação '" + acao + "' executada.");
+                            });
+
                             var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
                                 c.adicionar(thz.lang.ui.ThzUiMaker.card("card_" + ast.nome(), ast.nome(), card -> {
                                     card.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_modulo", "info",

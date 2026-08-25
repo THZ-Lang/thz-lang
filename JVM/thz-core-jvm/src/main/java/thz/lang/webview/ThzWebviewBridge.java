@@ -85,6 +85,12 @@ public final class ThzWebviewBridge {
         htmlAtual = novoHtml;
     }
 
+    private static volatile Function<String, String> fallbackRpcHandler = null;
+
+    public static void setFallbackRpcHandler(Function<String, String> handler) {
+        fallbackRpcHandler = handler;
+    }
+
     public static void registrarCanal(String canal, Function<String, String> handler) {
         CANAIS_RPC.put(canal, handler);
     }
@@ -224,6 +230,13 @@ public final class ThzWebviewBridge {
                 if (handler != null) {
                     try {
                         String ret = handler.apply(payload);
+                        respostaJson = ret != null ? ret : ThzJson.ok(null);
+                    } catch (Exception e) {
+                        respostaJson = ThzJson.erro(e.getMessage());
+                    }
+                } else if (fallbackRpcHandler != null) {
+                    try {
+                        String ret = fallbackRpcHandler.apply(canal);
                         respostaJson = ret != null ? ret : ThzJson.ok(null);
                     } catch (Exception e) {
                         respostaJson = ThzJson.erro(e.getMessage());
