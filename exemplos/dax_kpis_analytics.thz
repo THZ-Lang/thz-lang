@@ -1,0 +1,70 @@
+PROGRAMA DemonstracaoDaxKpisAnalytics
+
+# ==============================================================================
+# THZ-LANG v3.0.0 — Analytics, DAX, Power BI Metrics & KPIs Corporativos
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "BusinessIntelligence"
+    SUBDOMINIO: "AnalyticsAvancado"
+    CAMADA: "Servico"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "15ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA VendaMensal
+    id: TEXTO
+    data: TEXTO
+    vendedor: TEXTO
+    regiao: TEXTO
+    valor: DECIMAL
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO ProcessarAnalyticsDax
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "================================================================================"
+        EXIBA "   DEMONSTRACAO THZ-LANG: ANALYTICS, DAX, METRICAS BI E KPIS CORPORATIVOS"
+        EXIBA "================================================================================"
+
+        VARIAVEL v1 : VendaMensal <- CRIAR VendaMensal(id: "V01", data: "2026-01-10", vendedor: "Ana Silva", regiao: "Sudeste", valor: 15000.0000)
+        VARIAVEL v2 : VendaMensal <- CRIAR VendaMensal(id: "V02", data: "2026-02-15", vendedor: "Carlos Lima", regiao: "Sul", valor: 22000.0000)
+        VARIAVEL v3 : VendaMensal <- CRIAR VendaMensal(id: "V03", data: "2026-03-20", vendedor: "Ana Silva", regiao: "Sudeste", valor: 31000.0000)
+        VARIAVEL v4 : VendaMensal <- CRIAR VendaMensal(id: "V04", data: "2025-03-20", vendedor: "Carlos Lima", regiao: "Sul", valor: 18000.0000)
+
+        VARIAVEL tabelaVendas : FATIA[VendaMensal] <- [v1, v2, v3, v4]
+
+        EXIBA "1. Calculando YTD (Year-To-Date / TOTALYTD) para 2026..."
+        VARIAVEL acumulado2026 : DECIMAL <- DAX.acumuladoAno(tabelaVendas, "data", "valor", 2026)
+        EXIBA "-> Faturamento YTD 2026: R$ " + TEXTO.deDecimal(acumulado2026)
+
+        EXIBA "2. Contagem de Vendedores Distintos (DISTINCTCOUNT)..."
+        VARIAVEL vendedoresUnicos : INTEIRO <- DAX.contagemDistintos(tabelaVendas, "vendedor")
+        EXIBA "-> Vendedores Unicos Ativos: " + TEXTO.deInteiro(vendedoresUnicos)
+
+        EXIBA "3. Variacao YoY em relacao a 2025..."
+        VARIAVEL total2025 : DECIMAL <- 18000.0000
+        VARIAVEL yoy : DECIMAL <- DAX.variacaoPeriodo(acumulado2026, total2025)
+        EXIBA "-> Crescimento de Vendas (YoY): " + TEXTO.deDecimal(yoy) + " %"
+
+        EXIBA "4. Avaliacao de KPIs Corporativos de Diretoria..."
+        VARIAVEL kpiFaturamento : REGISTRO <- DAX.kpi("FaturamentoAnual", acumulado2026, 60000.0000, 5.0)
+        EXIBA "-> KPI Faturamento Status: " + kpiFaturamento.status + " | Atingimento: " + TEXTO.deDecimal(kpiFaturamento.atingimentoPct) + " %"
+
+        VARIAVEL kpiEbitda : REGISTRO <- DAX.kpi("MargemEbitda", 28.5000, 25.0000, 2.0)
+        EXIBA "-> KPI Margem EBITDA Status: " + kpiEbitda.status + " | Desvio: " + TEXTO.deDecimal(kpiEbitda.desvio)
+
+        EXIBA "5. Ranking de Representatividade por Venda (RANKX)..."
+        VARIAVEL vendasComRank : FATIA[REGISTRO] <- DAX.ranking(tabelaVendas, "valor", VERDADEIRO)
+        PARA i DE 0 ATE 3 FACA
+            VARIAVEL item : REGISTRO <- vendasComRank[i]
+            EXIBA "  Posicao #" + TEXTO.deInteiro(item._ranking) + " - Vendedor: " + item.vendedor + " | Valor: R$ " + TEXTO.deDecimal(item.valor)
+        FIM_PARA
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

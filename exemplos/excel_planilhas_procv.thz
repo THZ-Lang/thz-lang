@@ -1,0 +1,73 @@
+PROGRAMA DemonstracaoExcelPlanilhasProcv
+
+# ==============================================================================
+# THZ-LANG v3.0.0 — Interoperabilidade Excel, PROCV (VLOOKUP) & Tabela Dinâmica
+# ==============================================================================
+
+METADADOS_ARQUITETURA
+    DOMINIO: "SpreadsheetAutomation"
+    SUBDOMINIO: "ManipulacaoTabularExcel"
+    CAMADA: "Servico"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "15ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA ItemCatalogo
+    sku: TEXTO
+    descricao: TEXTO
+    categoria: TEXTO
+    precoBase: DECIMAL
+FIM_ESTRUTURA
+
+ESTRUTURA VendaBruta
+    id: TEXTO
+    skuProduto: TEXTO
+    filial: TEXTO
+    quantidade: INTEIRO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO ProcessarPlanilhasEProcv
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "================================================================================"
+        EXIBA "   DEMONSTRACAO THZ-LANG: PLANILHAS EXCEL, PROCV (VLOOKUP) E TABELA DINAMICA"
+        EXIBA "================================================================================"
+
+        # 1. Catálogo Mestre de Produtos (Dimensão / Lookup Table)
+        VARIAVEL p1 : ItemCatalogo <- CRIAR ItemCatalogo(sku: "SKU-100", descricao: "Notebook Pro 16", categoria: "Informatica", precoBase: 8500.0000)
+        VARIAVEL p2 : ItemCatalogo <- CRIAR ItemCatalogo(sku: "SKU-200", descricao: "Monitor UltraWide 34", categoria: "Monitores", precoBase: 3200.0000)
+        VARIAVEL p3 : ItemCatalogo <- CRIAR ItemCatalogo(sku: "SKU-300", descricao: "Teclado Mecanico RGB", categoria: "Perifericos", precoBase: 450.0000)
+
+        VARIAVEL catalogo : FATIA[ItemCatalogo] <- [p1, p2, p3]
+
+        # 2. PROCV (VLOOKUP): Localiza Descrição e Preço de um SKU
+        EXIBA "1. Executando PROCV (VLOOKUP) no Catalogo Mestre..."
+        VARIAVEL nomeProduto : TEXTO <- PLANILHA.procv(catalogo, "sku", "SKU-200", "descricao")
+        VARIAVEL precoProduto : TEXTO <- PLANILHA.procv(catalogo, "sku", "SKU-200", "precoBase")
+
+        EXIBA "-> PROCV para 'SKU-200' => Produto: " + nomeProduto + " | Preco Unitario: R$ " + precoProduto
+
+        # 3. Exportação e Leitura de Arquivo CSV Compatível com Excel
+        EXIBA "2. Persistindo e Importando Tabela Tabular CSV/Excel..."
+        VARIAVEL caminhoCsv : TEXTO <- "dados/relatorio_catalogo.csv"
+        VARIAVEL gravado : LOGICO <- PLANILHA.escreverCsv(caminhoCsv, catalogo, ";")
+        EXIBA "-> Arquivo CSV gerado em disco com sucesso? " + TEXTO.deLogico(gravado)
+
+        VARIAVEL tabelaLida : FATIA[REGISTRO] <- PLANILHA.lerCsv(caminhoCsv, ";")
+        EXIBA "-> Total de Linhas Lidas do CSV: " + TEXTO.deInteiro(FATIA.tamanho(tabelaLida))
+
+        # 4. Tabela Dinâmica / Pivot Table (Agrupamento por Filial e Categoria)
+        EXIBA "3. Gerando Tabela Dinamica Pivotada (Pivot Table)..."
+        VARIAVEL pivot : FATIA[REGISTRO] <- PLANILHA.pivotar(catalogo, "categoria", "sku", "precoBase", "SUM")
+        PARA i DE 0 ATE 2 FACA
+            VARIAVEL linhaPivot : REGISTRO <- pivot[i]
+            EXIBA "  Categoria: " + linhaPivot.categoria + " | Total: R$ " + TEXTO.deDecimal(linhaPivot._Total)
+        FIM_PARA
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

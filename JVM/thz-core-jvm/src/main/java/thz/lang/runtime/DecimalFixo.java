@@ -20,6 +20,8 @@ public final class DecimalFixo {
     /** Escala canônica do motor quando nenhuma é declarada. */
     public static final int ESCALA_PADRAO = 4;
 
+    public static final DecimalFixo ZERO = deInteiro(0);
+
     private static final Pattern LITERAL_DECIMAL = Pattern.compile("^-?\\d*(\\.\\d*)?$");
 
     /** Construtor interno por escalado; prefira as fábricas deTexto/deInteiro. */
@@ -275,6 +277,10 @@ public final class DecimalFixo {
     public int hashCode() {
         // Normaliza para representação canônica sem zeros à direita? Usa valor/escala direto.
         return valorEscalado.hashCode() * 31 + escala;
+    }
+
+    public java.math.BigDecimal paraBigDecimal() {
+        return new java.math.BigDecimal(formatar());
     }
 
     @Override

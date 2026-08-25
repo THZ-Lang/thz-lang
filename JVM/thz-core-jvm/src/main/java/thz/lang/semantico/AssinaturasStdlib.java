@@ -185,6 +185,42 @@ public final class AssinaturasStdlib {
         m.put("UI.renderizarHtml", new Assinatura(2, 2, TIPO_TEXTO));
         m.put("UI.gerarCodigo", new Assinatura(1, 1, TIPO_TEXTO));
 
+        // ---------------- ESTATISTICA ----------------
+        m.put("ESTATISTICA.media", new Assinatura(1, 1, TIPO_DECIMAL_GENERICO));
+        m.put("ESTATISTICA.mediana", new Assinatura(1, 1, TIPO_DECIMAL_GENERICO));
+        m.put("ESTATISTICA.moda", new Assinatura(1, 1, TIPO_DECIMAL_GENERICO));
+        m.put("ESTATISTICA.desvioPadrao", new Assinatura(1, 2, TIPO_DECIMAL_GENERICO));
+        m.put("ESTATISTICA.variancia", new Assinatura(1, 2, TIPO_DECIMAL_GENERICO));
+        m.put("ESTATISTICA.correlacao", new Assinatura(2, 2, TIPO_DECIMAL_GENERICO));
+        m.put("ESTATISTICA.percentil", new Assinatura(2, 2, TIPO_DECIMAL_GENERICO));
+        m.put("ESTATISTICA.zScore", new Assinatura(2, 2, TIPO_DECIMAL_GENERICO));
+        m.put("ESTATISTICA.outliers", new Assinatura(1, 1, new TipoThz("FATIA[DECIMAL]", CategoriaTipo.FATIA, null, null, "DECIMAL", null)));
+        m.put("ESTATISTICA.regressao", new Assinatura(2, 2, new TipoThz("REGISTRO", CategoriaTipo.REGISTRO, null, null, "REGISTRO", null)));
+
+        // ---------------- DAX / BI / METRICAS ANALITICAS ----------------
+        m.put("DAX.acumuladoAno", new Assinatura(4, 4, TIPO_DECIMAL_GENERICO));
+        m.put("DAX.variacaoPeriodo", new Assinatura(2, 2, TIPO_DECIMAL_GENERICO));
+        m.put("DAX.contagemDistintos", new Assinatura(2, 2, TIPO_INTEIRO_GENERICO));
+        m.put("DAX.ranking", new Assinatura(2, 3, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+        m.put("DAX.percentualTotal", new Assinatura(2, 2, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+        m.put("DAX.kpi", new Assinatura(3, 4, new TipoThz("REGISTRO", CategoriaTipo.REGISTRO, null, null, "REGISTRO", null)));
+
+        // ---------------- PLANILHA / CSV / TABELAS ----------------
+        m.put("PLANILHA.lerCsv", new Assinatura(1, 2, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+        m.put("PLANILHA.escreverCsv", new Assinatura(2, 3, TIPO_LOGICO));
+        m.put("PLANILHA.procv", new Assinatura(4, 4, (Function<List<TipoThz>, TipoThz>) args -> TIPO_TEXTO));
+        m.put("PLANILHA.pivotar", new Assinatura(4, 5, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+
+        // ---------------- DADOS & DATA QUALITY ----------------
+        m.put("DADOS.sanitizar", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("DADOS.decimalPtBr", new Assinatura(1, 1, TIPO_DECIMAL_GENERICO));
+        m.put("DADOS.dataPtBr", new Assinatura(1, 1, TIPO_TEXTO));
+        m.put("DADOS.validarCpf", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("DADOS.validarCnpj", new Assinatura(1, 1, TIPO_LOGICO));
+        m.put("DADOS.mascarar", new Assinatura(1, 3, TIPO_TEXTO));
+        m.put("DADOS.removerDuplicatas", new Assinatura(1, 2, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+        m.put("DADOS.imputarNulos", new Assinatura(3, 3, new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+
         // ---- NATIVO ----
         m.put("NATIVO.somar_rapido", new Assinatura(2, 2, TIPO_INTEIRO_GENERICO));
         m.put("NATIVO.calcular_hash_customizado", new Assinatura(1, 1, TIPO_TEXTO));

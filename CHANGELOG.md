@@ -9,13 +9,18 @@ Todas as mudanças notáveis deste projeto são documentadas aqui. Formato basea
 ### Adicionado
 - **Manifesto de Configuração Centralizada (`thz.config.json` / `thz.json`):** Padronização de projeto, dialeto (`pt-BR`), drivers de banco e mensageria, IA e conformidade de governança, com comando `thz init` e auto-detecção no CLI.
 - **Resolução e Pesquisa Inteligente Recursiva de Recursos (`ThzLocalizadorRecursos`):** Motor centralizado de busca progressiva e recursiva para arquivos-fonte `.thz`/`.thzui`, módulos (`IMPORTAR "..."`), manifestos de projeto e bancos SQLite com subida hierárquica à raiz e varredura profunda com descarte de diretórios ignorados.
+- **Suíte de Analytics, DAX, Automação Excel & Data Quality:**
+  - `ESTATISTICA.*`: Média, mediana, moda, desvio padrão, covariância/correlação de Pearson, percentis, escores Z-Score, detecção de outliers (IQR / Tukey) e regressão linear simples com $R^2$.
+  - `DAX.*`: Inteligência temporal (YTD, YoY), contagem de distintos (`DISTINCTCOUNT`), ranking ordinal (`RANKX`), `% do Total` e avaliação de KPIs corporativos com status visual.
+  - `PLANILHA.*`: Interoperabilidade de planilhas CSV/Excel com busca vertical (`PROCV` / `VLOOKUP`) e tabelas dinâmicas pivotadas (`Pivot Table`).
+  - `DADOS.*`: Higienização de dados corporativos caóticos, parsing resiliente de moedas/decimais contábeis (`R$ 1.250,50`, `(450,20)`), normalização de datas mistas para ISO, validação matemática oficial de CPF/CNPJ, anonimização LGPD (Art. 7) e deduplicação de fatias.
 - **Bridge Universal de Mensageria (`MENSAGERIA.*`):** Suporte transparente a RabbitMQ (AMQP/REST), Apache Kafka, AWS SQS, AWS SNS e Barramento Embutido (Virtual Threads) com auto-detecção de brokers locais e failover de zero latência.
 - **Bridge Universal de Banco de Dados & ORM JPA-Like (`BANCO.*`):** Persistência automatizada (`BANCO.salvar`, `BANCO.buscarPorId`, `BANCO.removerPorId`, `BANCO.criarTabela`), Raw SQL de alta performance (`BANCO.consultar`, `BANCO.executar`, `BANCO.consultarValor`, `BANCO.iniciarTransacao`, `BANCO.confirmarTransacao`, `BANCO.cancelarTransacao`, `BANCO.executarScript`) e Busca Semântica Vetorial KNN (`BANCO.consultarVetorial`).
 - **Target WebAssembly (WASM):** Módulo `src/runtime_rs/src/wasm.rs` e alvo `Alvo.WEBASSEMBLY` no `ThzCompilerDriver` para execução universal em navegadores e Edge Workers.
 - **Rust Embutido (`BLOCO_NATIVO_RUST`):** Suporte sintático para blocos de código nativo Rust diretamente em arquivos `.thz`.
 - **Toolchain Rust Portátil:** Scripts `scripts/setup-rust.ps1` e `setup-rust.sh` para provisionamento standalone em `.tools/rust`.
-- **Exemplos Canônicos:** `exemplos/mensageria_conectores_hibridos.thz`, `exemplos/banco_jpa_orm_vetorial.thz`, `exemplos/banco_rawsql_avancado.thz`, `exemplos/regra_wasm.thz` e `exemplos/rust_embutido.thz`.
-- **Documentação Formal:** `docs/CONECTORES_BANCO_E_MENSAGERIA.md`.
+- **Exemplos Canônicos:** `exemplos/dax_kpis_analytics.thz`, `exemplos/estatistica_e_previsao.thz`, `exemplos/limpeza_dados_caoticos_etl.thz`, `exemplos/excel_planilhas_procv.thz`, `exemplos/mensageria_conectores_hibridos.thz`, `exemplos/banco_jpa_orm_vetorial.thz`, `exemplos/banco_rawsql_avancado.thz`, `exemplos/regra_wasm.thz` e `exemplos/rust_embutido.thz`.
+- **Documentação Formal:** `docs/ENGENHARIA_DE_DADOS_E_ANALYTICS.md` e `docs/CONECTORES_BANCO_E_MENSAGERIA.md`.
 
 ### Alterado
 - **Consolidação Arquitetural:** Rust (`src/runtime_rs/`) estabelecido como o único runtime nativo oficial, aposentando código C legado (`src/runtime/`).
