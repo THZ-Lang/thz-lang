@@ -28,8 +28,8 @@ target/
 build/
 .gradle/
 *.class
-*.jar
-*.war
+# *.jar
+# *.war
 *.ear
 dependency-reduced-pom.xml
 surefire-reports/
