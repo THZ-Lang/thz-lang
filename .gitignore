@@ -66,6 +66,13 @@ ehthumbs_vista.db
 !.env.example
 *.local
 
+# Database Files
+*.db
+*.db-shm
+*.db-wal
+dados/
+JVM/**/dados/
+
 # Logs and Scratch
 *.log
 scratch/

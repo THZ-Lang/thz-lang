@@ -7,10 +7,14 @@ Todas as mudanças notáveis deste projeto são documentadas aqui. Formato basea
 ## [3.0.0] - 2026-08-25 (WebAssembly Target & Arquitetura Unificada)
 
 ### Adicionado
+- **Manifesto de Configuração Centralizada (`thz.config.json` / `thz.json`):** Padronização de projeto, dialeto (`pt-BR`), drivers de banco e mensageria, IA e conformidade de governança, com comando `thz init` e auto-detecção no CLI.
+- **Bridge Universal de Mensageria (`MENSAGERIA.*`):** Suporte transparente a RabbitMQ (AMQP/REST), Apache Kafka, AWS SQS, AWS SNS e Barramento Embutido (Virtual Threads) com auto-detecção de brokers locais e failover de zero latência.
+- **Bridge Universal de Banco de Dados & ORM JPA-Like (`BANCO.*`):** Persistência automatizada (`BANCO.salvar`, `BANCO.buscarPorId`, `BANCO.removerPorId`, `BANCO.criarTabela`), Raw SQL de alta performance (`BANCO.consultar`, `BANCO.executar`, `BANCO.consultarValor`, `BANCO.iniciarTransacao`, `BANCO.confirmarTransacao`, `BANCO.cancelarTransacao`, `BANCO.executarScript`) e Busca Semântica Vetorial KNN (`BANCO.consultarVetorial`).
 - **Target WebAssembly (WASM):** Módulo `src/runtime_rs/src/wasm.rs` e alvo `Alvo.WEBASSEMBLY` no `ThzCompilerDriver` para execução universal em navegadores e Edge Workers.
 - **Rust Embutido (`BLOCO_NATIVO_RUST`):** Suporte sintático para blocos de código nativo Rust diretamente em arquivos `.thz`.
 - **Toolchain Rust Portátil:** Scripts `scripts/setup-rust.ps1` e `setup-rust.sh` para provisionamento standalone em `.tools/rust`.
-- **Exemplo Canônico:** `exemplos/regra_wasm.thz` e `exemplos/rust_embutido.thz`.
+- **Exemplos Canônicos:** `exemplos/mensageria_conectores_hibridos.thz`, `exemplos/banco_jpa_orm_vetorial.thz`, `exemplos/banco_rawsql_avancado.thz`, `exemplos/regra_wasm.thz` e `exemplos/rust_embutido.thz`.
+- **Documentação Formal:** `docs/CONECTORES_BANCO_E_MENSAGERIA.md`.
 
 ### Alterado
 - **Consolidação Arquitetural:** Rust (`src/runtime_rs/`) estabelecido como o único runtime nativo oficial, aposentando código C legado (`src/runtime/`).

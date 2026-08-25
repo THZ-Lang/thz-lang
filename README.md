@@ -206,6 +206,7 @@ npm run docker:test
 
 Explore os guias detalhados da documentação:
 
+- 🗄️ [**Conectores de Banco & Mensageria Distribuída**](docs/CONECTORES_BANCO_E_MENSAGERIA.md) — Manifesto `thz.config.json`, JPA/ORM, Raw SQL, Busca Vetorial KNN, RabbitMQ, Kafka e AWS SQS/SNS.
 - 🗺️ [**Roadmap Estratégico (v2.6 ~ v3.0)**](docs/ROADMAP.md) — Os 5 pilares: IA Nativa On-Device, LINQ Tipado, Streaming EDA, WebAssembly e Debugger DAP.
 - 📘 [**Manual Completo da Linguagem**](docs/MANUAL_LINGUAGEM.md) — Guia do iniciante ao avançado sobre sintaxe, tipos, contratos, UI e SIMD.
 - ⚙️ [**Arquitetura de Compilação Nativa — GraalVM, LLVM, IR/IL e Código de Máquina**](docs/ARQUITETURA_COMPILACAO_NATIVA.md) — Tratado completo sobre IR/IL, LLVM, GraalVM Native Image, geração AOT, velocidade (SIMD/SoA/Arenas) e execução segura.
