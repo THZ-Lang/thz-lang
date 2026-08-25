@@ -1,0 +1,34 @@
+PROGRAMA TarifacaoEscalonadaFaixas
+
+METADADOS_ARQUITETURA
+    DOMINIO: "Faturamento"
+    SUBDOMINIO: "CalculoTarifario"
+    CAMADA: "Servico"
+    VERSAO: "2.9.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+REGRA_NEGOCIO CalcularTarifaConsumo
+    OPERACAO Executar() : DECIMAL
+    INICIO
+        VARIAVEL consumoKwh : DECIMAL <- 350.00
+        VARIAVEL tarifaTotal : DECIMAL <- 0.00
+
+        EXIBA "=== CALCULO DE TARIFA ESCALONADA AUDITAVEL ==="
+
+        SE consumoKwh <= 100.00 ENTAO
+            tarifaTotal <- consumoKwh * 0.40
+        SENAO
+            VARIAVEL faixaBase : DECIMAL <- 100.00 * 0.40
+            VARIAVEL excedente : DECIMAL <- (consumoKwh - 100.00) * 0.65
+            tarifaTotal <- faixaBase + excedente
+        FIM_SE
+
+        EXIBA "Consumo: " + TEXTO.deDecimal(consumoKwh) + " kWh | Tarifa: R$ " + TEXTO.deDecimal(tarifaTotal)
+        RETORNE tarifaTotal
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

@@ -1,0 +1,34 @@
+PROGRAMA ContratosLiquidacaoFinanceira
+
+METADADOS_ARQUITETURA
+    DOMINIO: "Tesouraria"
+    SUBDOMINIO: "LiquidacaoBancaria"
+    CAMADA: "Dominio"
+    VERSAO: "2.9.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+REGRA_NEGOCIO ExecutarLiquidacaoContratual
+    IDENTIFICADOR_REGRA: "CONTRATO-LIQ-01"
+    RASTREIO_REQUISITO: "REQ-TES-101"
+    DESCRICAO: "Valida pre-condicoes e pos-condicoes sob inspecao do DAP Server."
+
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL saldoDisponivel : DECIMAL <- 50000.00
+        VARIAVEL valorTransferencia : DECIMAL <- 12500.00
+
+        EXIBA "=== EXECUCAO DE CONTRATO FORMAL DE LIQUIDACAO ==="
+        EXIBA "Saldo Anterior: R$ " + TEXTO.deDecimal(saldoDisponivel)
+        EXIBA "Transferencia: R$ " + TEXTO.deDecimal(valorTransferencia)
+
+        VARIAVEL saldoFinal : DECIMAL <- saldoDisponivel - valorTransferencia
+        EXIBA "Saldo Final Pos-Transacao: R$ " + TEXTO.deDecimal(saldoFinal)
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

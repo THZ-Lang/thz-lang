@@ -1,0 +1,41 @@
+PROGRAMA RoteamentoChamadosSuporte
+
+METADADOS_ARQUITETURA
+    DOMINIO: "AtendimentoAoCliente"
+    SUBDOMINIO: "TriagemAutomatizada"
+    CAMADA: "Servico"
+    VERSAO: "2.6.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "15ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+REGRA_NEGOCIO TriarTicketChamado
+    IDENTIFICADOR_REGRA: "ROTEAMENTO-IA-05"
+    RASTREIO_REQUISITO: "REQ-SUP-505"
+    DESCRICAO: "Direciona chamados para as filas Especializada de Cobranca ou Infraestrutura."
+
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL chamadoRecebido : TEXTO <- "Meu boleto veio com valor duplicado e cobranca indevida"
+        VARIAVEL topicoFinanceiro : TEXTO <- "Duvidas sobre cobranca, fatura, boleto e pagamentos"
+        VARIAVEL topicoTecnico : TEXTO <- "Erro de conexao com servidor e lentidao no sistema"
+
+        VARIAVEL simFinanceiro : DECIMAL <- IA.similaridade(chamadoRecebido, topicoFinanceiro)
+        VARIAVEL simTecnico : DECIMAL <- IA.similaridade(chamadoRecebido, topicoTecnico)
+
+        EXIBA "=== ROTEAMENTO INTELIGENTE DE ATENDIMENTO ==="
+        EXIBA "Similaridade com Fila Financeira: " + TEXTO.deDecimal(simFinanceiro)
+        EXIBA "Similaridade com Fila Tecnica: " + TEXTO.deDecimal(simTecnico)
+
+        SE simFinanceiro > simTecnico ENTAO
+            EXIBA "Encaminhamento: FILA_FINANCEIRO"
+        SENAO
+            EXIBA "Encaminhamento: FILA_SUPORTE_TI"
+        FIM_SE
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

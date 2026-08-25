@@ -1,0 +1,36 @@
+PROGRAMA JurosAltaFrequenciaRust
+
+METADADOS_ARQUITETURA
+    DOMINIO: "HFT"
+    SUBDOMINIO: "CalculosAltaFrequencia"
+    CAMADA: "Dominio"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "1ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+BLOCO_NATIVO_RUST
+    #[no_mangle]
+    pub extern "C" fn somar_rapido(a: i64, b: i64) -> i64 {
+        a + b
+    }
+FIM_BLOCO_NATIVO
+
+REGRA_NEGOCIO ExecutarCalculoHft
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "=== MOTOR DE ALTA FREQUENCIA (RUST C ABI) ==="
+        VARIAVEL saldoA : INTEIRO <- 12500000
+        VARIAVEL saldoB : INTEIRO <- 7500000
+
+        VARIAVEL consolidado : INTEIRO <- NATIVO.somar_rapido(saldoA, saldoB)
+        EXIBA "Posicao A: " + TEXTO.deInteiro(saldoA) + " centavos"
+        EXIBA "Posicao B: " + TEXTO.deInteiro(saldoB) + " centavos"
+        EXIBA "Consolidado Nativo Rust: " + TEXTO.deInteiro(consolidado) + " centavos"
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

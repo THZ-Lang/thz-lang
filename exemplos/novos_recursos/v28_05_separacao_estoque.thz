@@ -1,0 +1,36 @@
+PROGRAMA SeparacaoEstoqueLogistica
+
+METADADOS_ARQUITETURA
+    DOMINIO: "SupplyChain"
+    SUBDOMINIO: "OrquestracaoArmazem"
+    CAMADA: "Servico"
+    VERSAO: "2.8.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA OrdemPicking
+    idOrdem: TEXTO
+    skuProduto: TEXTO
+    quantidade: INTEIRO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO DespacharOrdemPicking
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL canalEstoque : TEXTO <- "armazem.picking.fila"
+        MENSAGERIA.limparTopico(canalEstoque)
+
+        VARIAVEL ordem : OrdemPicking <- CRIAR OrdemPicking(idOrdem: "PICK-770", skuProduto: "SKU-ELETR-99", quantidade: 5)
+        MENSAGERIA.publicar(canalEstoque, ordem)
+
+        EXIBA "=== SEPARACAO DE ESTOQUE REATIVA ==="
+        VARIAVEL ordemRecebida : OrdemPicking <- MENSAGERIA.consumir(canalEstoque, 50)
+        EXIBA "Ordem de picking recebida: " + ordemRecebida.idOrdem + " | SKU: " + ordemRecebida.skuProduto + " | Qtd: " + TEXTO.deInteiro(ordemRecebida.quantidade)
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

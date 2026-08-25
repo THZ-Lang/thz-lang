@@ -1,0 +1,41 @@
+PROGRAMA RagBuscaTributaria
+
+METADADOS_ARQUITETURA
+    DOMINIO: "TributarioEFiscal"
+    SUBDOMINIO: "JurisprudenciaLocal"
+    CAMADA: "Servico"
+    VERSAO: "2.6.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "15ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+REGRA_NEGOCIO PesquisarNormaFiscal
+    IDENTIFICADOR_REGRA: "RAG-TRIB-02"
+    RASTREIO_REQUISITO: "REQ-FISCAL-202"
+    DESCRICAO: "Localiza a norma tributaria mais relevante atraves de embeddings determinisicos."
+
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL consultaUsuario : TEXTO <- "Como tributar exportacao de software no modelo SaaS?"
+        VARIAVEL normaA : TEXTO <- "Art 150: Isencao de tributos sobre exportacao de servicos tecnologicos"
+        VARIAVEL normaB : TEXTO <- "Art 80: Incidencia de ICMS sobre circulacao de mercadorias fisicas"
+
+        VARIAVEL scoreA : DECIMAL <- IA.similaridade(consultaUsuario, normaA)
+        VARIAVEL scoreB : DECIMAL <- IA.similaridade(consultaUsuario, normaB)
+
+        EXIBA "=== BUSCA SEMANTICA RAG TRIBUTARIA ==="
+        EXIBA "Similaridade com Norma A (SaaS/Exportacao): " + TEXTO.deDecimal(scoreA)
+        EXIBA "Similaridade com Norma B (ICMS Mercadorias): " + TEXTO.deDecimal(scoreB)
+
+        SE scoreA > scoreB ENTAO
+            EXIBA "Norma mais aderente selecionada: Norma A"
+        SENAO
+            EXIBA "Norma mais aderente selecionada: Norma B"
+        FIM_SE
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

@@ -1,0 +1,36 @@
+PROGRAMA HashingCriptograficoRust
+
+METADADOS_ARQUITETURA
+    DOMINIO: "SegurancaNativa"
+    SUBDOMINIO: "CriptografiaAltaPerformance"
+    CAMADA: "Dominio"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "1ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+BLOCO_NATIVO_RUST
+    #[no_mangle]
+    pub extern "C" fn calcular_hash_customizado(input: i64) -> i64 {
+        input.rotate_left(5) ^ 0x5555_5555_5555_5555
+    }
+FIM_BLOCO_NATIVO
+
+REGRA_NEGOCIO CalcularHashSeguro
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "=== HASHING BITWISE DE ALTA PERFORMANCE EM RUST EMBUTIDO ==="
+        EXIBA "Runtime Nativo: " + NATIVO.versao_rust()
+
+        VARIAVEL idTransacao : INTEIRO <- 987654321
+        VARIAVEL hashCalculado : INTEIRO <- NATIVO.calcular_hash_customizado(idTransacao)
+
+        EXIBA "Transacao Original: " + TEXTO.deInteiro(idTransacao)
+        EXIBA "Hash Bitwise Calculado no Rust: " + TEXTO.deInteiro(hashCalculado)
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

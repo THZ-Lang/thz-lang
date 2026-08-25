@@ -1,0 +1,43 @@
+PROGRAMA RankingVendasMensal
+
+METADADOS_ARQUITETURA
+    DOMINIO: "Comercial"
+    SUBDOMINIO: "PerformanceVendedores"
+    CAMADA: "Servico"
+    VERSAO: "2.7.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA VendedorScore
+    nome: TEXTO
+    totalVendido: DECIMAL
+    contratosFechados: INTEIRO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO ApurarTopVendedores
+    OPERACAO Executar() : INTEIRO
+    INICIO
+        VARIAVEL v1 : VendedorScore <- CRIAR VendedorScore(nome: "Carlos Silva", totalVendido: 145000.00, contratosFechados: 12)
+        VARIAVEL v2 : VendedorScore <- CRIAR VendedorScore(nome: "Mariana Souza", totalVendido: 230000.00, contratosFechados: 19)
+        VARIAVEL v3 : VendedorScore <- CRIAR VendedorScore(nome: "Renato Lima", totalVendido: 98000.00, contratosFechados: 8)
+        VARIAVEL v4 : VendedorScore <- CRIAR VendedorScore(nome: "Fernanda Costa", totalVendido: 310000.00, contratosFechados: 25)
+
+        VARIAVEL time : FATIA[VendedorScore] <- [v1, v2, v3, v4]
+
+        # Seleciona os Top 2 vendedores com mais de 10 contratos
+        VARIAVEL podio : FATIA[VendedorScore] <- CONSULTAR DE time
+                                                ONDE contratosFechados >= 10
+                                                ORDENAR_POR totalVendido DESC
+                                                LIMITE 2
+
+        EXIBA "=== TOP VENDEDORES DO MES ==="
+        EXIBA "1 Lugar: " + podio[0].nome + " - R$ " + TEXTO.deDecimal(podio[0].totalVendido)
+        EXIBA "2 Lugar: " + podio[1].nome + " - R$ " + TEXTO.deDecimal(podio[1].totalVendido)
+
+        RETORNE FATIA.tamanho(podio)
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

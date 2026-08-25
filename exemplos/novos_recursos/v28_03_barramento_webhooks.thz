@@ -1,0 +1,36 @@
+PROGRAMA BarramentoWebhooksNotificacao
+
+METADADOS_ARQUITETURA
+    DOMINIO: "ComunicacaoEIntegracao"
+    SUBDOMINIO: "DespachoWebhooks"
+    CAMADA: "Servico"
+    VERSAO: "2.8.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA NotificacaoEvento
+    destinoUrl: TEXTO
+    tipoEvento: TEXTO
+    tentativa: INTEIRO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO DespacharWebhooks
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL topico : TEXTO <- "integracao.webhooks"
+        MENSAGERIA.limparTopico(topico)
+
+        VARIAVEL notif : NotificacaoEvento <- CRIAR NotificacaoEvento(destinoUrl: "https://api.parceiro.com/hook", tipoEvento: "PEDIDO_PAGO", tentativa: 1)
+        MENSAGERIA.publicar(topico, notif)
+
+        EXIBA "=== BARRAMENTO REATIVO DE NOTIFICACOES ==="
+        VARIAVEL eventoFila : NotificacaoEvento <- MENSAGERIA.consumir(topico, 50)
+        EXIBA "Despachando evento: " + eventoFila.tipoEvento + " para " + eventoFila.destinoUrl
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

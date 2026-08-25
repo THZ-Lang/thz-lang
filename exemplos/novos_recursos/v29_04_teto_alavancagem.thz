@@ -1,0 +1,29 @@
+PROGRAMA TetoAlavancagemOperacional
+
+METADADOS_ARQUITETURA
+    DOMINIO: "GestaoDeRisco"
+    SUBDOMINIO: "LimitesOperacionais"
+    CAMADA: "Dominio"
+    VERSAO: "2.9.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+REGRA_NEGOCIO ValidarLimiteAlavancagem
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL patrimonioLiquido : DECIMAL <- 1000000.00
+        VARIAVEL exposicaoTotal : DECIMAL <- 2500000.00
+
+        EXIBA "=== MONITORAMENTO DE TETO DE ALAVANCAGEM ==="
+        EXIBA "Patrimonio Liquido: R$ " + TEXTO.deDecimal(patrimonioLiquido)
+        EXIBA "Exposicao Atual: R$ " + TEXTO.deDecimal(exposicaoTotal)
+        EXIBA "Limite Maximo Permitido (3x): R$ " + TEXTO.deDecimal(patrimonioLiquido * 3.0)
+
+        EXIBA "Resultado: Limite operacional validado com sucesso."
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

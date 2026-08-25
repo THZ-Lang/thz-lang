@@ -1,0 +1,39 @@
+PROGRAMA DeteccaoFraudeTransacional
+
+METADADOS_ARQUITETURA
+    DOMINIO: "SegurancaEFraude"
+    SUBDOMINIO: "AnaliseTransacional"
+    CAMADA: "Servico"
+    VERSAO: "2.6.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+REGRA_NEGOCIO AnalisarTransacaoSuspeita
+    IDENTIFICADOR_REGRA: "FRAUDE-ML-04"
+    RASTREIO_REQUISITO: "REQ-SEC-404"
+    DESCRICAO: "Gera score de probabilidade de anomalia transacional."
+
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL dadosTransacao : TEXTO <- "[15000.00, 850.0, 7.0]"
+        VARIAVEL pesosFraude : TEXTO <- "[0.0003, 0.002, 0.15]"
+        VARIAVEL biasFraude : DECIMAL <- -2.50
+
+        VARIAVEL probabilidadeFraude : DECIMAL <- ML.classificar(dadosTransacao, pesosFraude, biasFraude)
+
+        EXIBA "=== ANALISE DE RISCO DE FRAUDE ==="
+        EXIBA "Probabilidade de Fraude: " + TEXTO.deDecimal(probabilidadeFraude)
+
+        SE probabilidadeFraude >= 0.70 ENTAO
+            EXIBA "Acao: BLOQUEIO PREVENTIVO E SOLICITACAO DE 2FA"
+        SENAO
+            EXIBA "Acao: TRANSACAO LIBERADA AUTOMATICAMENTE"
+        FIM_SE
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

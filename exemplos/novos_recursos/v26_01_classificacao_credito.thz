@@ -1,0 +1,39 @@
+PROGRAMA ClassificacaoRiscoCredito
+
+METADADOS_ARQUITETURA
+    DOMINIO: "CreditoEFianca"
+    SUBDOMINIO: "MotorDeRisco"
+    CAMADA: "Servico"
+    VERSAO: "2.6.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "ISO-IEC-10967", "LGPD-Art7"
+FIM_METADADOS
+
+REGRA_NEGOCIO AvaliarRiscoCliente
+    IDENTIFICADOR_REGRA: "RISCO-ML-01"
+    RASTREIO_REQUISITO: "REQ-CRED-101"
+    DESCRICAO: "Classifica a probabilidade de inadimplencia usando regressao logistica tabular."
+
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL featuresCliente : TEXTO <- "[8500.00, 34.0, 720.0]"
+        VARIAVEL pesosModelo : TEXTO <- "[-0.0002, -0.015, -0.005]"
+        VARIAVEL bias : DECIMAL <- 3.50
+
+        VARIAVEL probabilidadeInadimplencia : DECIMAL <- ML.classificar(featuresCliente, pesosModelo, bias)
+
+        EXIBA "=== AVALIACAO DE RISCO DE CREDITO (ML ON-DEVICE) ==="
+        EXIBA "Probabilidade calculada de default: " + TEXTO.deDecimal(probabilidadeInadimplencia)
+
+        SE probabilidadeInadimplencia < 0.35 ENTAO
+            EXIBA "Status: CREDITO APROVADO COM TAXA REDUZIDA"
+        SENAO
+            EXIBA "Status: CREDITO REQUER AVALISTA"
+        FIM_SE
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

@@ -1,0 +1,41 @@
+PROGRAMA PipelineHibridoRust
+
+METADADOS_ARQUITETURA
+    DOMINIO: "ProcessamentoHibrido"
+    SUBDOMINIO: "AceleracaoNativa"
+    CAMADA: "Dominio"
+    VERSAO: "3.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "1ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+BLOCO_NATIVO_RUST
+    #[no_mangle]
+    pub extern "C" fn somar_rapido(a: i64, b: i64) -> i64 {
+        a + b
+    }
+    #[no_mangle]
+    pub extern "C" fn calcular_hash_customizado(input: i64) -> i64 {
+        input.rotate_left(5) ^ 0x5555_5555_5555_5555
+    }
+FIM_BLOCO_NATIVO
+
+REGRA_NEGOCIO ProcessarLoteNativo
+    OPERACAO Executar() : LOGICO
+    INICIO
+        EXIBA "=== PIPELINE HIBRIDO THZ + RUST EMBUTIDO ==="
+        VARIAVEL id1 : INTEIRO <- 1001
+        VARIAVEL id2 : INTEIRO <- 2002
+
+        VARIAVEL somaIds : INTEIRO <- NATIVO.somar_rapido(id1, id2)
+        VARIAVEL hashLote : INTEIRO <- NATIVO.calcular_hash_customizado(somaIds)
+
+        EXIBA "Soma dos IDs: " + TEXTO.deInteiro(somaIds)
+        EXIBA "Assinatura do Lote (Rust Hash): " + TEXTO.deInteiro(hashLote)
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

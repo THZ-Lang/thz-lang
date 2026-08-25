@@ -1,0 +1,33 @@
+PROGRAMA MaquinaEstadosPedido
+
+METADADOS_ARQUITETURA
+    DOMINIO: "Vendas"
+    SUBDOMINIO: "CicloDeVidaPedido"
+    CAMADA: "Dominio"
+    VERSAO: "2.9.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+REGRA_NEGOCIO TransicionarEstadoPedido
+    OPERACAO Executar() : TEXTO
+    INICIO
+        VARIAVEL estadoAtual : TEXTO <- "CRIADO"
+        EXIBA "=== RASTREAMENTO DE ESTADO DE PEDIDO ==="
+        EXIBA "Estado Inicial: " + estadoAtual
+
+        estadoAtual <- "PAGO"
+        EXIBA "Transicao 1 -> " + estadoAtual
+
+        estadoAtual <- "FATURADO"
+        EXIBA "Transicao 2 -> " + estadoAtual
+
+        estadoAtual <- "EM_TRANSPORTE"
+        EXIBA "Transicao 3 -> " + estadoAtual
+
+        RETORNE estadoAtual
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

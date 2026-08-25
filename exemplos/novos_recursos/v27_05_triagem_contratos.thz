@@ -1,0 +1,42 @@
+PROGRAMA TriagemContratosVencimento
+
+METADADOS_ARQUITETURA
+    DOMINIO: "JuridicoEContratos"
+    SUBDOMINIO: "MonitorDeVencimentos"
+    CAMADA: "Servico"
+    VERSAO: "2.7.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "5ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA ContratoServico
+    identificador: TEXTO
+    diasRestantes: INTEIRO
+    valorMensal: DECIMAL
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO SelecionarContratosUrgentes
+    OPERACAO Executar() : INTEIRO
+    INICIO
+        VARIAVEL ct1 : ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-A", diasRestantes: 15, valorMensal: 4500.00)
+        VARIAVEL ct2 : ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-B", diasRestantes: 120, valorMensal: 12000.00)
+        VARIAVEL ct3 : ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-C", diasRestantes: 5, valorMensal: 8900.00)
+        VARIAVEL ct4 : ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-D", diasRestantes: 45, valorMensal: 3100.00)
+
+        VARIAVEL listaContratos : FATIA[ContratoServico] <- [ct1, ct2, ct3, ct4]
+
+        # Contratos com menos de 60 dias para vencer, ordenados do mais proximo ao mais distante
+        VARIAVEL urgentes : FATIA[ContratoServico] <- CONSULTAR DE listaContratos
+                                                      ONDE diasRestantes < 60
+                                                      ORDENAR_POR diasRestantes ASC
+
+        EXIBA "=== TRIAGEM DE CONTRATOS PRESTES A VENCER ==="
+        EXIBA "Total de contratos urgentes: " + TEXTO.deInteiro(FATIA.tamanho(urgentes))
+        EXIBA "Mais urgente: " + urgentes[0].identificador + " (restam " + TEXTO.deInteiro(urgentes[0].diasRestantes) + " dias)"
+
+        RETORNE FATIA.tamanho(urgentes)
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

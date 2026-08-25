@@ -1,0 +1,41 @@
+PROGRAMA TelemetriaSensoresIot
+
+METADADOS_ARQUITETURA
+    DOMINIO: "Industria40"
+    SUBDOMINIO: "MonitoramentoSensores"
+    CAMADA: "Servico"
+    VERSAO: "2.8.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA LeituraSensor
+    sensorId: TEXTO
+    temperatura: DECIMAL
+    pressao: DECIMAL
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO ProcessarTelemetria
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL topico : TEXTO <- "telemetria.maquinas"
+        MENSAGERIA.limparTopico(topico)
+
+        VARIAVEL l1 : LeituraSensor <- CRIAR LeituraSensor(sensorId: "TURBINA-01", temperatura: 88.5, pressao: 101.3)
+        VARIAVEL l2 : LeituraSensor <- CRIAR LeituraSensor(sensorId: "TURBINA-02", temperatura: 104.2, pressao: 105.8)
+
+        MENSAGERIA.publicar(topico, l1)
+        MENSAGERIA.publicar(topico, l2)
+
+        EXIBA "=== PROCESSAMENTO REATIVO DE TELEMETRIA IOT ==="
+        EXIBA "Mensagens enfileiradas: " + TEXTO.deInteiro(MENSAGERIA.tamanhoFila(topico))
+
+        VARIAVEL recebida : LeituraSensor <- MENSAGERIA.consumir(topico, 50)
+        EXIBA "Leitura lida: Sensor " + recebida.sensorId + " | Temp: " + TEXTO.deDecimal(recebida.temperatura) + " C"
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

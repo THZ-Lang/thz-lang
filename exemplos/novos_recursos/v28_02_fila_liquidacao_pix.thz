@@ -1,0 +1,36 @@
+PROGRAMA LiquidacaoInstantaneaPix
+
+METADADOS_ARQUITETURA
+    DOMINIO: "PagamentosInstantaneos"
+    SUBDOMINIO: "CompensacaoPix"
+    CAMADA: "Servico"
+    VERSAO: "2.8.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "ISO-IEC-10967"
+FIM_METADADOS
+
+ESTRUTURA OrdemPix
+    chavePix: TEXTO
+    valor: DECIMAL
+    idTransacao: TEXTO
+FIM_ESTRUTURA
+
+REGRA_NEGOCIO ProcessarFilaPix
+    OPERACAO Executar() : LOGICO
+    INICIO
+        VARIAVEL canalPix : TEXTO <- "pagamentos.pix.entrada"
+        MENSAGERIA.limparTopico(canalPix)
+
+        VARIAVEL ord1 : OrdemPix <- CRIAR OrdemPix(chavePix: "financeiro@empresa.com", valor: 450.00, idTransacao: "TX-9901")
+        MENSAGERIA.publicar(canalPix, ord1)
+
+        EXIBA "=== LIQUIDACAO REATIVA PIX ==="
+        VARIAVEL ordRecebida : OrdemPix <- MENSAGERIA.consumir(canalPix, 100)
+        EXIBA "Processando liquidacao Pix: " + ordRecebida.idTransacao + " | Valor: R$ " + TEXTO.deDecimal(ordRecebida.valor)
+
+        RETORNE VERDADEIRO
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA
