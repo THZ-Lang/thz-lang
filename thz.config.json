@@ -1,0 +1,42 @@
+{
+  "projeto": {
+    "nome": "thz-lang",
+    "versao": "3.0.0",
+    "autor": "Lucas Thomaz",
+    "dialeto": "pt-BR",
+    "descricao": "THZ-LANG — Linguagem Corporativa de Sistemas, Governança DDD e Alta Performance"
+  },
+  "banco": {
+    "driver": "auto",
+    "url": "jdbc:sqlite:dados/thz_corporativo.db",
+    "usuario": "",
+    "senha": "",
+    "poolMin": 2,
+    "poolMax": 10,
+    "autoMigracao": true,
+    "vetorial": "embutido"
+  },
+  "mensageria": {
+    "driver": "auto",
+    "url": "auto",
+    "host": "localhost",
+    "porta": 5672,
+    "topicoPadrao": "eventos.sistema",
+    "autoCriarFilas": true
+  },
+  "ia": {
+    "motorEmbeddings": "local-fnv1a",
+    "dimensaoVetor": 128,
+    "armazenamentoVetorial": "sqlite-vec"
+  },
+  "governanca": {
+    "modoEstrito": false,
+    "sloLatencia": "15ms",
+    "conformidade": [
+      "ISO-IEC-10967",
+      "ISO-4217",
+      "ISO-IEC-IEEE-42010",
+      "LGPD-Art7"
+    ]
+  }
+}

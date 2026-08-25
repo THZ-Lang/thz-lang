@@ -48,6 +48,9 @@ public class ThzCli {
             }
         }
 
+        // Carrega automaticamente o manifesto thz.config.json ou thz.json se presente
+        thz.lang.config.ThzProjectConfig.recarregar(Path.of("."));
+
         if (args.length == 0 || args[0].equals("--ajuda") || args[0].equals("-h") || args[0].equals("ajuda")
                 || args[0].equals("help")) {
             exibirAjuda();
@@ -67,6 +70,28 @@ public class ThzCli {
         List<String> argumentos = new ArrayList<>(Arrays.asList(args));
         argumentos.remove(0);
         boolean estrito = argumentos.contains("--estrito");
+
+        if (comando.equals("init") || comando.equals("inicializar")) {
+            Path arquivoConfig = Path.of("thz.config.json");
+            if (Files.exists(arquivoConfig)) {
+                System.out.println("[THZ INIT] O arquivo de manifesto 'thz.config.json' já existe neste projeto.");
+                return;
+            }
+            var padrao = thz.lang.config.ThzProjectConfig.criarPadrao(arquivoConfig);
+            String jsonModelo = thz.lang.config.ThzProjectConfig.gerarJsonModelo(padrao);
+            Files.writeString(arquivoConfig, jsonModelo, StandardCharsets.UTF_8);
+            System.out.println("================================================================================");
+            System.out.println("   PROJETO THZ-LANG INICIALIZADO COM SUCESSO!");
+            System.out.println("   Manifesto criado: " + arquivoConfig.toAbsolutePath());
+            System.out.println("================================================================================\n");
+            System.out.println("Configurações padrão ativas:");
+            System.out.println("  • Dialeto: pt-BR");
+            System.out.println("  • Banco de Dados: Auto (SQLite / PostgreSQL / MySQL / JDBC)");
+            System.out.println("  • Mensageria: Auto (RabbitMQ / Kafka / AWS SQS / Embutido)");
+            System.out.println("  • IA & Embeddings: Local FNV-1a L2");
+            System.out.println("\nEdite 'thz.config.json' para personalizar suas preferências de banco e mensageria.");
+            return;
+        }
         if (comando.equals("repl")) {
             thz.lang.repl.Repl.executar();
             return;
@@ -107,11 +132,129 @@ public class ThzCli {
             }
             return;
         }
+        if (comando.equals("compile-all") || comando.equals("compilar-tudo")) {
+            String dirOrigem = "exemplos";
+            int idxOrigem = argumentos.indexOf("--origem");
+            if (idxOrigem >= 0 && idxOrigem + 1 < argumentos.size()) dirOrigem = argumentos.get(idxOrigem + 1);
+
+            String dirSaida = "dist/exemplos_compilados";
+            int idxSaida = argumentos.indexOf("--saida");
+            if (idxSaida >= 0 && idxSaida + 1 < argumentos.size()) dirSaida = argumentos.get(idxSaida + 1);
+
+            Path raizOrigem = Path.of(dirOrigem);
+            Path raizSaida = Path.of(dirSaida);
+
+            if (!Files.exists(raizOrigem)) {
+                System.err.println("[ERRO] Diretório de origem não encontrado: " + raizOrigem.toAbsolutePath());
+                System.exit(1);
+            }
+
+            System.out.println("================================================================================");
+            System.out.println("   COMPILANDO TODOS OS EXEMPLOS THZ-LANG (v" + thz.lang.version.ThzVersion.ATUAL + ")");
+            System.out.println("   Origem: " + raizOrigem.toAbsolutePath());
+            System.out.println("   Destino: " + raizSaida.toAbsolutePath());
+            System.out.println("================================================================================\n");
+
+            Path dirIr = raizSaida.resolve("ir");
+            Path dirLlvm = raizSaida.resolve("llvm");
+            Path dirWasm = raizSaida.resolve("wasm");
+            Path dirAudit = raizSaida.resolve("auditoria");
+            Path dirDoc = raizSaida.resolve("doc");
+
+            Files.createDirectories(dirIr);
+            Files.createDirectories(dirLlvm);
+            Files.createDirectories(dirWasm);
+            Files.createDirectories(dirAudit);
+            Files.createDirectories(dirDoc);
+
+            List<Path> arquivosThz = new ArrayList<>();
+            try (var stream = Files.walk(raizOrigem)) {
+                stream.filter(p -> p.toString().endsWith(".thz")).sorted().forEach(arquivosThz::add);
+            }
+
+            int sucesso = 0;
+            int falhas = 0;
+
+            for (Path arq : arquivosThz) {
+                String nomeBase = arq.getFileName().toString().replace(".thz", "");
+                try {
+                    String fonte = Files.readString(arq, StandardCharsets.UTF_8);
+                    List<Token> tokens = new ThzLexer(fonte).tokenize();
+                    ProgramaAst ast = new ThzParser(tokens).parse();
+
+                    // 1. THZ-IR
+                    String jsonIr = thz.lang.ir.GeradorIr.serializarIrJson(thz.lang.ir.GeradorIr.baixarParaIr(ast));
+                    Files.writeString(dirIr.resolve(nomeBase + "_ir.json"), jsonIr, StandardCharsets.UTF_8);
+
+                    // 2. LLVM IR
+                    String codigoLlvm = thz.lang.ir.GeradorIr.emitirLlvm(ast);
+                    Files.writeString(dirLlvm.resolve(nomeBase + ".ll"), codigoLlvm, StandardCharsets.UTF_8);
+
+                    // 3. WebAssembly / JS Module
+                    String codigoWasm = "// THZ-LANG v3.0.0 — WebAssembly Module\n" + thz.lang.js.ThzJsEmitter.emitir(ast);
+                    Files.writeString(dirWasm.resolve(nomeBase + ".wasm.js"), codigoWasm, StandardCharsets.UTF_8);
+
+                    // 4. Auditoria & Governança
+                    var rel = thz.lang.governanca.AuditorGovernanca.auditar(ast);
+                    String mdAudit = thz.lang.governanca.AuditorGovernanca.gerarMarkdownGovernanca(rel);
+                    Files.writeString(dirAudit.resolve(nomeBase + "_auditoria.md"), mdAudit, StandardCharsets.UTF_8);
+
+                    // 5. Documentação Técnica DocGen
+                    String mdDoc = thz.lang.docgen.ThzDocGen.gerarDocumentacao(ast);
+                    Files.writeString(dirDoc.resolve(nomeBase + "_doc.md"), mdDoc, StandardCharsets.UTF_8);
+
+                    sucesso++;
+                    System.out.println("  [OK] " + arq.getFileName() + " -> IR, LLVM, WASM, AUDIT, DOC");
+                } catch (Exception ex) {
+                    falhas++;
+                    System.err.println("  [FALHA] " + arq.getFileName() + " : " + ex.getMessage());
+                }
+            }
+
+            System.out.println("\n--------------------------------------------------------------------------------");
+            System.out.println("   RESUMO DA COMPILAÇÃO:");
+            System.out.println("   • Total de arquivos processados: " + arquivosThz.size());
+            System.out.println("   • Compilados com sucesso: " + sucesso);
+            System.out.println("   • Falhas: " + falhas);
+            System.out.println("   • Diretório de saída: " + raizSaida.toAbsolutePath());
+            System.out.println("--------------------------------------------------------------------------------\n");
+            return;
+        }
+
         String arquivo = resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank()) {
             System.err.println("[ERRO] Nenhum arquivo .thz ou .thzui especificado. Use: thz " + comando
                     + " <caminho.thz|caminho.thzui>");
             System.exit(1);
+        }
+        if (comando.equals("compile") || comando.equals("compilar") || comando.equals("build")) {
+            if (!Files.exists(Path.of(arquivo))) {
+                System.err.println("[ERRO] Arquivo não encontrado: " + arquivo);
+                System.exit(1);
+            }
+            String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
+            List<Token> tokens = new ThzLexer(fonte).tokenize();
+            ProgramaAst ast = new ThzParser(tokens).parse();
+            String nomeBase = Path.of(arquivo).getFileName().toString().replace(".thz", "");
+
+            String dirSaida = "dist/exemplos_compilados";
+            int idxSaida = argumentos.indexOf("--saida");
+            if (idxSaida >= 0 && idxSaida + 1 < argumentos.size()) dirSaida = argumentos.get(idxSaida + 1);
+            Path raizSaida = Path.of(dirSaida);
+
+            Path dirIr = raizSaida.resolve("ir");
+            Path dirLlvm = raizSaida.resolve("llvm");
+            Path dirWasm = raizSaida.resolve("wasm");
+            Files.createDirectories(dirIr);
+            Files.createDirectories(dirLlvm);
+            Files.createDirectories(dirWasm);
+
+            Files.writeString(dirIr.resolve(nomeBase + "_ir.json"), thz.lang.ir.GeradorIr.serializarIrJson(thz.lang.ir.GeradorIr.baixarParaIr(ast)), StandardCharsets.UTF_8);
+            Files.writeString(dirLlvm.resolve(nomeBase + ".ll"), thz.lang.ir.GeradorIr.emitirLlvm(ast), StandardCharsets.UTF_8);
+            Files.writeString(dirWasm.resolve(nomeBase + ".wasm.js"), "// THZ-LANG v3.0.0 WASM\n" + thz.lang.js.ThzJsEmitter.emitir(ast), StandardCharsets.UTF_8);
+
+            System.out.println("[THZ COMPILE] " + arquivo + " compilado com sucesso para IR, LLVM e WASM em: " + raizSaida.toAbsolutePath());
+            return;
         }
         if (comando.equals("dev") || comando.equals("serve")) {
             String arquivoDev = resolverArquivo(argumentos);
@@ -409,7 +552,10 @@ public class ThzCli {
         System.out.println("Uso:");
         System.out.println("  thz <comando> [arquivo.thz] [opções]\n");
         System.out.println("Comandos Disponíveis:");
-        System.out.println("  check <arquivo> [--estrito]               Verifica a integridade sintática e semântica");
+        System.out.println("  init                                         Inicializa o projeto criando o manifesto thz.config.json");
+        System.out.println("  compile-all [--origem <dir>] [--saida <dir>] Compila todos os exemplos em IR, LLVM, WASM, Doc e Auditoria");
+        System.out.println("  compile <arquivo> [--saida <dir>]            Compila um programa em THZ-IR, LLVM IR e WASM");
+        System.out.println("  check <arquivo> [--estrito]                  Verifica a integridade sintática e semântica");
         System.out.println(
                 "  run <arquivo> [--principal <Nome>]        Executa o programa via interpretador com arena O(1)");
         System.out.println("  fmt <arquivo> [--check|--escrever|--saida] Formata o código canonicamente");
