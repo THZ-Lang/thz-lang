@@ -8,6 +8,8 @@ import java.util.*;
  */
 public final class ThzUiHtmlEmitter {
 
+    private static final TemaCss TEMA = HtmlTemaCss.INSTANCIA;
+
     private ThzUiHtmlEmitter() {}
 
     public static String renderizarPaginaCompleta(String titulo, ThzUiComponente raiz, ThzUiTema tema) {
@@ -45,29 +47,29 @@ public final class ThzUiHtmlEmitter {
 
         switch (c.tipo()) {
             case CONTAINER -> {
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-container\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 for (ThzUiComponente filho : c.filhos()) renderizarComponente(filho, sb, indent + "  ");
                 sb.append(indent).append("</div>\n");
             }
             case LINHA -> {
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-flex-row\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 for (ThzUiComponente filho : c.filhos()) renderizarComponente(filho, sb, indent + "  ");
                 sb.append(indent).append("</div>\n");
             }
             case COLUNA -> {
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-flex-col\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 for (ThzUiComponente filho : c.filhos()) renderizarComponente(filho, sb, indent + "  ");
                 sb.append(indent).append("</div>\n");
             }
             case GRADE -> {
                 int colunas = c.getPropriedade("colunas", 2);
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-grid\" style=\"grid-template-columns: repeat(").append(colunas).append(", 1fr);\">\n");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classe(c.tipo())).append("\" style=\"grid-template-columns: repeat(").append(colunas).append(", 1fr);\">\n");
                 for (ThzUiComponente filho : c.filhos()) renderizarComponente(filho, sb, indent + "  ");
                 sb.append(indent).append("</div>\n");
             }
             case CARD -> {
                 String tituloCard = c.getPropriedade("titulo", "");
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-card\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 if (!tituloCard.isBlank()) {
                     sb.append(indent).append("  <div class=\"thz-card-header\"><h3>").append(HtmlEscape.escapeHtml(tituloCard)).append("</h3></div>\n");
                 }
@@ -77,20 +79,20 @@ public final class ThzUiHtmlEmitter {
                 sb.append(indent).append("</div>\n");
             }
             case PAINEL -> {
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-painel\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 for (ThzUiComponente filho : c.filhos()) renderizarComponente(filho, sb, indent + "  ");
                 sb.append(indent).append("</div>\n");
             }
             case BOTAO -> {
                 String acao = c.eventos().getOrDefault("aoClicar", "");
                 String variante = c.getPropriedade("variante", "primario");
-                sb.append(indent).append("<button id=\"").append(id).append("\" class=\"thz-btn thz-btn-").append(variante).append("\" onclick=\"thzDespacharAcao('").append(HtmlEscape.escapeJs(acao)).append("', '").append(id).append("')\"").append(estiloInline).append(">")
+                sb.append(indent).append("<button id=\"").append(id).append("\" class=\"").append(TEMA.classeBotao(variante)).append("\" onclick=\"thzDespacharAcao('").append(HtmlEscape.escapeJs(acao)).append("', '").append(id).append("')\"").append(estiloInline).append(">")
                         .append(HtmlEscape.escapeHtml(rotulo)).append("</button>\n");
             }
             case CAMPO_TEXTO -> {
                 String vinculo = c.getPropriedade("vinculo", id);
                 String valor = c.getPropriedade("valor", "");
-                sb.append(indent).append("<div class=\"thz-form-group\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"thz-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</label>\n");
                 sb.append(indent).append("  <input type=\"text\" id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo)).append("\" class=\"thz-input\" placeholder=\"").append(HtmlEscape.escapeHtml(placeholder)).append("\" value=\"").append(HtmlEscape.escapeHtml(valor)).append("\" oninput=\"thzVinculoAtualizado('").append(HtmlEscape.escapeJs(vinculo)).append("', this.value)\"/>\n");
                 sb.append(indent).append("</div>\n");
@@ -98,7 +100,7 @@ public final class ThzUiHtmlEmitter {
             case CAMPO_NUMERO -> {
                 String vinculo = c.getPropriedade("vinculo", id);
                 Object valor = c.getPropriedade("valor", 0);
-                sb.append(indent).append("<div class=\"thz-form-group\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"thz-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</label>\n");
                 sb.append(indent).append("  <input type=\"number\" id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo)).append("\" class=\"thz-input\" value=\"").append(valor).append("\" oninput=\"thzVinculoAtualizado('").append(HtmlEscape.escapeJs(vinculo)).append("', Number(this.value))\"/>\n");
                 sb.append(indent).append("</div>\n");
@@ -107,7 +109,7 @@ public final class ThzUiHtmlEmitter {
                 String vinculo = c.getPropriedade("vinculo", id);
                 String moeda = c.getPropriedade("moeda", "BRL");
                 String valor = c.getPropriedade("valor", "0.00");
-                sb.append(indent).append("<div class=\"thz-form-group\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"thz-label\">").append(HtmlEscape.escapeHtml(rotulo)).append(" (").append(moeda).append(")</label>\n");
                 sb.append(indent).append("  <input type=\"text\" id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo)).append("\" class=\"thz-input thz-input-moeda\" placeholder=\"0,00\" value=\"").append(HtmlEscape.escapeHtml(valor)).append("\" oninput=\"thzVinculoAtualizado('").append(HtmlEscape.escapeJs(vinculo)).append("', this.value)\"/>\n");
                 sb.append(indent).append("</div>\n");
@@ -115,7 +117,7 @@ public final class ThzUiHtmlEmitter {
             case CAMPO_DATA -> {
                 String vinculo = c.getPropriedade("vinculo", id);
                 String valor = c.getPropriedade("valor", "");
-                sb.append(indent).append("<div class=\"thz-form-group\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"thz-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</label>\n");
                 sb.append(indent).append("  <input type=\"date\" id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo)).append("\" class=\"thz-input\" value=\"").append(HtmlEscape.escapeHtml(valor)).append("\" onchange=\"thzVinculoAtualizado('").append(HtmlEscape.escapeJs(vinculo)).append("', this.value)\"/>\n");
                 sb.append(indent).append("</div>\n");
@@ -123,7 +125,7 @@ public final class ThzUiHtmlEmitter {
             case SELECAO -> {
                 String vinculo = c.getPropriedade("vinculo", id);
                 List<?> opcoes = c.getPropriedade("opcoes", List.of());
-                sb.append(indent).append("<div class=\"thz-form-group\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"thz-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</label>\n");
                 sb.append(indent).append("  <select id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo)).append("\" class=\"thz-select\" onchange=\"thzVinculoAtualizado('").append(HtmlEscape.escapeJs(vinculo)).append("', this.value)\">\n");
                 for (Object op : opcoes) {
@@ -135,7 +137,7 @@ public final class ThzUiHtmlEmitter {
             case INTERRUPTOR -> {
                 String vinculo = c.getPropriedade("vinculo", id);
                 boolean ativo = Boolean.parseBoolean(String.valueOf(c.getPropriedade("valor", "false")));
-                sb.append(indent).append("<div class=\"thz-switch-wrapper\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 sb.append(indent).append("  <label class=\"thz-switch\">\n");
                 sb.append(indent).append("    <input type=\"checkbox\" id=\"").append(id).append("\" ").append(ativo ? "checked " : "").append("onchange=\"thzVinculoAtualizado('").append(HtmlEscape.escapeJs(vinculo)).append("', this.checked)\">\n");
                 sb.append(indent).append("    <span class=\"thz-slider\"></span>\n");
@@ -147,7 +149,7 @@ public final class ThzUiHtmlEmitter {
                 String valor = c.getPropriedade("valor", "0");
                 String tendencia = c.getPropriedade("tendencia", "");
                 String status = c.getPropriedade("status", "info");
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-metric-card thz-metric-").append(status).append("\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classeStatus(c.tipo(), status)).append("\"").append(estiloInline).append(">\n");
                 sb.append(indent).append("  <div class=\"thz-metric-title\">").append(HtmlEscape.escapeHtml(rotulo)).append("</div>\n");
                 sb.append(indent).append("  <div class=\"thz-metric-value\">").append(HtmlEscape.escapeHtml(valor)).append("</div>\n");
                 if (!tendencia.isBlank()) sb.append(indent).append("  <div class=\"thz-metric-trend\">").append(HtmlEscape.escapeHtml(tendencia)).append("</div>\n");
@@ -155,27 +157,27 @@ public final class ThzUiHtmlEmitter {
             }
             case EMBLEMA -> {
                 String status = c.getPropriedade("status", "primario");
-                sb.append(indent).append("<span id=\"").append(id).append("\" class=\"thz-badge thz-badge-").append(status).append("\"").append(estiloInline).append(">").append(HtmlEscape.escapeHtml(rotulo)).append("</span>\n");
+                sb.append(indent).append("<span id=\"").append(id).append("\" class=\"").append(TEMA.classeStatus(c.tipo(), status)).append("\"").append(estiloInline).append(">").append(HtmlEscape.escapeHtml(rotulo)).append("</span>\n");
             }
             case ALERTA -> {
                 String tipoAlerta = c.getPropriedade("tipoAlerta", "info");
                 String texto = c.getPropriedade("texto", rotulo);
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-alert thz-alert-").append(tipoAlerta).append("\"").append(estiloInline).append(">")
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classeStatus(c.tipo(), tipoAlerta)).append("\"").append(estiloInline).append(">")
                         .append(HtmlEscape.escapeHtml(texto)).append("</div>\n");
             }
             case TEXTO_RICO -> {
                 String texto = c.getPropriedade("texto", rotulo);
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-text\"").append(estiloInline).append(">").append(HtmlEscape.escapeHtml(texto)).append("</div>\n");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">").append(HtmlEscape.escapeHtml(texto)).append("</div>\n");
             }
             case TABELA_DADOS -> {
                 String rotuloTabela = c.getPropriedade("rotulo", "Tabela");
-                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"thz-tabela-wrapper\"").append(estiloInline).append(">\n");
+                sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append(">\n");
                 sb.append(indent).append("  <div class=\"thz-label\" style=\"margin-bottom:8px\">").append(HtmlEscape.escapeHtml(rotuloTabela)).append("</div>\n");
                 for (ThzUiComponente filho : c.filhos()) renderizarComponente(filho, sb, indent + "  ");
                 sb.append(indent).append("</div>\n");
             }
-            case DIVISOR -> sb.append(indent).append("<hr class=\"thz-divider\"").append(estiloInline).append("/>\n");
-            case ESPACO -> sb.append(indent).append("<div class=\"thz-spacer\" style=\"height: 16px;\"></div>\n");
+            case DIVISOR -> sb.append(indent).append("<hr class=\"").append(TEMA.classe(c.tipo())).append("\"").append(estiloInline).append("/>\n");
+            case ESPACO -> sb.append(indent).append("<div class=\"").append(TEMA.classe(c.tipo())).append("\" style=\"height: 16px;\"></div>\n");
             default -> sb.append(indent).append("<!-- Componente ").append(c.tipo()).append(" -->\n");
         }
     }
