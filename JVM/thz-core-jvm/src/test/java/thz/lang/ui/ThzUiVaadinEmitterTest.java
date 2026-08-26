@@ -36,7 +36,7 @@ class ThzUiVaadinEmitterTest {
         assertTrue(html.contains("--lumo-border-radius"), "Deve conter token Lumo --lumo-border-radius");
 
         // Badge identificador do Vaadin
-        assertTrue(html.contains("VAADIN FLOW ENGINE"), "Deve conter badge identificador do Vaadin");
+        assertTrue(html.contains("THZ VAADIN ENGINE"), "Deve conter badge identificador do Vaadin");
 
         // Componentes renderizados
         assertTrue(html.contains("vaadin-card"), "Deve conter classe vaadin-card");

@@ -1,0 +1,172 @@
+TELA ShowcaseVaadinCompleto
+
+METADADOS_ARQUITETURA
+    DOMINIO: "ComponentesVisuais"
+    CAMADA: "InterfaceWeb"
+    VERSAO: "3.0.0"
+    AUTOR: "Engenharia THZ-LANG"
+    SLO_LATENCIA_MAXIMA: "15ms"
+    CONFORMIDADE: "ISO-10967", "ISO-4217", "SOX-404", "LGPD"
+FIM_METADADOS
+
+# =============================================================================
+#  THZ-LANG Vaadin Lumo — SHOWCASE COMPLETO
+#  Demonstra TODOS os componentes disponíveis no ThzUiMaker + ThzUiVaadinEmitter:
+#   • Layouts: CONTAINER, LINHA, COLUNA, GRADE, CARD, PAINEL
+#   • KPIs: METRICA_CARD (info/sucesso/aviso/erro) com tendência
+#   • Formulários: CAMPO_TEXTO, CAMPO_NUMERO, CAMPO_MOEDA(BRL), CAMPO_DATA, SELECAO, INTERRUPTOR
+#   • Dados: TABELA_DADOS, TEXTO_RICO
+#   • Feedback: ALERTA (info/success/warning/error), EMBLEMA (badges), DIVISOR, ESPACO
+#   • Ações: BOTAO com variantes (primario/sucesso/perigo/aviso/contorno/secundario)
+#  Renderização: thz run showcase_vaadin_completo.thzui --vaadin  (--web para HTML5 Glassmorphism)
+# =============================================================================
+
+# --- ESTRUTURAS DE DEMONSTRAÇÃO ---
+
+ESTRUTURA Cliente
+    nome       : TEXTO
+    email      : TEXTO
+    cidade     : TEXTO
+    saldo      : MONETARIO("BRL")
+    ativo      : LOGICO
+FIM_ESTRUTURA
+
+ESTRUTURA Produto
+    codigo     : TEXTO
+    descricao  : TEXTO
+    preco      : MONETARIO("BRL")
+    estoque    : INTEIRO
+    categoria  : TEXTO
+FIM_ESTRUTURA
+
+ESTRUTURA TransacaoFinanceira
+    id           : UUID
+    descricao    : TEXTO
+    categoria    : TEXTO
+    tipo         : TEXTO
+    valor        : MONETARIO("BRL")
+    data_emissao : DATA
+    status       : TEXTO
+FIM_ESTRUTURA
+
+# --- REGRAS DE NEGÓCIO ---
+
+REGRA_NEGOCIO ValidacaoFormulario
+    IDENTIFICADOR_REGRA: "BR-SHOW-01"
+    RASTREIO_REQUISITO: "REQ-UI-001"
+    DESCRICAO: "Regra para demonstrar validações em formulários web e campos monetários ISO-4217."
+
+    OPERACAO ValidarCadastro(nomeCliente : TEXTO, email : TEXTO, cidade : TEXTO) : TEXTO
+    INICIO
+        EXIBA "[VALIDAÇÃO] Nome: " + nomeCliente + " | Email: " + email + " | Cidade: " + cidade
+        EXIBA "[VALIDAÇÃO] Cadastro aprovado com sucesso! (ISO-10967 validado)"
+        RETORNE "Cadastro de " + nomeCliente + " aprovado."
+    FIM
+
+    OPERACAO CalcularTotal(preco : DECIMAL(12,2), estoque : INTEIRO) : DECIMAL(12,2)
+    INICIO
+        VARIAVEL total : DECIMAL(12,2) <- preco * estoque
+        EXIBA "[CÁLCULO] Preço unitário: " + preco + " | Qtde: " + estoque + " | Total: " + total
+        RETORNE total
+    FIM
+FIM_REGRA_NEGOCIO
+
+REGRA_NEGOCIO GestaoFinanceira
+    IDENTIFICADOR_REGRA: "BR-FIN-SHOW-02"
+    RASTREIO_REQUISITO: "REQ-FIN-200"
+    DESCRICAO: "Operações financeiras com MONETARIO BRL e auditoria SOX-404."
+
+    CONTRATO_ENTRADA
+        EXIGE descricao != ""
+        EXIGE TEXTO.comprimento(tipo) > 0
+    FIM_CONTRATO_ENTRADA
+
+    OPERACAO RegistrarLancamento(descricao : TEXTO, tipo : TEXTO, valor : MONETARIO("BRL")) : MONETARIO("BRL")
+    INICIO
+        EXIBA "[LANÇAMENTO] " + descricao + " | Tipo: " + tipo + " | Valor: " + valor + " (BRL)"
+        RETORNE valor
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- PROCEDIMENTOS (MAPEADOS COMO BOTÕES NO SHOWCASE VAADIN) ---
+# Cada PROCEDIMENTO abaixo vira um botão com variante na interface gerada.
+# O ThzCli --vaadin também injeta automaticamente:
+#   KPIs, Badges SOX/ISO/LGPD/PCI, Formulário completo, Tabela e Central de Ações.
+
+PROCEDIMENTO ValidarCadastro()
+INICIO
+    EXIBA "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    EXIBA "  [FORMULÁRIO] Validação Corporativa"
+    EXIBA "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    ValidacaoFormulario.ValidarCadastro("Maria Silva", "maria@empresa.com.br", "São Paulo")
+    EXIBA "  Campos validados: CAMPO_TEXTO, SELECAO, INTERRUPTOR"
+    EXIBA "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+FIM
+
+PROCEDIMENTO AtualizarDashboard()
+INICIO
+    EXIBA "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    EXIBA "  DASHBOARD — Métricas Atualizadas em Tempo Real"
+    EXIBA "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    EXIBA "  Receita Total:     R$ 2.847.500,00  [+12.5%] (METRICA_CARD sucesso)"
+    EXIBA "  Despesas:          R$ 1.230.800,00  [-3.2%] (METRICA_CARD aviso)"
+    EXIBA "  Lucro Líquido:     R$ 1.616.700,00  [+56.8% EBITDA] (METRICA_CARD sucesso)"
+    EXIBA "  Clientes Ativos:   1.247  [+42 novos] (METRICA_CARD info)"
+    EXIBA "  Emblemas: SOX-404 | ISO-4217 | LGPD | PCI-DSS"
+    EXIBA "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+FIM
+
+PROCEDIMENTO ExportarRelatorio()
+INICIO
+    EXIBA "[EXPORTAÇÃO] Gerando relatório consolidado..."
+    EXIBA "[EXPORTAÇÃO] Formato: PDF/A-3 com assinatura SHA-256"
+    EXIBA "[EXPORTAÇÃO] Arquivo: relatorio_2026_Q3.pdf (2.4 MB)"
+    EXIBA "[EXPORTAÇÃO] Tabela TABELA_DADOS exportada: Data | Descrição | Categoria | Valor | Status"
+    EXIBA "[EXPORTAÇÃO] Exportação concluída com sucesso!"
+FIM
+
+PROCEDIMENTO ProcessarLote()
+INICIO
+    EXIBA "[LOTE] Iniciando processamento em lote com Virtual Threads (Java 25)..."
+    EXIBA "[LOTE] 1.247 registros processados em 45ms (SLO 15ms por item)"
+    EXIBA "[LOTE] Arena de memória: 2.1 MB alocados, descarte em O(1)"
+    EXIBA "[LOTE] Integridade verificada com Merkle Root SHA-256"
+FIM
+
+PROCEDIMENTO GerarNota()
+INICIO
+    EXIBA "[NF-e] Emitindo Nota Fiscal Eletrônica..."
+    EXIBA "[NF-e] CNPJ: 12.345.678/0001-90"
+    EXIBA "[NF-e] Valor Total: R$ 15.750,00 (BRL) — CAMPO_MOEDA ISO-4217"
+    EXIBA "[NF-e] Data Emissão: CAMPO_DATA validado"
+    EXIBA "[NF-e] Chave: 35260812345678000190550010000012341000012340"
+    EXIBA "[NF-e] Documento emitido e assinado digitalmente."
+FIM
+
+PROCEDIMENTO EnviarEmail()
+INICIO
+    EXIBA "[EMAIL] Preparando envio de relatório por email..."
+    EXIBA "[EMAIL] Destinatário: financeiro@empresa.com.br"
+    EXIBA "[EMAIL] Assunto: Relatório Financeiro Q3 2026"
+    EXIBA "[EMAIL] Anexos: relatorio_2026_Q3.pdf + SPED Fiscal"
+    EXIBA "[EMAIL] Status: Enviado com sucesso!"
+FIM
+
+PROCEDIMENTO SimularAlerta()
+INICIO
+    EXIBA "[ALERTA][INFO] Sistema operacional em conformidade."
+    EXIBA "[ALERTA][SUCCESS] Lote processado com sucesso."
+    EXIBA "[ALERTA][WARNING] Atenção: 3 lançamentos pendentes de aprovação."
+    EXIBA "[ALERTA][ERROR] Falha de validação: campo obrigatório não preenchido."
+FIM
+
+PROCEDIMENTO DemonstrarLayouts()
+INICIO
+    EXIBA "[LAYOUT] CONTAINER raiz com GRADE 4 colunas (KPIs)"
+    EXIBA "[LAYOUT] LINHA de EMBLEMAS + DIVISOR"
+    EXIBA "[LAYOUT] CARD Formulário com LINHA de campos"
+    EXIBA "[LAYOUT] GRADE 2 colunas: CARD Tabela + CARD Ações"
+    EXIBA "[LAYOUT] ESPACO + ALERTA footer"
+FIM
+
+FIM_TELA

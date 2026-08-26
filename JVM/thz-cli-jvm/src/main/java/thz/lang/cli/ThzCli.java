@@ -567,17 +567,113 @@ public class ThzCli {
                                 return thz.lang.webview.ThzJson.okMensagem("Ação '" + acao + "' executada.");
                             });
 
-                            var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
-                                c.adicionar(thz.lang.ui.ThzUiMaker.card("card_" + ast.nome(), ast.nome(), card -> {
-                                    card.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_modulo", "info",
-                                            "Tela: " + ast.nome() + " [" + ast.tipoModulo() + "]"));
-                                    if (ast.procedimentos() != null) {
-                                        for (var p : ast.procedimentos()) {
-                                            card.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_" + p.nome(), p.nome(), p.nome()));
-                                        }
+                            thz.lang.ui.ThzUiMaker maker;
+                            if (usarVaadin) {
+                                maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
+                                    // Header corporativo
+                                    c.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_header", "info",
+                                            "Tela: " + ast.nome() + " [" + ast.tipoModulo() + "] · Vaadin Lumo Dark · Showcase Completo THZ-LANG v3.0.0"));
+
+                                    // KPIs — GRADE 4 colunas
+                                    c.adicionar(thz.lang.ui.ThzUiMaker.grade("kpi_grade", 4, g -> {
+                                        g.adicionar(thz.lang.ui.ThzUiMaker.metrica("kpi_receita", "Receita Total", "R$ 2.847.500,00", "+12.5% vs mês anterior", "sucesso"));
+                                        g.adicionar(thz.lang.ui.ThzUiMaker.metrica("kpi_despesa", "Despesas", "R$ 1.230.800,00", "-3.2% otimizado", "aviso"));
+                                        g.adicionar(thz.lang.ui.ThzUiMaker.metrica("kpi_lucro", "Lucro Líquido", "R$ 1.616.700,00", "+56.8% EBITDA", "sucesso"));
+                                        g.adicionar(thz.lang.ui.ThzUiMaker.metrica("kpi_clientes", "Clientes Ativos", "1.247", "+42 novos", "info"));
+                                    }));
+
+                                    // Emblemas + divisor
+                                    c.adicionar(thz.lang.ui.ThzUiMaker.linha("linha_emblemas", row -> {
+                                        row.adicionar(thz.lang.ui.ThzUiMaker.emblema("badge_sox", "SOX-404", "sucesso"));
+                                        row.adicionar(thz.lang.ui.ThzUiMaker.emblema("badge_iso", "ISO-4217", "primario"));
+                                        row.adicionar(thz.lang.ui.ThzUiMaker.emblema("badge_lgpd", "LGPD", "aviso"));
+                                        row.adicionar(thz.lang.ui.ThzUiMaker.emblema("badge_iso10967", "ISO-10967", "primario"));
+                                        row.adicionar(thz.lang.ui.ThzUiMaker.emblema("badge_pci", "PCI-DSS", "erro"));
+                                    }));
+                                    c.adicionar(thz.lang.ui.ThzUiMaker.divisor());
+
+                                    // Card Formulário Completo — demonstra CAMPO_TEXTO, CAMPO_MOEDA, CAMPO_NUMERO, CAMPO_DATA, SELECAO, INTERRUPTOR
+                                    c.adicionar(thz.lang.ui.ThzUiMaker.card("card_form", "Cadastro Corporativo — Formulário Completo", card -> {
+                                        card.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_form", "warning",
+                                                "Todos os campos com * são obrigatórios. Validação corporativa ativa (REQ-UI-001)."));
+                                        card.adicionar(thz.lang.ui.ThzUiMaker.linha("linha_form1", l1 -> {
+                                            l1.adicionar(thz.lang.ui.ThzUiMaker.campoTexto("campo_nome", "Nome Completo *", "Ex: Maria Silva", "nome_cliente"));
+                                            l1.adicionar(thz.lang.ui.ThzUiMaker.campoTexto("campo_email", "E-mail Corporativo *", "nome@empresa.com.br", "email"));
+                                        }));
+                                        card.adicionar(thz.lang.ui.ThzUiMaker.linha("linha_form2", l2 -> {
+                                            l2.adicionar(thz.lang.ui.ThzUiMaker.campoMoeda("campo_saldo", "Saldo / Valor", "BRL", "saldo"));
+                                            l2.adicionar(thz.lang.ui.ThzUiMaker.campoNumero("campo_estoque", "Quantidade", "estoque"));
+                                            l2.adicionar(thz.lang.ui.ThzUiMaker.campoData("campo_data", "Data de Emissão", "data_emissao"));
+                                        }));
+                                        card.adicionar(thz.lang.ui.ThzUiMaker.linha("linha_form3", l3 -> {
+                                            l3.adicionar(thz.lang.ui.ThzUiMaker.selecao("campo_cidade", "Cidade",
+                                                    java.util.List.of("São Paulo", "Rio de Janeiro", "Belo Horizonte", "Curitiba", "Porto Alegre"), "cidade"));
+                                            l3.adicionar(thz.lang.ui.ThzUiMaker.selecao("campo_categoria", "Categoria",
+                                                    java.util.List.of("Receita", "Despesa", "Investimento", "Transferência"), "categoria"));
+                                            l3.adicionar(thz.lang.ui.ThzUiMaker.interruptor("switch_ativo", "Cliente Ativo", "ativo"));
+                                        }));
+                                        card.adicionar(thz.lang.ui.ThzUiMaker.linha("linha_acoes_form", la -> {
+                                            la.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_validar", "Validar Cadastro", "ValidarCadastro").comPropriedade("variante", "primario"));
+                                            la.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_limpar", "Limpar", "__thz_restaurar__").comPropriedade("variante", "contorno"));
+                                        }));
+                                    }));
+
+                                    // Grade central: TABELA_DADOS + Central de Ações
+                                    c.adicionar(thz.lang.ui.ThzUiMaker.grade("grade_central", 2, g2 -> {
+                                        g2.adicionar(thz.lang.ui.ThzUiMaker.card("card_tabela", "Transações Recentes", tbl -> {
+                                            var tabela = thz.lang.ui.ThzUiMaker.novo("tabela_transacoes", thz.lang.ui.ThzUiComponente.TipoUi.TABELA_DADOS)
+                                                    .comPropriedade("colunas", java.util.List.of("Data", "Descrição", "Categoria", "Valor", "Status"))
+                                                    .comPropriedade("rotulo", "Transações");
+                                            tbl.adicionar(tabela);
+                                            tbl.adicionar(thz.lang.ui.ThzUiMaker.divisor());
+                                            tbl.adicionar(thz.lang.ui.ThzUiMaker.linha("linha_tabela_acoes", l -> {
+                                                l.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_exportar", "Exportar Relatório", "ExportarRelatorio").comPropriedade("variante", "sucesso"));
+                                                l.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_nota", "Gerar NF-e", "GerarNota").comPropriedade("variante", "primario"));
+                                            }));
+                                        }));
+                                        g2.adicionar(thz.lang.ui.ThzUiMaker.card("card_acoes", "Central de Ações — Virtual Threads", ac -> {
+                                            ac.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_vt", "success",
+                                                    "Motor THZ-LANG com Virtual Threads (Java 25) e Arena O(1) — Performance garantida."));
+                                            ac.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_dashboard", "Atualizar Dashboard", "AtualizarDashboard").comPropriedade("variante", "primario"));
+                                            ac.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_lote", "Processar Lote (1.2k)", "ProcessarLote").comPropriedade("variante", "aviso"));
+                                            ac.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_email", "Enviar por E-mail", "EnviarEmail").comPropriedade("variante", "secundario"));
+                                            ac.adicionar(thz.lang.ui.ThzUiMaker.divisor());
+                                            ac.adicionar(thz.lang.ui.ThzUiMaker.linha("linha_status", ls -> {
+                                                ls.adicionar(thz.lang.ui.ThzUiMaker.emblema("emb_online", "ONLINE", "sucesso"));
+                                                ls.adicionar(thz.lang.ui.ThzUiMaker.emblema("emb_lat", "15ms SLO", "primario"));
+                                                ls.adicionar(thz.lang.ui.ThzUiMaker.emblema("emb_mem", "Arena 2.1MB", "aviso"));
+                                            }));
+                                        }));
+                                    }));
+
+                                    // Procedimentos dinâmicos do AST como botões extras
+                                    if (ast.procedimentos() != null && !ast.procedimentos().isEmpty()) {
+                                        c.adicionar(thz.lang.ui.ThzUiMaker.card("card_procedimentos", "Procedimentos do Módulo: " + ast.nome(), pc -> {
+                                            pc.adicionar(thz.lang.ui.ThzUiMaker.linha("linha_procs", lp -> {
+                                                for (var p : ast.procedimentos()) {
+                                                    lp.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_proc_" + p.nome(), p.nome(), p.nome()).comPropriedade("variante", "primario"));
+                                                }
+                                            }));
+                                        }));
                                     }
-                                }));
-                            });
+
+                                    c.adicionar(thz.lang.ui.ThzUiMaker.espaco());
+                                    c.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_footer", "info",
+                                            "THZ-LANG Engine v3.0.0 · Vaadin Lumo · Glassmorphism · ISO-10967 · Renderização server-driven · Todos os componentes demonstrados"));
+                                });
+                            } else {
+                                maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
+                                    c.adicionar(thz.lang.ui.ThzUiMaker.card("card_" + ast.nome(), ast.nome(), card -> {
+                                        card.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_modulo", "info",
+                                                "Tela: " + ast.nome() + " [" + ast.tipoModulo() + "]"));
+                                        if (ast.procedimentos() != null) {
+                                            for (var p : ast.procedimentos()) {
+                                                card.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_" + p.nome(), p.nome(), p.nome()));
+                                            }
+                                        }
+                                    }));
+                                });
+                            }
 
                             String html;
                             if (usarVaadin) {
