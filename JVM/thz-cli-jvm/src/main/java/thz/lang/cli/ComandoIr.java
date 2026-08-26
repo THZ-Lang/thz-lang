@@ -1,0 +1,52 @@
+package thz.lang.cli;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import thz.lang.lexico.ThzLexer;
+import thz.lang.lexico.Token;
+import thz.lang.sintatico.ThzParser;
+import thz.lang.ast.ProgramaAst;
+
+public class ComandoIr implements ComandoCli {
+
+    @Override
+    public List<String> nomes() {
+        return List.of("ir");
+    }
+
+    @Override
+    public void executar(List<String> argumentos, boolean estrito) throws Exception {
+        String arquivo = CliHelper.resolverArquivo(argumentos);
+        if (arquivo == null || arquivo.isBlank() || !Files.exists(Path.of(arquivo))) {
+            System.err.println("[ERRO] Arquivo não encontrado: " + arquivo);
+            System.exit(1);
+        }
+        String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
+        List<Token> tokens = new ThzLexer(fonte).tokenize();
+        ProgramaAst ast = new ThzParser(tokens).parse();
+
+        boolean llvm = argumentos.contains("--llvm");
+        String idxSaida = null;
+        int idx = argumentos.indexOf("--saida");
+        if (idx >= 0 && idx + 1 < argumentos.size())
+            idxSaida = argumentos.get(idx + 1);
+
+        String resultado = llvm
+                ? thz.lang.ir.GeradorIr.emitirLlvm(ast)
+                : thz.lang.ir.GeradorIr.serializarIrJson(thz.lang.ir.GeradorIr.baixarParaIr(ast));
+
+        if (idxSaida != null) {
+            Path alvo = idxSaida.contains(".") ? Path.of(idxSaida)
+                    : Path.of(idxSaida, ast.nome() + (llvm ? ".ll" : "_ir.json"));
+            Files.createDirectories(alvo.getParent() != null ? alvo.getParent() : Path.of("."));
+            Files.writeString(alvo, resultado, StandardCharsets.UTF_8);
+            System.out.println(
+                    "[THZ IR] Saída (" + (llvm ? "LLVM IR" : "THZ-IR/1") + ") gravada em: " + alvo);
+        } else {
+            System.out.println(resultado);
+        }
+    }
+}
