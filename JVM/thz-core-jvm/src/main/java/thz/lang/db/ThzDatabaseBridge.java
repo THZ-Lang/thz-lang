@@ -7,7 +7,6 @@ import thz.lang.vetor.ThzVetorSimd;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * ThzDatabaseBridge — Intermediador Universal de Banco de Dados e Abstração ORM/JPA-like.

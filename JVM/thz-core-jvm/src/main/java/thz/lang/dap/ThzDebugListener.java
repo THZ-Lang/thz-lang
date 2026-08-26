@@ -1,9 +1,6 @@
 package thz.lang.dap;
 
 import thz.lang.interpretador.Escopo;
-import thz.lang.interpretador.ValorThz;
-
-import java.util.Map;
 
 /**
  * Interface de gancho (hook) para monitoramento e controle de execução do depurador.

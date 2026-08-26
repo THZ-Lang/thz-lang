@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.interpretador.InterpretadorThz;
-import thz.lang.interpretador.ValorThz;
+
 import thz.lang.lexico.ThzLexer;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.vetor.ThzVetorSimd;

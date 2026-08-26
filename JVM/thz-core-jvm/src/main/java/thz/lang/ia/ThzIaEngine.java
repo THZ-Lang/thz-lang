@@ -3,9 +3,7 @@ package thz.lang.ia;
 import thz.lang.vetor.ThzVetorSimd;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+
 
 /**
  * ThzIaEngine — Motor de Inteligência Artificial e Geração de Embeddings On-Device.

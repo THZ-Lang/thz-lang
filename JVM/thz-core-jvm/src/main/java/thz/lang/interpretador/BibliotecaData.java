@@ -1,6 +1,6 @@
 package thz.lang.interpretador;
 
-import thz.lang.ast.ExprAst;
+
 import thz.lang.runtime.DataHoraThz;
 import thz.lang.runtime.DataThz;
 import thz.lang.runtime.ErroData;

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import thz.lang.interpretador.ValorThz;
+
 import thz.lang.runtime.DecimalFixo;
 import thz.lang.snapshot.ThzSnapshotEngine;
 

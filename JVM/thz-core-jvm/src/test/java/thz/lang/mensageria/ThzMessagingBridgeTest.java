@@ -5,7 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import thz.lang.interpretador.ValorThz;
 
-import java.math.BigInteger;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 

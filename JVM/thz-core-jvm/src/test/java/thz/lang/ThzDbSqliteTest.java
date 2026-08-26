@@ -8,7 +8,7 @@ import thz.lang.db.ThzDb;
 import thz.lang.interpretador.ValorThz;
 import thz.lang.runtime.DecimalFixo;
 
-import java.io.File;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;

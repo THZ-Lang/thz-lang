@@ -4,9 +4,9 @@ import thz.lang.ast.ProgramaAst;
 import thz.lang.diagnosticos.DiagnosticoEntrada;
 import thz.lang.diagnosticos.Diagnosticos;
 import thz.lang.fachada.ThzCompilerFacade;
-import thz.lang.semantico.ErroSemantico;
 
-import java.util.ArrayList;
+
+
 import java.util.List;
 
 /**

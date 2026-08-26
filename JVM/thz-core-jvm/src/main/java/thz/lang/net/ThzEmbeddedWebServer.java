@@ -1,17 +1,17 @@
 package thz.lang.net;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+
 import com.sun.net.httpserver.HttpServer;
 import thz.lang.ast.ProcedimentoAst;
 import thz.lang.ast.ProgramaAst;
-import thz.lang.formato.JsonEscritor;
+
 import thz.lang.interpretador.InterpretadorThz;
 import thz.lang.interpretador.ValorThz;
 import thz.lang.lexico.ThzLexer;
 import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
-import thz.lang.ui.ThzUiHtmlEmitter;
+
 import thz.lang.ui.ThzUiMaker;
 import thz.lang.ui.ThzUiTema;
 
