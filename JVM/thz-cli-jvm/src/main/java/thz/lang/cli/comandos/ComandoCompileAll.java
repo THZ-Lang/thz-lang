@@ -11,7 +11,7 @@ import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliLogger;
-import thz.lang.cli.ErrosCli;
+import thz.lang.cli.CliErros;
 
 public class ComandoCompileAll implements ComandoCli {
 
@@ -34,7 +34,7 @@ public class ComandoCompileAll implements ComandoCli {
         Path raizSaida = Path.of(dirSaida);
 
         if (!Files.exists(raizOrigem)) {
-            ErrosCli.erroDiretorioNaoEncontrado(raizOrigem);
+            CliErros.erroDiretorioNaoEncontrado(raizOrigem);
         }
 
         CliLogger.info("================================================================================");
@@ -90,7 +90,7 @@ public class ComandoCompileAll implements ComandoCli {
                 CliLogger.info("  [OK] " + arq.getFileName() + " -> IR, LLVM, WASM, AUDIT, DOC");
             } catch (Exception ex) {
                 falhas++;
-                ErrosCli.falhaEmLote(arq.getFileName().toString(), ex.getMessage());
+                CliErros.falhaEmLote(arq.getFileName().toString(), ex.getMessage());
             }
         }
 

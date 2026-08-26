@@ -5,7 +5,6 @@ import thz.lang.interpretador.BibliotecaPadrao;
 import thz.lang.interpretador.ErroExecucao;
 import thz.lang.interpretador.ValorThz;
 import thz.lang.ui.HtmlEscape;
-import thz.lang.cli.ErrosCli;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,8 +38,8 @@ public final class BibliotecaConsole {
                 String msg = thz.lang.ui.RenderizadorFormularioWeb.renderizar(reg, opAlvo, interp);
                 return ValorThz.TEXTO(msg);
             } catch (Exception e) {
-                ErrosCli.webViewFalha("Falha ao renderizar formulário: " + e.getMessage());
-                ErrosCli.webViewDica();
+                CliErros.webViewFalha("Falha ao renderizar formulário: " + e.getMessage());
+                CliErros.webViewDica();
                 throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Falha ao abrir formulário '" + thz.lang.ui.ConversorFormularioUi.extrairTitulo(reg) + "': " + e.getMessage());
             }
         });
@@ -54,7 +53,7 @@ public final class BibliotecaConsole {
             if (!Boolean.getBoolean("thz.nao_interativo")) {
                 try { exibirDialogoWebview(titulo, mensagem, "alerta"); } catch (Exception ignore) {}
             }
-            ErrosCli.alerta(titulo, mensagem);
+            CliErros.alerta(titulo, mensagem);
             return ValorThz.TEXTO("OK");
         });
 
@@ -102,7 +101,7 @@ public final class BibliotecaConsole {
 
     private static String lerLinha(String aviso) {
         try {
-            ErrosCli.entrada(aviso);
+            CliErros.entrada(aviso);
             return STDIN.readLine();
         } catch (IOException e) {
             return null;

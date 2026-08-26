@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import thz.lang.cli.CliLogger;
-import thz.lang.cli.ErrosCli;
+import thz.lang.cli.CliErros;
 
 public class ComandoLivro implements ComandoCli {
 
@@ -42,7 +42,7 @@ public class ComandoLivro implements ComandoCli {
                 CliLogger.info("[SUCESSO] Manuais gerados com sucesso!");
             }
         } catch (Exception e) {
-            ErrosCli.falhaManualPdf(e.getMessage());
+            CliErros.falhaManualPdf(e.getMessage());
             e.printStackTrace();
         }
     }

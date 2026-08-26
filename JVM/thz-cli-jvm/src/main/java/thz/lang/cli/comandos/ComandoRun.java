@@ -11,7 +11,7 @@ import thz.lang.ast.ProcedimentoAst;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
 import thz.lang.cli.CliLogger;
-import thz.lang.cli.ErrosCli;
+import thz.lang.cli.CliErros;
 import thz.lang.cli.ThzCli;
 import thz.lang.interpretador.InjetorLoteDemo;
 import thz.lang.interpretador.InterpretadorThz;
@@ -36,14 +36,14 @@ public class ComandoRun implements ComandoCli {
     public void executar(List<String> argumentos, boolean estrito, boolean modoWeb) throws Exception {
         String arquivo = CliHelper.resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank()) {
-            ErrosCli.erroNenhumArquivoEspecificado("thz run <arquivo.thz|arquivo.thzui>");
+            CliErros.erroNenhumArquivoEspecificado("thz run <arquivo.thz|arquivo.thzui>");
         }
 
         var resolved = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(arquivo, Path.of("."), List.of(".thz", ".thzui"));
         if (resolved.isPresent()) arquivo = resolved.get().toString();
 
         if (!Files.exists(Path.of(arquivo))) {
-            ErrosCli.erroArquivoNaoEncontrado(arquivo);
+            CliErros.erroArquivoNaoEncontrado(arquivo);
         }
 
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
@@ -158,7 +158,7 @@ public class ComandoRun implements ComandoCli {
                 return;
             }
         } catch (Throwable t) {
-            ErrosCli.displaySwingIndisponivel(t.getMessage());
+            CliErros.displaySwingIndisponivel(t.getMessage());
             var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {});
             String html = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
             String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
@@ -217,7 +217,7 @@ public class ComandoRun implements ComandoCli {
                 CliLogger.info("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
                 return;
             }
-            ErrosCli.erroPrincipalNaoEncontrado(nomePrincipal);
+            CliErros.erroPrincipalNaoEncontrado(nomePrincipal);
         }
         var procs = interp.listarProcedimentos();
         if (!procs.isEmpty()) {
@@ -233,7 +233,7 @@ public class ComandoRun implements ComandoCli {
         }
         var execs = interp.listarOperacoesExecutaveis();
         if (execs.isEmpty()) {
-            ErrosCli.erroNenhumaOperacaoExecutavel();
+            CliErros.erroNenhumaOperacaoExecutavel();
         }
         var prim = execs.get(0);
         CliLogger.info("[REGRA] " + prim.regra().nome()

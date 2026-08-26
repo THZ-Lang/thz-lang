@@ -10,7 +10,8 @@ import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
-import thz.lang.cli.ErrosCli;
+import thz.lang.cli.CliLogger;
+import thz.lang.cli.CliErros;
 
 public class ComandoDoc implements ComandoCli {
 
@@ -23,7 +24,7 @@ public class ComandoDoc implements ComandoCli {
     public void executar(List<String> argumentos, boolean estrito) throws Exception {
         String arquivo = CliHelper.resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank() || !Files.exists(Path.of(arquivo))) {
-            ErrosCli.erroArquivoNaoEncontrado(arquivo);
+            CliErros.erroArquivoNaoEncontrado(arquivo);
         }
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
         List<Token> tokens = new ThzLexer(fonte).tokenize();
@@ -40,9 +41,9 @@ public class ComandoDoc implements ComandoCli {
                     : Path.of(idxSaida, ast.nome() + "_documentacao.md");
             Files.createDirectories(alvo.getParent() != null ? alvo.getParent() : Path.of("."));
             Files.writeString(alvo, doc, StandardCharsets.UTF_8);
-            System.out.println("[THZ DOC] Documentação gerada em: " + alvo);
+            CliLogger.info("[THZ DOC] Documentação gerada em: " + alvo);
         } else {
-            System.out.println(doc);
+            CliLogger.saida(doc);
         }
     }
 }

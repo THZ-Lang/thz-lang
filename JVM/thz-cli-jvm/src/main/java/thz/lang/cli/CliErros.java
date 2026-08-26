@@ -6,9 +6,9 @@ import java.nio.file.Path;
  * Fábrica centralizada de mensagens de erro e alerta para o CLI da THZ-LANG.
  * Padroniza prefixos, formatação e saída via CliLogger (ThzLog backend).
  */
-public final class ErrosCli {
+public final class CliErros {
 
-    private ErrosCli() {}
+    private CliErros() {}
 
     // ── Erros fatais (imprimem e saem com código 1) ──────────────────────────
 

@@ -11,7 +11,7 @@ import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
 import thz.lang.cli.CliLogger;
-import thz.lang.cli.ErrosCli;
+import thz.lang.cli.CliErros;
 
 public class ComandoCompile implements ComandoCli {
 
@@ -24,14 +24,14 @@ public class ComandoCompile implements ComandoCli {
     public void executar(List<String> argumentos, boolean estrito) throws Exception {
         String arquivo = CliHelper.resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank()) {
-            ErrosCli.erroNenhumArquivoEspecificado("thz compile <arquivo.thz>");
+            CliErros.erroNenhumArquivoEspecificado("thz compile <arquivo.thz>");
         }
 
         var resolved = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(arquivo, Path.of("."), List.of(".thz", ".thzui"));
         if (resolved.isPresent()) arquivo = resolved.get().toString();
 
         if (!Files.exists(Path.of(arquivo))) {
-            ErrosCli.erroArquivoNaoEncontradoAposBusca(arquivo);
+            CliErros.erroArquivoNaoEncontradoAposBusca(arquivo);
         }
 
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);

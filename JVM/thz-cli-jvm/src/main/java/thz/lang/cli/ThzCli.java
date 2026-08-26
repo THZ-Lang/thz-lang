@@ -118,7 +118,7 @@ public class ThzCli {
                 cmd.executar(argumentos, estrito);
             }
         } else {
-            ErrosCli.erroComandoDesconhecido(comando);
+            CliErros.erroComandoDesconhecido(comando);
         }
     }
 
@@ -161,11 +161,11 @@ public class ThzCli {
                     Object janela = gui.getConstructor().newInstance();
                     gui.getMethod("setVisible", boolean.class).invoke(janela, true);
                 } catch (ReflectiveOperationException e) {
-                    ErrosCli.erroFalhaAoIniciarGui(e.getMessage());
+                    CliErros.erroFalhaAoIniciarGui(e.getMessage());
                 }
             });
         } catch (ClassNotFoundException e) {
-            ErrosCli.erroGuiNaoEncontrada();
+            CliErros.erroGuiNaoEncontrada();
         }
     }
 }
