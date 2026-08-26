@@ -20,13 +20,13 @@ public final class ThzUiVaadinEmitter {
         sb.append("<!DOCTYPE html>\n<html lang=\"pt-BR\" theme=\"").append(temaEscuro ? "dark" : "light").append("\">\n<head>\n");
         sb.append("  <meta charset=\"UTF-8\">\n");
         sb.append("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
-        sb.append("  <title>").append(escapeHtml(titulo)).append(" — Vaadin UI</title>\n");
+        sb.append("  <title>").append(HtmlEscape.escapeHtml(titulo)).append(" — Vaadin UI</title>\n");
         sb.append("  <style>\n").append(gerarCssLumo(temaEscuro)).append("  </style>\n");
         sb.append("</head>\n<body>\n");
         sb.append("  <div class=\"vaadin-app-container\">\n");
         sb.append("    <header class=\"vaadin-app-header\">\n");
         sb.append("      <div class=\"vaadin-badge-logo\">THZ VAADIN ENGINE</div>\n");
-        sb.append("      <h2 class=\"vaadin-title\">").append(escapeHtml(titulo)).append("</h2>\n");
+        sb.append("      <h2 class=\"vaadin-title\">").append(HtmlEscape.escapeHtml(titulo)).append("</h2>\n");
         sb.append("    </header>\n\n");
         sb.append("    <main class=\"vaadin-main-content\">\n");
         renderizarComponente(raiz, sb, "      ");
@@ -70,7 +70,7 @@ public final class ThzUiVaadinEmitter {
                 String tituloCard = c.getPropriedade("titulo", "");
                 sb.append(indent).append("<section id=\"").append(id).append("\" class=\"vaadin-card\">\n");
                 if (!tituloCard.isBlank()) {
-                    sb.append(indent).append("  <div class=\"vaadin-card-header\"><h3>").append(escapeHtml(tituloCard)).append("</h3></div>\n");
+                    sb.append(indent).append("  <div class=\"vaadin-card-header\"><h3>").append(HtmlEscape.escapeHtml(tituloCard)).append("</h3></div>\n");
                 }
                 sb.append(indent).append("  <div class=\"vaadin-card-body\">\n");
                 for (ThzUiComponente filho : c.filhos()) renderizarComponente(filho, sb, indent + "    ");
@@ -80,7 +80,7 @@ public final class ThzUiVaadinEmitter {
             case PAINEL -> {
                 String tituloP = c.getPropriedade("titulo", "");
                 sb.append(indent).append("<div id=\"").append(id).append("\" class=\"vaadin-panel\">\n");
-                if (!tituloP.isBlank()) sb.append(indent).append("  <div class=\"vaadin-panel-title\">").append(escapeHtml(tituloP)).append("</div>\n");
+                if (!tituloP.isBlank()) sb.append(indent).append("  <div class=\"vaadin-panel-title\">").append(HtmlEscape.escapeHtml(tituloP)).append("</div>\n");
                 for (ThzUiComponente filho : c.filhos()) renderizarComponente(filho, sb, indent + "  ");
                 sb.append(indent).append("</div>\n");
             }
@@ -95,27 +95,27 @@ public final class ThzUiVaadinEmitter {
                 else if ("contorno".equalsIgnoreCase(variante) || "outline".equalsIgnoreCase(variante)) theme = "outline";
                 else theme = "secondary";
                 sb.append(indent).append("<button id=\"").append(id).append("\" class=\"vaadin-button vaadin-button-").append(theme)
-                        .append("\" onclick=\"vaadinDespacharAcao('").append(escapeJs(acao)).append("', '").append(id).append("')\">")
-                        .append(escapeHtml(rotulo)).append("</button>\n");
+                        .append("\" onclick=\"vaadinDespacharAcao('").append(HtmlEscape.escapeJs(acao)).append("', '").append(id).append("')\">")
+                        .append(HtmlEscape.escapeHtml(rotulo)).append("</button>\n");
             }
             case CAMPO_TEXTO -> {
                 String vinculo = c.getPropriedade("vinculo", id);
                 String valor = c.getPropriedade("valor", "");
                 sb.append(indent).append("<div class=\"vaadin-field-wrapper\">\n");
-                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(escapeHtml(rotulo)).append("</label>\n");
-                sb.append(indent).append("  <input type=\"text\" id=\"").append(id).append("\" data-vinculo=\"").append(escapeHtml(vinculo))
-                        .append("\" class=\"vaadin-input\" placeholder=\"").append(escapeHtml(placeholder))
-                        .append("\" value=\"").append(escapeHtml(valor))
-                        .append("\" oninput=\"vaadinAtualizarVinculo('").append(escapeJs(vinculo)).append("', this.value)\"/>\n");
+                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</label>\n");
+                sb.append(indent).append("  <input type=\"text\" id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo))
+                        .append("\" class=\"vaadin-input\" placeholder=\"").append(HtmlEscape.escapeHtml(placeholder))
+                        .append("\" value=\"").append(HtmlEscape.escapeHtml(valor))
+                        .append("\" oninput=\"vaadinAtualizarVinculo('").append(HtmlEscape.escapeJs(vinculo)).append("', this.value)\"/>\n");
                 sb.append(indent).append("</div>\n");
             }
             case CAMPO_NUMERO -> {
                 String vinculo = c.getPropriedade("vinculo", id);
                 sb.append(indent).append("<div class=\"vaadin-field-wrapper\">\n");
-                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(escapeHtml(rotulo)).append("</label>\n");
-                sb.append(indent).append("  <input type=\"number\" id=\"").append(id).append("\" data-vinculo=\"").append(escapeHtml(vinculo))
+                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</label>\n");
+                sb.append(indent).append("  <input type=\"number\" id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo))
                         .append("\" class=\"vaadin-input\" placeholder=\"0\" step=\"any\"")
-                        .append(" oninput=\"vaadinAtualizarVinculo('").append(escapeJs(vinculo)).append("', this.value)\"/>\n");
+                        .append(" oninput=\"vaadinAtualizarVinculo('").append(HtmlEscape.escapeJs(vinculo)).append("', this.value)\"/>\n");
                 sb.append(indent).append("</div>\n");
             }
             case CAMPO_MOEDA -> {
@@ -123,20 +123,20 @@ public final class ThzUiVaadinEmitter {
                 String moeda = c.getPropriedade("moeda", "BRL");
                 String valor = c.getPropriedade("valor", "");
                 sb.append(indent).append("<div class=\"vaadin-field-wrapper\">\n");
-                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(escapeHtml(rotulo)).append(" <span class=\"vaadin-badge-sm\">").append(moeda).append("</span></label>\n");
+                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(HtmlEscape.escapeHtml(rotulo)).append(" <span class=\"vaadin-badge-sm\">").append(moeda).append("</span></label>\n");
                 sb.append(indent).append("  <div class=\"vaadin-input-group\"><span class=\"vaadin-input-prefix\">R$</span>")
-                        .append("<input type=\"text\" id=\"").append(id).append("\" data-vinculo=\"").append(escapeHtml(vinculo))
-                        .append("\" class=\"vaadin-input vaadin-input-currency\" placeholder=\"0,00\" value=\"").append(escapeHtml(valor))
-                        .append("\" oninput=\"vaadinAtualizarVinculo('").append(escapeJs(vinculo)).append("', this.value)\"/></div>\n");
+                        .append("<input type=\"text\" id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo))
+                        .append("\" class=\"vaadin-input vaadin-input-currency\" placeholder=\"0,00\" value=\"").append(HtmlEscape.escapeHtml(valor))
+                        .append("\" oninput=\"vaadinAtualizarVinculo('").append(HtmlEscape.escapeJs(vinculo)).append("', this.value)\"/></div>\n");
                 sb.append(indent).append("</div>\n");
             }
             case CAMPO_DATA -> {
                 String vinculo = c.getPropriedade("vinculo", id);
                 sb.append(indent).append("<div class=\"vaadin-field-wrapper\">\n");
-                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(escapeHtml(rotulo)).append("</label>\n");
-                sb.append(indent).append("  <input type=\"date\" id=\"").append(id).append("\" data-vinculo=\"").append(escapeHtml(vinculo))
+                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</label>\n");
+                sb.append(indent).append("  <input type=\"date\" id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo))
                         .append("\" class=\"vaadin-input\"")
-                        .append(" oninput=\"vaadinAtualizarVinculo('").append(escapeJs(vinculo)).append("', this.value)\"/>\n");
+                        .append(" oninput=\"vaadinAtualizarVinculo('").append(HtmlEscape.escapeJs(vinculo)).append("', this.value)\"/>\n");
                 sb.append(indent).append("</div>\n");
             }
             case SELECAO -> {
@@ -144,12 +144,12 @@ public final class ThzUiVaadinEmitter {
                 @SuppressWarnings("unchecked")
                 List<String> opcoes = c.getPropriedade("opcoes", List.of());
                 sb.append(indent).append("<div class=\"vaadin-field-wrapper\">\n");
-                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(escapeHtml(rotulo)).append("</label>\n");
-                sb.append(indent).append("  <select id=\"").append(id).append("\" data-vinculo=\"").append(escapeHtml(vinculo))
-                        .append("\" class=\"vaadin-select\" onchange=\"vaadinAtualizarVinculo('").append(escapeJs(vinculo)).append("', this.value)\">\n");
+                if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</label>\n");
+                sb.append(indent).append("  <select id=\"").append(id).append("\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo))
+                        .append("\" class=\"vaadin-select\" onchange=\"vaadinAtualizarVinculo('").append(HtmlEscape.escapeJs(vinculo)).append("', this.value)\">\n");
                 sb.append(indent).append("    <option value=\"\">Selecione...</option>\n");
                 for (String op : opcoes) {
-                    sb.append(indent).append("    <option value=\"").append(escapeHtml(op)).append("\">").append(escapeHtml(op)).append("</option>\n");
+                    sb.append(indent).append("    <option value=\"").append(HtmlEscape.escapeHtml(op)).append("\">").append(HtmlEscape.escapeHtml(op)).append("</option>\n");
                 }
                 sb.append(indent).append("  </select>\n");
                 sb.append(indent).append("</div>\n");
@@ -157,10 +157,10 @@ public final class ThzUiVaadinEmitter {
             case INTERRUPTOR, CHECKBOX -> {
                 String vinculo = c.getPropriedade("vinculo", id);
                 sb.append(indent).append("<label class=\"vaadin-toggle-wrapper\">\n");
-                sb.append(indent).append("  <input type=\"checkbox\" id=\"").append(id).append("\" class=\"vaadin-toggle-input\" data-vinculo=\"").append(escapeHtml(vinculo))
-                        .append("\" onchange=\"vaadinAtualizarVinculo('").append(escapeJs(vinculo)).append("', this.checked)\"/>\n");
+                sb.append(indent).append("  <input type=\"checkbox\" id=\"").append(id).append("\" class=\"vaadin-toggle-input\" data-vinculo=\"").append(HtmlEscape.escapeHtml(vinculo))
+                        .append("\" onchange=\"vaadinAtualizarVinculo('").append(HtmlEscape.escapeJs(vinculo)).append("', this.checked)\"/>\n");
                 sb.append(indent).append("  <span class=\"vaadin-toggle-slider\"></span>\n");
-                if (!rotulo.isBlank()) sb.append(indent).append("  <span class=\"vaadin-toggle-label\">").append(escapeHtml(rotulo)).append("</span>\n");
+                if (!rotulo.isBlank()) sb.append(indent).append("  <span class=\"vaadin-toggle-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</span>\n");
                 sb.append(indent).append("</label>\n");
             }
             case METRICA_CARD -> {
@@ -168,21 +168,21 @@ public final class ThzUiVaadinEmitter {
                 String tendencia = c.getPropriedade("tendencia", "");
                 String status = c.getPropriedade("status", "info");
                 sb.append(indent).append("<div id=\"").append(id).append("\" class=\"vaadin-metric-card vaadin-metric-").append(status).append("\">\n");
-                sb.append(indent).append("  <div class=\"vaadin-metric-label\">").append(escapeHtml(rotulo)).append("</div>\n");
-                sb.append(indent).append("  <div class=\"vaadin-metric-value\">").append(escapeHtml(valor)).append("</div>\n");
-                if (!tendencia.isBlank()) sb.append(indent).append("  <div class=\"vaadin-metric-trend\">").append(escapeHtml(tendencia)).append("</div>\n");
+                sb.append(indent).append("  <div class=\"vaadin-metric-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</div>\n");
+                sb.append(indent).append("  <div class=\"vaadin-metric-value\">").append(HtmlEscape.escapeHtml(valor)).append("</div>\n");
+                if (!tendencia.isBlank()) sb.append(indent).append("  <div class=\"vaadin-metric-trend\">").append(HtmlEscape.escapeHtml(tendencia)).append("</div>\n");
                 sb.append(indent).append("</div>\n");
             }
             case EMBLEMA -> {
                 String status = c.getPropriedade("status", "primario");
                 sb.append(indent).append("<span id=\"").append(id).append("\" class=\"vaadin-badge vaadin-badge-").append(status).append("\">")
-                        .append(escapeHtml(rotulo)).append("</span>\n");
+                        .append(HtmlEscape.escapeHtml(rotulo)).append("</span>\n");
             }
             case ALERTA -> {
                 String texto = c.getPropriedade("texto", rotulo);
                 String status = c.getPropriedade("tipoAlerta", "info");
                 sb.append(indent).append("<div id=\"").append(id).append("\" class=\"vaadin-alert vaadin-alert-").append(status).append("\">")
-                        .append(escapeHtml(texto)).append("</div>\n");
+                        .append(HtmlEscape.escapeHtml(texto)).append("</div>\n");
             }
             case DIVISOR -> {
                 sb.append(indent).append("<hr class=\"vaadin-divider\"/>\n");
@@ -195,7 +195,7 @@ public final class ThzUiVaadinEmitter {
                 sb.append(indent).append("  <table class=\"vaadin-grid\"><thead><tr>");
                 @SuppressWarnings("unchecked")
                 List<String> colunas = c.getPropriedade("colunas", List.of("Coluna"));
-                for (String col : colunas) sb.append("<th>").append(escapeHtml(col)).append("</th>");
+                for (String col : colunas) sb.append("<th>").append(HtmlEscape.escapeHtml(col)).append("</th>");
                 sb.append("</tr></thead><tbody id=\"").append(id).append("_body\"></tbody></table>\n");
                 sb.append(indent).append("</div>\n");
             }
@@ -418,13 +418,5 @@ public final class ThzUiVaadinEmitter {
         """;
     }
 
-    private static String escapeHtml(String s) {
-        if (s == null) return "";
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
-    }
 
-    private static String escapeJs(String s) {
-        if (s == null) return "";
-        return s.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"");
-    }
 }

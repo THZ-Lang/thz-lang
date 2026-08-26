@@ -4,6 +4,7 @@ import thz.lang.ast.ExprAst;
 import thz.lang.interpretador.BibliotecaPadrao;
 import thz.lang.interpretador.ErroExecucao;
 import thz.lang.interpretador.ValorThz;
+import thz.lang.ui.HtmlEscape;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -94,13 +95,8 @@ public final class BibliotecaConsole {
                 h2{margin:0 0 12px;font-size:1.25rem} p{color:#94a3b8;line-height:1.6} .badge{display:inline-block;padding:4px 10px;border-radius:9999px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(59,130,246,0.2);color:#60a5fa;border:1px solid rgba(59,130,246,0.4);margin-bottom:12px}</style>
                 </head><body><div class="card"><span class="badge">%s</span><h2>%s</h2><p>%s</p>
                 <p style="margin-top:16px;font-size:0.8rem;color:#64748b">Veja o console para interação. Feche esta janela para continuar.</p></div></body></html>
-                """.formatted(escapeHtml(titulo), escapeHtml(tipo), escapeHtml(titulo), escapeHtml(mensagem));
+                """.formatted(HtmlEscape.escapeHtml(titulo), HtmlEscape.escapeHtml(tipo), HtmlEscape.escapeHtml(titulo), HtmlEscape.escapeHtml(mensagem));
         thz.lang.webview.LancadorWebviewNativo.abrirHtml(titulo, html, 560, 320);
-    }
-
-    private static String escapeHtml(String s) {
-        if (s == null) return "";
-        return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;");
     }
 
     private static String lerLinha(String aviso) {
