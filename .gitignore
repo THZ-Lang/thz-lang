@@ -11,6 +11,7 @@ out/
 # THZ-LANG build artifacts espurios
 JVM/**/target/
 JVM/**/dist/
+JVM/**/bin/
 **/*.ll
 
 # Agents / AI tooling
