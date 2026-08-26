@@ -1,6 +1,5 @@
 package thz.lang.gui;
 
-import thz.lang.ast.ProcedimentoAst;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.documento.MotorDocumentos;
 import thz.lang.gui.barra.BarraFerramentasGui;

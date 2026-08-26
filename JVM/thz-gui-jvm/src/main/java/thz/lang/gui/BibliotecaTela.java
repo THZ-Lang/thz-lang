@@ -28,6 +28,7 @@ public final class BibliotecaTela {
             return ValorThz.TEXTO(msg);
         });
 
+        /** TELA.alerta é uma função que exibe um diálogo de alerta usando Swing. */
         BibliotecaPadrao.registrar("TELA.alerta", (args, ctx, interp) -> {
             exigirAridade("TELA.alerta", args, 2, ctx);
             exigirClasse("TELA.alerta", args.get(0), "TEXTO", ctx);
@@ -43,6 +44,13 @@ public final class BibliotecaTela {
             return ValorThz.TEXTO("OK");
         });
 
+        /**
+         * TELA.confirmar é uma função que exibe um diálogo de confirmação usando Swing.
+         * Ela recebe dois argumentos: o título do diálogo e a mensagem a ser exibida.
+         * Retorna um valor lógico (true/false) dependendo da escolha do usuário.
+         * Se o modo não interativo estiver ativado ou se o ambiente gráfico não estiver disponível 
+         * a função retorna true por padrão. 
+         */
         BibliotecaPadrao.registrar("TELA.confirmar", (args, ctx, interp) -> {
             exigirAridade("TELA.confirmar", args, 2, ctx);
             exigirClasse("TELA.confirmar", args.get(0), "TEXTO", ctx);
@@ -58,9 +66,9 @@ public final class BibliotecaTela {
         });
         
         /** 
-        TELA.pedirTexto é uma função que exibe um diálogo de entrada de texto usando Swing. 
-        Ela recebe dois argumentos: o título do diálogo e o prompt para o usuário. 
-        Se o modo não interativo estiver ativado ou se o ambiente gráfico não estiver disponível, a função retorna uma string vazia.
+        * TELA.pedirTexto é uma função que exibe um diálogo de entrada de texto usando Swing. 
+        * Ela recebe dois argumentos: o título do diálogo e o prompt para o usuário. 
+        * Se o modo não interativo estiver ativado ou se o ambiente gráfico não estiver disponível, a função retorna uma string vazia.
         */
         BibliotecaPadrao.registrar("TELA.pedirTexto", (args, ctx, interp) -> {
             exigirAridade("TELA.pedirTexto", args, 2, ctx);

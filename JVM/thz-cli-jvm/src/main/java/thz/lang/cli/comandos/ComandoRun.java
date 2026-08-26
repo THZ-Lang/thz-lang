@@ -13,13 +13,11 @@ import thz.lang.cli.CliHelper;
 import thz.lang.cli.CliLogger;
 import thz.lang.cli.CliErros;
 import thz.lang.cli.ThzCli;
+import thz.lang.fachada.ThzCompilerFacade;
 import thz.lang.interpretador.InjetorLoteDemo;
 import thz.lang.interpretador.InterpretadorThz;
 import thz.lang.interpretador.ValorThz;
-import thz.lang.lexico.ThzLexer;
-import thz.lang.lexico.Token;
 import thz.lang.runtime.BlocoMemoria;
-import thz.lang.sintatico.ThzParser;
 
 public class ComandoRun implements ComandoCli {
 
@@ -47,8 +45,7 @@ public class ComandoRun implements ComandoCli {
         }
 
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
-        List<Token> tokens = new ThzLexer(fonte).tokenize();
-        ProgramaAst ast = new ThzParser(tokens).parse();
+        ProgramaAst ast = ThzCompilerFacade.parseAst(fonte);
 
         boolean ehArquivoUi = arquivo.toLowerCase().endsWith(".thzui")
                 || (ast.tipoModulo() == thz.lang.ast.TipoModulo.TELA)
