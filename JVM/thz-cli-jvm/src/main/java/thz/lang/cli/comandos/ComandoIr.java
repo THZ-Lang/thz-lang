@@ -10,6 +10,7 @@ import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 
 public class ComandoIr implements ComandoCli {
@@ -44,10 +45,9 @@ public class ComandoIr implements ComandoCli {
                     : Path.of(idxSaida, ast.nome() + (llvm ? ".ll" : "_ir.json"));
             Files.createDirectories(alvo.getParent() != null ? alvo.getParent() : Path.of("."));
             Files.writeString(alvo, resultado, StandardCharsets.UTF_8);
-            System.out.println(
-                    "[THZ IR] Saída (" + (llvm ? "LLVM IR" : "THZ-IR/1") + ") gravada em: " + alvo);
+            CliLogger.info("[THZ IR] Saída (" + (llvm ? "LLVM IR" : "THZ-IR/1") + ") gravada em: " + alvo);
         } else {
-            System.out.println(resultado);
+            CliLogger.saida(resultado);
         }
     }
 }

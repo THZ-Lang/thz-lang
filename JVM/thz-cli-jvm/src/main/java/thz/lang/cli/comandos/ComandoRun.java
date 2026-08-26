@@ -10,6 +10,7 @@ import java.util.Map;
 import thz.lang.ast.ProcedimentoAst;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 import thz.lang.cli.ThzCli;
 import thz.lang.interpretador.InjetorLoteDemo;
@@ -79,9 +80,9 @@ public class ComandoRun implements ComandoCli {
         InterpretadorThz interp = new InterpretadorThz(ast, System.out::println, entrada);
 
         if (executarModoWeb) {
-            System.out.println("================================================================================");
-            System.out.println("   EXECUTANDO INTERFACE DECLARATIVA THZ-UI (MODO " + (usarVaadin ? "VAADIN FLOW" : "WEB / HTML5") + "): " + ast.nome());
-            System.out.println("================================================================================\n");
+            CliLogger.info("================================================================================");
+            CliLogger.info("   EXECUTANDO INTERFACE DECLARATIVA THZ-UI (MODO " + (usarVaadin ? "VAADIN FLOW" : "WEB / HTML5") + "): " + ast.nome());
+            CliLogger.info("================================================================================\n");
 
             List<String> logsExecucao = new ArrayList<>();
             InterpretadorThz interpWeb = new InterpretadorThz(ast, logsExecucao::add, entrada);
@@ -131,18 +132,18 @@ public class ComandoRun implements ComandoCli {
             }
 
             String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
-            System.out.println("[THZ-UI " + (usarVaadin ? "VAADIN" : "WEB") + "] Interface declarativa '" + ast.nome() + "' aberta em: " + url);
+            CliLogger.info("[THZ-UI " + (usarVaadin ? "VAADIN" : "WEB") + "] Interface declarativa '" + ast.nome() + "' aberta em: " + url);
             return;
         }
 
         // Modo Desktop Swing + FlatLaf
-        System.out.println("================================================================================");
-        System.out.println("   EXECUTANDO INTERFACE DECLARATIVA THZ-UI (MODO SWING GUI): " + ast.nome());
-        System.out.println("================================================================================\n");
+        CliLogger.info("================================================================================");
+        CliLogger.info("   EXECUTANDO INTERFACE DECLARATIVA THZ-UI (MODO SWING GUI): " + ast.nome());
+        CliLogger.info("================================================================================\n");
         try {
             Object frame = thz.lang.gui.ui.ThzUiSwingRenderer.renderizarOuExibir(ast, interp);
             if (frame instanceof javax.swing.JFrame jf) {
-                System.out.println("[THZ-UI SWING] Janela gráfica interativa '" + ast.nome() + "' exibida com sucesso.");
+                CliLogger.info("[THZ-UI SWING] Janela gráfica interativa '" + ast.nome() + "' exibida com sucesso.");
                 if (!Boolean.getBoolean("thz.test.mode")) {
                     synchronized (ThzCli.class) {
                         while (jf.isDisplayable()) {
@@ -161,16 +162,16 @@ public class ComandoRun implements ComandoCli {
             var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {});
             String html = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
             String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
-            System.out.println("[THZ-UI WEB] Interface aberta em: " + url);
+            CliLogger.info("[THZ-UI WEB] Interface aberta em: " + url);
             return;
         }
     }
 
     private void executarCli(ProgramaAst ast, List<String> argumentos) throws Exception {
-        System.out.println(
+        CliLogger.info(
                 "================================================================================");
-        System.out.println("   EXECUTANDO MOTOR NATIVO THZ-LANG (MODO CLI): " + ast.nome());
-        System.out.println(
+        CliLogger.info("   EXECUTANDO MOTOR NATIVO THZ-LANG (MODO CLI): " + ast.nome());
+        CliLogger.info(
                 "================================================================================\n");
         BlocoMemoria blocoMemoria = new BlocoMemoria(64);
         blocoMemoria.alocar(2048);
@@ -179,8 +180,8 @@ public class ComandoRun implements ComandoCli {
         String conf = ast.metadados() != null && ast.metadados().conformidade() != null
                 ? String.join(", ", ast.metadados().conformidade())
                 : "N/A";
-        System.out.println("[ARQUITETURA] Domínio: " + dom + " | SLO: " + slo);
-        System.out.println("[CONFORMIDADE] Diretrizes ativas: " + conf + "\n");
+        CliLogger.info("[ARQUITETURA] Domínio: " + dom + " | SLO: " + slo);
+        CliLogger.info("[CONFORMIDADE] Diretrizes ativas: " + conf + "\n");
         int ip = argumentos.indexOf("--principal");
         final String nomePrincipal = (ip >= 0 && ip + 1 < argumentos.size()) ? argumentos.get(ip + 1) : null;
         Map<String, String> mapaArgs = CliHelper.parseArgsMapa(argumentos);
@@ -192,28 +193,28 @@ public class ComandoRun implements ComandoCli {
                     ? ast.procedimentos().stream().filter(p -> p.nome().equals(nomePrincipal)).findFirst().orElse(null)
                     : null;
             if (proc != null) {
-                System.out.println("[PROCEDIMENTO] " + proc.nome() + "()\n");
+                CliLogger.info("[PROCEDIMENTO] " + proc.nome() + "()\n");
                 Map<String, ValorThz> a = InjetorLoteDemo.construirArgsProc(proc, p -> mapaArgs.get(p.nome()));
                 interp.executarProcedimento(proc.nome(), a);
                 blocoMemoria.liberarTudo();
-                System.out.println("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
+                CliLogger.info("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
                 return;
             }
 
             var ops = interp.listarOperacoesExecutaveis().stream()
                     .filter(o -> o.operacao().nome().equals(nomePrincipal)).findFirst().orElse(null);
             if (ops != null) {
-                System.out.println("[REGRA] " + ops.regra().nome()
+                CliLogger.info("[REGRA] " + ops.regra().nome()
                         + (ops.regra().identificador() != null ? " (" + ops.regra().identificador() + ")" : "")
                         + " :: " + ops.operacao().nome() + "()\n");
                 Map<String, ValorThz> a = InjetorLoteDemo.construirArgsOperacao(ops.operacao(), ast,
                         interp::validarInvariantes, p -> mapaArgs.get(p.nome()));
                 ValorThz res = interp.executarOperacao(ops.operacao().nome(), a);
-                System.out.println("--------------------------------------------------------------");
+                CliLogger.info("--------------------------------------------------------------");
                 if (res != null)
-                    System.out.println("[RESULTADO] " + interp.formatar(res));
+                    CliLogger.info("[RESULTADO] " + interp.formatar(res));
                 blocoMemoria.liberarTudo();
-                System.out.println("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
+                CliLogger.info("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
                 return;
             }
             ErrosCli.erroPrincipalNaoEncontrado(nomePrincipal);
@@ -222,12 +223,12 @@ public class ComandoRun implements ComandoCli {
         if (!procs.isEmpty()) {
             var proc = procs.stream().filter(p -> p.nome().equalsIgnoreCase("Principal")).findFirst()
                     .orElse(procs.get(0));
-            System.out.println("[PROCEDIMENTO] " + proc.nome() + "()\n");
+            CliLogger.info("[PROCEDIMENTO] " + proc.nome() + "()\n");
             Map<String, ValorThz> a = proc.parametros().isEmpty() ? Map.of()
                     : InjetorLoteDemo.construirArgsProc(proc, p -> mapaArgs.get(p.nome()));
             interp.executarProcedimento(proc.nome(), a);
             blocoMemoria.liberarTudo();
-            System.out.println("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
+            CliLogger.info("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
             return;
         }
         var execs = interp.listarOperacoesExecutaveis();
@@ -235,17 +236,17 @@ public class ComandoRun implements ComandoCli {
             ErrosCli.erroNenhumaOperacaoExecutavel();
         }
         var prim = execs.get(0);
-        System.out.println("[REGRA] " + prim.regra().nome()
+        CliLogger.info("[REGRA] " + prim.regra().nome()
                 + (prim.regra().identificador() != null ? " (" + prim.regra().identificador() + ")" : "")
                 + " :: " + prim.operacao().nome() + "()\n");
         Map<String, ValorThz> a = InjetorLoteDemo.construirArgsOperacao(prim.operacao(), ast,
                 interp::validarInvariantes, p -> mapaArgs.get(p.nome()));
         ValorThz res = interp.executarOperacao(prim.operacao().nome(), a);
-        System.out.println("--------------------------------------------------------------");
+        CliLogger.info("--------------------------------------------------------------");
         if (res != null)
-            System.out.println("[RESULTADO] " + interp.formatar(res));
+            CliLogger.info("[RESULTADO] " + interp.formatar(res));
         blocoMemoria.liberarTudo();
-        System.out.println("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
+        CliLogger.info("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
     }
 
     private thz.lang.ui.ThzUiMaker construirMakerVaadin(ProgramaAst ast) {

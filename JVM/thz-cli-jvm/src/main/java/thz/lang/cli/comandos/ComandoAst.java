@@ -11,6 +11,7 @@ import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 
 public class ComandoAst implements ComandoCli {
@@ -29,6 +30,6 @@ public class ComandoAst implements ComandoCli {
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
         List<Token> tokens = new ThzLexer(fonte).tokenize();
         ProgramaAst ast = new ThzParser(tokens).parse();
-        System.out.println(JsonEscritor.paraJson(ast));
+        CliLogger.saida(JsonEscritor.paraJson(ast));
     }
 }

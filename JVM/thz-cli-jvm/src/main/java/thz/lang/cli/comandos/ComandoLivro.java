@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 
 public class ComandoLivro implements ComandoCli {
@@ -24,21 +25,21 @@ public class ComandoLivro implements ComandoCli {
             Files.createDirectories(dirDist);
             if (linguaEn && !linguaPt) {
                 Path destino = dirDist.resolve("MANUAL_THZ_LANG_EN.pdf");
-                System.out.println("Compilando Livro-Manual PDF em Inglês (EN-US)...");
+                CliLogger.info("Compilando Livro-Manual PDF em Inglês (EN-US)...");
                 Path gerado = thz.lang.documento.ThzLivroManualPdf.gerarLivroManual(raizWorkspace, destino, thz.lang.lexico.DialetoLinguagem.EN_US);
-                System.out.println("[SUCESSO] Livro-Manual EN-US gerado em: " + gerado);
+                CliLogger.info("[SUCESSO] Livro-Manual EN-US gerado em: " + gerado);
             } else if (linguaPt && !linguaEn) {
                 Path destino = dirDist.resolve("MANUAL_THZ_LANG_PT.pdf");
-                System.out.println("Compilando Livro-Manual PDF em Português (PT-BR)...");
+                CliLogger.info("Compilando Livro-Manual PDF em Português (PT-BR)...");
                 Path gerado = thz.lang.documento.ThzLivroManualPdf.gerarLivroManual(raizWorkspace, destino, thz.lang.lexico.DialetoLinguagem.PT_BR);
-                System.out.println("[SUCESSO] Livro-Manual PT-BR gerado em: " + gerado);
+                CliLogger.info("[SUCESSO] Livro-Manual PT-BR gerado em: " + gerado);
             } else {
-                System.out.println("Compilando todos os documentos Markdown (.md) em Livros-Manuais PDF (PT-BR & EN-US)...");
+                CliLogger.info("Compilando todos os documentos Markdown (.md) em Livros-Manuais PDF (PT-BR & EN-US)...");
                 List<Path> gerados = thz.lang.documento.ThzLivroManualPdf.gerarTodosManuais(raizWorkspace, dirDist);
                 for (Path p : gerados) {
-                    System.out.println("  • " + p.getFileName() + " -> " + p);
+                    CliLogger.info("  • " + p.getFileName() + " -> " + p);
                 }
-                System.out.println("[SUCESSO] Manuais gerados com sucesso!");
+                CliLogger.info("[SUCESSO] Manuais gerados com sucesso!");
             }
         } catch (Exception e) {
             ErrosCli.falhaManualPdf(e.getMessage());

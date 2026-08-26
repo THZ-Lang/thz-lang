@@ -53,6 +53,7 @@ public class ThzCli {
     }
 
     public static void main(String[] args) throws Exception {
+        CliLogger.inicializar();
         boolean modoWeb = Arrays.asList(args).contains("--web") || Arrays.asList(args).contains("--webview");
         if (modoWeb) {
             BibliotecaConsole.registrar();
@@ -74,7 +75,7 @@ public class ThzCli {
 
         if (args[0].equals("--versao") || args[0].equals("-v") || args[0].equals("versao")
                 || args[0].equals("version")) {
-            System.out.println("THZ-LANG Engine v" + thz.lang.version.ThzVersion.ATUAL + " (GraalVM / Java 25)");
+            CliLogger.saida("THZ-LANG Engine v" + thz.lang.version.ThzVersion.ATUAL + " (GraalVM / Java 25)");
             return;
         }
 
@@ -122,34 +123,34 @@ public class ThzCli {
     }
 
     private static void exibirAjuda() {
-        System.out.println("================================================================================");
-        System.out.println("   THZ-LANG Engine — JVM (v" + thz.lang.version.ThzVersion.ATUAL + ")");
-        System.out.println("   Linguagem Corporativa de Sistemas, Governança e Alta Performance");
-        System.out.println("================================================================================\n");
-        System.out.println("Uso:");
-        System.out.println("  thz <comando> [arquivo.thz] [opções]\n");
-        System.out.println("Comandos Disponíveis:");
-        System.out.println("  init                                         Inicializa o projeto criando o manifesto thz.config.json");
-        System.out.println("  compile-all [--origem <dir>] [--saida <dir>] Compila todos os exemplos em IR, LLVM, WASM, Doc e Auditoria");
-        System.out.println("  compile <arquivo> [--saida <dir>]            Compila um programa em THZ-IR, LLVM IR e WASM");
-        System.out.println("  check <arquivo> [--estrito]                  Verifica a integridade sintática e semântica");
-        System.out.println("  run <arquivo> [--principal <Nome>]           Executa o programa via interpretador com arena O(1)");
-        System.out.println("  fmt <arquivo> [--check|--escrever|--saida]   Formata o código canonicamente");
-        System.out.println("  ast <arquivo>                               Exibe a AST (Abstract Syntax Tree) em JSON");
-        System.out.println("  audit <arquivo> [--json] [--estrito]        Gera relatório de auditoria e governança (G4)");
-        System.out.println("  doc <arquivo> [--saida <caminho.md>]        Gera documentação técnica com diagramas Mermaid");
-        System.out.println("  ir <arquivo> [--llvm] [--saida <caminho>]   Gera a Representação Intermediária (THZ-IR/1)");
-        System.out.println("  ui <arquivo[.thzui]> [--html]               Renderiza ou exporta a interface declarativa (ThzUiMaker)");
-        System.out.println("  livro [--saida <caminho.pdf>]               Compila toda a documentação Markdown em Livro-Manual PDF");
-        System.out.println("  repl                                        Inicia o shell interativo multi-linha");
-        System.out.println("  gui                                         Abre a Desktop IDE oficial (Swing + FlatLaf)");
-        System.out.println("Exemplos:");
-        System.out.println("  thz check exemplos/faturamento.thz --estrito");
-        System.out.println("  thz run exemplos/faturamento.thz");
-        System.out.println("  thz audit exemplos/faturamento.thz");
-        System.out.println("  thz doc exemplos/faturamento.thz --saida docs/faturamento.md");
-        System.out.println("  thz livro --saida dist/MANUAL_THZ_LANG.pdf");
-        System.out.println("  thz gui");
+        CliLogger.saida("================================================================================");
+        CliLogger.saida("   THZ-LANG Engine — JVM (v" + thz.lang.version.ThzVersion.ATUAL + ")");
+        CliLogger.saida("   Linguagem Corporativa de Sistemas, Governança e Alta Performance");
+        CliLogger.saida("================================================================================\n");
+        CliLogger.saida("Uso:");
+        CliLogger.saida("  thz <comando> [arquivo.thz] [opções]\n");
+        CliLogger.saida("Comandos Disponíveis:");
+        CliLogger.saida("  init                                         Inicializa o projeto criando o manifesto thz.config.json");
+        CliLogger.saida("  compile-all [--origem <dir>] [--saida <dir>] Compila todos os exemplos em IR, LLVM, WASM, Doc e Auditoria");
+        CliLogger.saida("  compile <arquivo> [--saida <dir>]            Compila um programa em THZ-IR, LLVM IR e WASM");
+        CliLogger.saida("  check <arquivo> [--estrito]                  Verifica a integridade sintática e semântica");
+        CliLogger.saida("  run <arquivo> [--principal <Nome>]           Executa o programa via interpretador com arena O(1)");
+        CliLogger.saida("  fmt <arquivo> [--check|--escrever|--saida]   Formata o código canonicamente");
+        CliLogger.saida("  ast <arquivo>                               Exibe a AST (Abstract Syntax Tree) em JSON");
+        CliLogger.saida("  audit <arquivo> [--json] [--estrito]        Gera relatório de auditoria e governança (G4)");
+        CliLogger.saida("  doc <arquivo> [--saida <caminho.md>]        Gera documentação técnica com diagramas Mermaid");
+        CliLogger.saida("  ir <arquivo> [--llvm] [--saida <caminho>]   Gera a Representação Intermediária (THZ-IR/1)");
+        CliLogger.saida("  ui <arquivo[.thzui]> [--html]               Renderiza ou exporta a interface declarativa (ThzUiMaker)");
+        CliLogger.saida("  livro [--saida <caminho.pdf>]               Compila toda a documentação Markdown em Livro-Manual PDF");
+        CliLogger.saida("  repl                                        Inicia o shell interativo multi-linha");
+        CliLogger.saida("  gui                                         Abre a Desktop IDE oficial (Swing + FlatLaf)");
+        CliLogger.saida("Exemplos:");
+        CliLogger.saida("  thz check exemplos/faturamento.thz --estrito");
+        CliLogger.saida("  thz run exemplos/faturamento.thz");
+        CliLogger.saida("  thz audit exemplos/faturamento.thz");
+        CliLogger.saida("  thz doc exemplos/faturamento.thz --saida docs/faturamento.md");
+        CliLogger.saida("  thz livro --saida dist/MANUAL_THZ_LANG.pdf");
+        CliLogger.saida("  thz gui");
     }
 
     private static void lancarGuiSeDisponivel() {

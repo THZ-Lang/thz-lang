@@ -10,6 +10,7 @@ import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 
 public class ComandoAudit implements ComandoCli {
@@ -54,9 +55,9 @@ public class ComandoAudit implements ComandoCli {
                     : Path.of(idxSaida, ast.nome() + "_auditoria." + (emJson ? "json" : "md"));
             Files.createDirectories(alvo.getParent() != null ? alvo.getParent() : Path.of("."));
             Files.writeString(alvo, resultado, StandardCharsets.UTF_8);
-            System.out.println("[THZ AUDIT] Relatório de governança gravado em: " + alvo);
+            CliLogger.info("[THZ AUDIT] Relatório de governança gravado em: " + alvo);
         } else {
-            System.out.println(resultado);
+            CliLogger.saida(resultado);
         }
 
         if (estrito && !rel.metricas().aprovado()) {

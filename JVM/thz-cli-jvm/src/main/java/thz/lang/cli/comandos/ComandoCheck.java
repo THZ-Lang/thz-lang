@@ -15,6 +15,7 @@ import thz.lang.semantico.OpcoesAnalise;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 
 public class ComandoCheck implements ComandoCli {
@@ -39,12 +40,12 @@ public class ComandoCheck implements ComandoCli {
             List<DiagnosticoEntrada> diags = erros.stream()
                     .map(e -> new DiagnosticoEntrada(e.linha(), e.coluna(), e.mensagem())).toList();
             for (String bloco : Diagnosticos.formatarDiagnosticos(fonte, diags, "Semântico"))
-                System.err.println(bloco + "\n");
+                CliLogger.erro(bloco + "\n");
             ErrosCli.statusComandoCheck(erros.size());
             System.exit(1);
         }
         String versao = "";
-        System.out.println("[THZ CHECK] Código validado com sucesso! AST íntegra para o programa: "
+        CliLogger.info("[THZ CHECK] Código validado com sucesso! AST íntegra para o programa: "
                 + ast.nome() + versao + (estrito ? " [lint estrito aprovado]" : ""));
     }
 }

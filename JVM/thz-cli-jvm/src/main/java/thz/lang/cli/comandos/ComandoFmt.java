@@ -12,6 +12,7 @@ import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 
 public class ComandoFmt implements ComandoCli {
@@ -52,7 +53,7 @@ public class ComandoFmt implements ComandoCli {
                     }
                 System.exit(1);
             }
-            System.out.println("[THZ FMT] OK — arquivo já está canônico.");
+            CliLogger.info("[THZ FMT] OK — arquivo já está canônico.");
             return;
         }
         if (idxSaida != null) {
@@ -60,14 +61,14 @@ public class ComandoFmt implements ComandoCli {
                     : Path.of(idxSaida, Path.of(arquivo).getFileName().toString());
             Files.createDirectories(alvo.getParent() != null ? alvo.getParent() : Path.of("."));
             Files.writeString(alvo, formatado, StandardCharsets.UTF_8);
-            System.out.println("[THZ FMT] Arquivo formatado gravado em: " + alvo);
+            CliLogger.info("[THZ FMT] Arquivo formatado gravado em: " + alvo);
             return;
         }
         if (escrever) {
             Files.writeString(Path.of(arquivo), formatado, StandardCharsets.UTF_8);
-            System.out.println("[THZ FMT] " + arquivo + " formatado.");
+            CliLogger.info("[THZ FMT] " + arquivo + " formatado.");
             return;
         }
-        System.out.println(formatado);
+        CliLogger.saida(formatado);
     }
 }

@@ -11,6 +11,7 @@ import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 import thz.lang.cli.ThzCli;
 
@@ -45,7 +46,7 @@ public class ComandoUi implements ComandoCli {
                 InterpretadorThz interp = new InterpretadorThz(ast, System.out::println, entrada);
                 Object frame = thz.lang.gui.ui.ThzUiSwingRenderer.renderizarOuExibir(ast, interp);
                 if (frame instanceof javax.swing.JFrame jf) {
-                    System.out.println("[THZ-UI SWING] Interface gráfica declarativa '" + ast.nome() + "' exibida com sucesso.");
+                    CliLogger.info("[THZ-UI SWING] Interface gráfica declarativa '" + ast.nome() + "' exibida com sucesso.");
                     if (!Boolean.getBoolean("thz.test.mode")) {
                         synchronized (ThzCli.class) {
                             while (jf.isDisplayable()) {
@@ -78,9 +79,9 @@ public class ComandoUi implements ComandoCli {
         if (html) {
             String codigoHtml = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
             String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), codigoHtml, 1024, 768);
-            System.out.println("[THZ-UI WEB] Interface '" + ast.nome() + "' aberta via Web / WebView em: " + url);
+            CliLogger.info("[THZ-UI WEB] Interface '" + ast.nome() + "' aberta via Web / WebView em: " + url);
         } else {
-            System.out.println(maker.gerarCodigoThz(ast.nome()));
+            CliLogger.saida(maker.gerarCodigoThz(ast.nome()));
         }
     }
 }

@@ -25,7 +25,7 @@ public final class ThzDevServer {
     public static synchronized void iniciar(String caminhoArquivo, int porta, boolean abrirNavegador, boolean usarVaadin) throws Exception {
         Path path = Path.of(caminhoArquivo);
         if (!Files.exists(path)) {
-            System.err.println("[THZ DEV] Arquivo não encontrado: " + caminhoArquivo);
+            CliLogger.erro("[THZ DEV] Arquivo não encontrado: " + caminhoArquivo);
             return;
         }
 
@@ -33,9 +33,9 @@ public final class ThzDevServer {
             servidorAtivo.parar();
         }
 
-        System.out.println("================================================================================");
-        System.out.println("   ⚡ SERVIDOR WEB EMBUTIDO THZ-LANG (JAVA 25 VIRTUAL THREADS)" + (usarVaadin ? " [VAADIN FLOW]" : ""));
-        System.out.println("================================================================================\n");
+        CliLogger.info("================================================================================");
+        CliLogger.info("   ⚡ SERVIDOR WEB EMBUTIDO THZ-LANG (JAVA 25 VIRTUAL THREADS)" + (usarVaadin ? " [VAADIN FLOW]" : ""));
+        CliLogger.info("================================================================================\n");
 
         servidorAtivo = new ThzEmbeddedWebServer();
         var config = new ThzEmbeddedWebServer.ConfiguracaoServidor(
@@ -49,11 +49,11 @@ public final class ThzDevServer {
 
         String url = servidorAtivo.iniciar(path, config);
 
-        System.out.println("🚀 [THZ EMBEDDED] Servidor pronto e escutando!");
-        System.out.println("🔗 [THZ EMBEDDED] Acesso direto: " + url);
-        System.out.println("📡 [THZ EMBEDDED] Health Check:  " + url + "api/health");
-        System.out.println("📦 [THZ EMBEDDED] RPC Endpoint:  " + url + "api/rpc/invocar");
-        System.out.println("\nPressione Ctrl+C para encerrar o servidor.");
+        CliLogger.info("🚀 [THZ EMBEDDED] Servidor pronto e escutando!");
+        CliLogger.info("🔗 [THZ EMBEDDED] Acesso direto: " + url);
+        CliLogger.info("📡 [THZ EMBEDDED] Health Check:  " + url + "api/health");
+        CliLogger.info("📦 [THZ EMBEDDED] RPC Endpoint:  " + url + "api/rpc/invocar");
+        CliLogger.info("\nPressione Ctrl+C para encerrar o servidor.");
     }
 
     public static synchronized void parar() {

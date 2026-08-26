@@ -10,6 +10,7 @@ import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 
 public class ComandoCompile implements ComandoCli {
@@ -54,6 +55,6 @@ public class ComandoCompile implements ComandoCli {
         Files.writeString(dirLlvm.resolve(nomeBase + ".ll"), thz.lang.ir.GeradorIr.emitirLlvm(ast), StandardCharsets.UTF_8);
         Files.writeString(dirWasm.resolve(nomeBase + ".wasm.js"), "// THZ-LANG v3.0.0 WASM\n" + thz.lang.js.ThzJsEmitter.emitir(ast), StandardCharsets.UTF_8);
 
-        System.out.println("[THZ COMPILE] " + arquivo + " compilado com sucesso para IR, LLVM e WASM em: " + raizSaida.toAbsolutePath());
+        CliLogger.info("[THZ COMPILE] " + arquivo + " compilado com sucesso para IR, LLVM e WASM em: " + raizSaida.toAbsolutePath());
     }
 }

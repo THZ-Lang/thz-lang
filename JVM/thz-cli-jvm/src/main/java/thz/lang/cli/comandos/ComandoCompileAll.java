@@ -10,6 +10,7 @@ import thz.lang.lexico.ThzLexer;
 import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
+import thz.lang.cli.CliLogger;
 import thz.lang.cli.ErrosCli;
 
 public class ComandoCompileAll implements ComandoCli {
@@ -36,11 +37,11 @@ public class ComandoCompileAll implements ComandoCli {
             ErrosCli.erroDiretorioNaoEncontrado(raizOrigem);
         }
 
-        System.out.println("================================================================================");
-        System.out.println("   COMPILANDO TODOS OS EXEMPLOS THZ-LANG (v" + thz.lang.version.ThzVersion.ATUAL + ")");
-        System.out.println("   Origem: " + raizOrigem.toAbsolutePath());
-        System.out.println("   Destino: " + raizSaida.toAbsolutePath());
-        System.out.println("================================================================================\n");
+        CliLogger.info("================================================================================");
+        CliLogger.info("   COMPILANDO TODOS OS EXEMPLOS THZ-LANG (v" + thz.lang.version.ThzVersion.ATUAL + ")");
+        CliLogger.info("   Origem: " + raizOrigem.toAbsolutePath());
+        CliLogger.info("   Destino: " + raizSaida.toAbsolutePath());
+        CliLogger.info("================================================================================\n");
 
         Path dirIr = raizSaida.resolve("ir");
         Path dirLlvm = raizSaida.resolve("llvm");
@@ -86,19 +87,19 @@ public class ComandoCompileAll implements ComandoCli {
                 Files.writeString(dirDoc.resolve(nomeBase + "_doc.md"), mdDoc, StandardCharsets.UTF_8);
 
                 sucesso++;
-                System.out.println("  [OK] " + arq.getFileName() + " -> IR, LLVM, WASM, AUDIT, DOC");
+                CliLogger.info("  [OK] " + arq.getFileName() + " -> IR, LLVM, WASM, AUDIT, DOC");
             } catch (Exception ex) {
                 falhas++;
                 ErrosCli.falhaEmLote(arq.getFileName().toString(), ex.getMessage());
             }
         }
 
-        System.out.println("\n--------------------------------------------------------------------------------");
-        System.out.println("   RESUMO DA COMPILAÇÃO:");
-        System.out.println("   • Total de arquivos processados: " + arquivosThz.size());
-        System.out.println("   • Compilados com sucesso: " + sucesso);
-        System.out.println("   • Falhas: " + falhas);
-        System.out.println("   • Diretório de saída: " + raizSaida.toAbsolutePath());
-        System.out.println("--------------------------------------------------------------------------------\n");
+        CliLogger.info("\n--------------------------------------------------------------------------------");
+        CliLogger.info("   RESUMO DA COMPILAÇÃO:");
+        CliLogger.info("   • Total de arquivos processados: " + arquivosThz.size());
+        CliLogger.info("   • Compilados com sucesso: " + sucesso);
+        CliLogger.info("   • Falhas: " + falhas);
+        CliLogger.info("   • Diretório de saída: " + raizSaida.toAbsolutePath());
+        CliLogger.info("--------------------------------------------------------------------------------\n");
     }
 }
