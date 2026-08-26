@@ -29,7 +29,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
@@ -169,13 +168,7 @@ public final class ThzGui extends JFrame implements BarraMenuGui.AcoesGui {
             System.setProperty("java.home", System.getProperty("user.dir", "."));
         }
         BibliotecaTela.registrar();
-        try {
-            Class.forName("com.formdev.flatlaf.FlatDarkLaf").getMethod("setup").invoke(null);
-        } catch (Exception e) {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ignore) {}
-        }
+        thz.lang.gui.util.LookAndFeelHelper.configurar();
         SwingUtilities.invokeLater(() -> {
             ThzGui gui = new ThzGui();
             if (args != null && args.length > 0) {

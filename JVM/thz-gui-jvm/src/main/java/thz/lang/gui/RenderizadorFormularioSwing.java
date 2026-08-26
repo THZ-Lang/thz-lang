@@ -125,13 +125,7 @@ public class RenderizadorFormularioSwing {
     }
 
     private void configurarLookAndFeel() {
-        try {
-            Class.forName("com.formdev.flatlaf.FlatDarkLaf").getMethod("setup").invoke(null);
-        } catch (Exception e) {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ignored) {}
-        }
+        thz.lang.gui.util.LookAndFeelHelper.configurar();
     }
 
     private void construirInterface() {

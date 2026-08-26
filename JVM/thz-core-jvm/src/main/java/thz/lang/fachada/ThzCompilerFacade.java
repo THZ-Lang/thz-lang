@@ -1,6 +1,7 @@
 package thz.lang.fachada;
 
 import thz.lang.ast.ProgramaAst;
+import thz.lang.diagnosticos.DiagnosticoHelper;
 import thz.lang.diagnosticos.DiagnosticoEntrada;
 import thz.lang.diagnosticos.Diagnosticos;
 import thz.lang.docgen.ThzDocGen;
@@ -23,8 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -35,8 +34,6 @@ import java.util.stream.Collectors;
  * auditoria, IR, LLVM, SIMD, extração de símbolos e hover.
  */
 public final class ThzCompilerFacade {
-
-    private static final Pattern LINHA_COLUNA = Pattern.compile("\\[Linha (\\d+):(\\d+)\\]");
 
     private ThzCompilerFacade() {}
 
@@ -64,8 +61,6 @@ public final class ThzCompilerFacade {
 
     public record HoverInfo(String conteudo, int linha, int colunaInicio, int colunaFim) {}
 
-    public record LinhaColuna(int linha, int coluna) {}
-
     // ---- Pipeline de análise ----
 
     /**
@@ -81,8 +76,8 @@ public final class ThzCompilerFacade {
         try {
             tokens = new ThzLexer(fonte).tokenize();
         } catch (Exception e) {
-            LinhaColuna lc = extrairLinhaColuna(e.getMessage());
-            diagnosticos.add(new Diagnostico(lc.linha(), lc.coluna(), e.getMessage(), "lexico", "erro"));
+            DiagnosticoHelper.Diagnostico d = DiagnosticoHelper.fromExcecao(e, "lexico");
+            diagnosticos.add(new Diagnostico(d.linha(), d.coluna(), d.mensagem(), d.origem(), d.severidade()));
             return new ResultadoAnalise(null, diagnosticos, List.of(), true, List.of());
         }
 
@@ -90,29 +85,25 @@ public final class ThzCompilerFacade {
         try {
             ast = new ThzParser(tokens).parse();
         } catch (Exception e) {
-            LinhaColuna lc = extrairLinhaColuna(e.getMessage());
-            diagnosticos.add(new Diagnostico(lc.linha(), lc.coluna(), e.getMessage(), "sintatico", "erro"));
-            List<String> textoDiags = Diagnosticos.formatarDiagnosticos(
-                    fonte,
-                    diagnosticos.stream().map(d -> new DiagnosticoEntrada(d.linha(), d.coluna(), d.mensagem())).toList(),
-                    ""
-            );
+            DiagnosticoHelper.Diagnostico d = DiagnosticoHelper.fromExcecao(e, "sintatico");
+            diagnosticos.add(new Diagnostico(d.linha(), d.coluna(), d.mensagem(), d.origem(), d.severidade()));
+            List<String> textoDiags = Diagnosticos.formatarDiagnosticos(fonte,
+                    diagnosticos.stream().map(d2 -> new DiagnosticoEntrada(d2.linha(), d2.coluna(), d2.mensagem())).toList(),
+                    "");
             return new ResultadoAnalise(null, diagnosticos, textoDiags, true, List.of());
         }
 
         // 3) Semântico
         List<ErroSemantico> errosSemanticos = new AnalisadorSemantico(ast).analisar(new OpcoesAnalise(estrito));
-        for (ErroSemantico e : errosSemanticos) {
-            diagnosticos.add(new Diagnostico(e.linha(), e.coluna(), e.mensagem(), "semantico", "erro"));
+        for (DiagnosticoHelper.Diagnostico d : DiagnosticoHelper.fromErrosSemanticos(errosSemanticos)) {
+            diagnosticos.add(new Diagnostico(d.linha(), d.coluna(), d.mensagem(), d.origem(), d.severidade()));
         }
 
         boolean temErros = !diagnosticos.isEmpty();
         List<String> textoDiags = temErros
-                ? Diagnosticos.formatarDiagnosticos(
-                        fonte,
+                ? Diagnosticos.formatarDiagnosticos(fonte,
                         diagnosticos.stream().map(d -> new DiagnosticoEntrada(d.linha(), d.coluna(), d.mensagem())).toList(),
-                        ""
-                )
+                        "")
                 : List.of();
 
         List<Simbolo> simbolos = extrairSimbolos(ast, tokens);
@@ -324,18 +315,6 @@ public final class ThzCompilerFacade {
     }
 
     // ---- Helpers públicos ----
-
-    /**
-     * Extrai linha e coluna de uma mensagem de erro no formato [Linha X:Y].
-     */
-    public static LinhaColuna extrairLinhaColuna(String mensagem) {
-        if (mensagem == null) return new LinhaColuna(1, 1);
-        Matcher m = LINHA_COLUNA.matcher(mensagem);
-        if (m.find()) {
-            return new LinhaColuna(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)));
-        }
-        return new LinhaColuna(1, 1);
-    }
 
     // ---- Helpers internos ----
 

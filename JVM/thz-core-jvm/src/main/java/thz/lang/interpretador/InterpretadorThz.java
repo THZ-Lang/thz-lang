@@ -870,29 +870,6 @@ public class InterpretadorThz {
         reg.campos().put(campoFinal, valor);
     }
 
-    // Overload for LER case where cmd is ComandoAst.Ler
-    private void atribuirCampo(ValorThz alvo, List<String> caminhoRestante, ValorThz valor, ComandoAst.Ler cmd) {
-        if (caminhoRestante.isEmpty())
-            throw new ErroExecucao("[Erro de Execução][Linha " + cmd.linha() + ":" + cmd.coluna()
-                    + "] Caminho de atribuição malformado.");
-        String campoFinal = caminhoRestante.get(caminhoRestante.size() - 1);
-        ValorThz container = alvo;
-        for (int i = 0; i < caminhoRestante.size() - 1; i++) {
-            if (!(container instanceof ValorThz.Registro reg))
-                throw new ErroExecucao("[Erro de Execução][Linha " + cmd.linha() + ":" + cmd.coluna()
-                        + "] Caminho de atribuição inválido em '" + caminhoRestante.get(i) + "'.");
-            ValorThz proximo = reg.campos().get(caminhoRestante.get(i));
-            if (proximo == null)
-                throw new ErroExecucao("[Erro de Execução][Linha " + cmd.linha() + ":" + cmd.coluna() + "] Campo '"
-                        + caminhoRestante.get(i) + "' inexistente.");
-            container = proximo;
-        }
-        if (!(container instanceof ValorThz.Registro reg))
-            throw new ErroExecucao("[Erro de Execução][Linha " + cmd.linha() + ":" + cmd.coluna()
-                    + "] Atribuição a campo exige registro.");
-        reg.campos().put(campoFinal, valor);
-    }
-
     // ---- Utilidades numéricas (delegação) ----
 
     public static ValorThz valorThzDe(String tipoDado, Object bruto) {
