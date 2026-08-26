@@ -1,6 +1,10 @@
-package thz.lang.cli;
+package thz.lang.cli.comandos;
 
 import java.util.List;
+
+import thz.lang.cli.CliHelper;
+import thz.lang.cli.ThzCli;
+import thz.lang.cli.ThzDevServer;
 
 public class ComandoDev implements ComandoCli {
 

@@ -1,4 +1,4 @@
-package thz.lang.cli;
+package thz.lang.cli.comandos;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,6 +14,8 @@ import thz.lang.semantico.ErroSemantico;
 import thz.lang.semantico.OpcoesAnalise;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
+import thz.lang.cli.CliHelper;
+import thz.lang.cli.ErrosCli;
 
 public class ComandoCheck implements ComandoCli {
 
@@ -26,8 +28,7 @@ public class ComandoCheck implements ComandoCli {
     public void executar(List<String> argumentos, boolean estrito) throws Exception {
         String arquivo = CliHelper.resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank() || !Files.exists(Path.of(arquivo))) {
-            System.err.println("[ERRO] Arquivo não encontrado: " + arquivo);
-            System.exit(1);
+            ErrosCli.erroArquivoNaoEncontrado(arquivo);
         }
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
         List<Token> tokens = new ThzLexer(fonte).tokenize();
@@ -39,7 +40,7 @@ public class ComandoCheck implements ComandoCli {
                     .map(e -> new DiagnosticoEntrada(e.linha(), e.coluna(), e.mensagem())).toList();
             for (String bloco : Diagnosticos.formatarDiagnosticos(fonte, diags, "Semântico"))
                 System.err.println(bloco + "\n");
-            System.err.println("[THZ CHECK] " + erros.size() + " erro(s) semântico(s).");
+            ErrosCli.statusComandoCheck(erros.size());
             System.exit(1);
         }
         String versao = "";

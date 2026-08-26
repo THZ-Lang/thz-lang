@@ -1,4 +1,4 @@
-package thz.lang.cli;
+package thz.lang.cli.comandos;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

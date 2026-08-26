@@ -1,4 +1,4 @@
-package thz.lang.cli;
+package thz.lang.cli.comandos;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -9,6 +9,8 @@ import thz.lang.lexico.ThzLexer;
 import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
+import thz.lang.cli.CliHelper;
+import thz.lang.cli.ErrosCli;
 
 public class ComandoCompile implements ComandoCli {
 
@@ -21,16 +23,14 @@ public class ComandoCompile implements ComandoCli {
     public void executar(List<String> argumentos, boolean estrito) throws Exception {
         String arquivo = CliHelper.resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank()) {
-            System.err.println("[ERRO] Nenhum arquivo .thz ou .thzui especificado. Use: thz compile <arquivo.thz>");
-            System.exit(1);
+            ErrosCli.erroNenhumArquivoEspecificado("thz compile <arquivo.thz>");
         }
 
         var resolved = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(arquivo, Path.of("."), List.of(".thz", ".thzui"));
         if (resolved.isPresent()) arquivo = resolved.get().toString();
 
         if (!Files.exists(Path.of(arquivo))) {
-            System.err.println("[ERRO] Arquivo não encontrado após pesquisa recursiva: " + arquivo);
-            System.exit(1);
+            ErrosCli.erroArquivoNaoEncontradoAposBusca(arquivo);
         }
 
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);

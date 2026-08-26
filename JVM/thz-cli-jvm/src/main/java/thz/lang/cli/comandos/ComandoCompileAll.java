@@ -1,4 +1,4 @@
-package thz.lang.cli;
+package thz.lang.cli.comandos;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,6 +10,7 @@ import thz.lang.lexico.ThzLexer;
 import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
+import thz.lang.cli.ErrosCli;
 
 public class ComandoCompileAll implements ComandoCli {
 
@@ -32,8 +33,7 @@ public class ComandoCompileAll implements ComandoCli {
         Path raizSaida = Path.of(dirSaida);
 
         if (!Files.exists(raizOrigem)) {
-            System.err.println("[ERRO] Diretório de origem não encontrado: " + raizOrigem.toAbsolutePath());
-            System.exit(1);
+            ErrosCli.erroDiretorioNaoEncontrado(raizOrigem);
         }
 
         System.out.println("================================================================================");
@@ -89,7 +89,7 @@ public class ComandoCompileAll implements ComandoCli {
                 System.out.println("  [OK] " + arq.getFileName() + " -> IR, LLVM, WASM, AUDIT, DOC");
             } catch (Exception ex) {
                 falhas++;
-                System.err.println("  [FALHA] " + arq.getFileName() + " : " + ex.getMessage());
+                ErrosCli.falhaEmLote(arq.getFileName().toString(), ex.getMessage());
             }
         }
 

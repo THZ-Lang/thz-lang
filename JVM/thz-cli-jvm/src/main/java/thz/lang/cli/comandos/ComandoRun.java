@@ -1,4 +1,4 @@
-package thz.lang.cli;
+package thz.lang.cli.comandos;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -9,6 +9,9 @@ import java.util.Map;
 
 import thz.lang.ast.ProcedimentoAst;
 import thz.lang.ast.ProgramaAst;
+import thz.lang.cli.CliHelper;
+import thz.lang.cli.ErrosCli;
+import thz.lang.cli.ThzCli;
 import thz.lang.interpretador.InjetorLoteDemo;
 import thz.lang.interpretador.InterpretadorThz;
 import thz.lang.interpretador.ValorThz;
@@ -32,16 +35,14 @@ public class ComandoRun implements ComandoCli {
     public void executar(List<String> argumentos, boolean estrito, boolean modoWeb) throws Exception {
         String arquivo = CliHelper.resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank()) {
-            System.err.println("[ERRO] Nenhum arquivo .thz ou .thzui especificado. Use: thz run <arquivo.thz|arquivo.thzui>");
-            System.exit(1);
+            ErrosCli.erroNenhumArquivoEspecificado("thz run <arquivo.thz|arquivo.thzui>");
         }
 
         var resolved = thz.lang.io.ThzLocalizadorRecursos.localizarArquivo(arquivo, Path.of("."), List.of(".thz", ".thzui"));
         if (resolved.isPresent()) arquivo = resolved.get().toString();
 
         if (!Files.exists(Path.of(arquivo))) {
-            System.err.println("[ERRO] Arquivo não encontrado: " + arquivo);
-            System.exit(1);
+            ErrosCli.erroArquivoNaoEncontrado(arquivo);
         }
 
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
@@ -156,7 +157,7 @@ public class ComandoRun implements ComandoCli {
                 return;
             }
         } catch (Throwable t) {
-            System.err.println("[THZ-UI SWING] Display gráfico indisponível (" + t.getMessage() + "). Alternando para modo Web...");
+            ErrosCli.displaySwingIndisponivel(t.getMessage());
             var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {});
             String html = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
             String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
@@ -215,9 +216,7 @@ public class ComandoRun implements ComandoCli {
                 System.out.println("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
                 return;
             }
-            System.err.println("[ERRO] Entrada '--principal " + nomePrincipal
-                    + "' não encontrada como PROCEDIMENTO nem OPERACAO.");
-            System.exit(1);
+            ErrosCli.erroPrincipalNaoEncontrado(nomePrincipal);
         }
         var procs = interp.listarProcedimentos();
         if (!procs.isEmpty()) {
@@ -233,9 +232,7 @@ public class ComandoRun implements ComandoCli {
         }
         var execs = interp.listarOperacoesExecutaveis();
         if (execs.isEmpty()) {
-            System.err.println(
-                    "[ERRO] Nenhuma operação com corpo executável declarada. Adicione um bloco INICIO ... FIM a uma OPERACAO ou declare PROCEDIMENTO Principal.");
-            System.exit(1);
+            ErrosCli.erroNenhumaOperacaoExecutavel();
         }
         var prim = execs.get(0);
         System.out.println("[REGRA] " + prim.regra().nome()

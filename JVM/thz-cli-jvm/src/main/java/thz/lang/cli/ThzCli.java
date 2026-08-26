@@ -7,6 +7,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import thz.lang.cli.comandos.ComandoAst;
+import thz.lang.cli.comandos.ComandoAudit;
+import thz.lang.cli.comandos.ComandoCheck;
+import thz.lang.cli.comandos.ComandoCli;
+import thz.lang.cli.comandos.ComandoCompile;
+import thz.lang.cli.comandos.ComandoCompileAll;
+import thz.lang.cli.comandos.ComandoDev;
+import thz.lang.cli.comandos.ComandoDoc;
+import thz.lang.cli.comandos.ComandoFmt;
+import thz.lang.cli.comandos.ComandoInit;
+import thz.lang.cli.comandos.ComandoIr;
+import thz.lang.cli.comandos.ComandoLivro;
+import thz.lang.cli.comandos.ComandoRun;
+import thz.lang.cli.comandos.ComandoUi;
+
 /**
  * CLI principal da THZ-LANG — despachante delgado.
  * Cada comando é delegado para sua classe especializada.
@@ -102,9 +117,7 @@ public class ThzCli {
                 cmd.executar(argumentos, estrito);
             }
         } else {
-            System.err.println("Comando desconhecido: " + comando
-                    + " (use: check | run | fmt | ast | audit | doc | ir | repl | gui | --ajuda)");
-            System.exit(1);
+            ErrosCli.erroComandoDesconhecido(comando);
         }
     }
 
@@ -147,13 +160,11 @@ public class ThzCli {
                     Object janela = gui.getConstructor().newInstance();
                     gui.getMethod("setVisible", boolean.class).invoke(janela, true);
                 } catch (ReflectiveOperationException e) {
-                    System.err.println("[ERRO] Falha ao iniciar a Desktop IDE Swing: " + e.getMessage());
+                    ErrosCli.erroFalhaAoIniciarGui(e.getMessage());
                 }
             });
         } catch (ClassNotFoundException e) {
-            System.err.println("[ERRO] Desktop IDE Swing não encontrada (módulo thz-gui-jvm ausente no classpath).");
-            System.err.println(
-                    "       Inicie via: ./gradlew :thz-gui-jvm:gui ou utilize o script scripts/gui.ps1 / scripts/gui.sh");
+            ErrosCli.erroGuiNaoEncontrada();
         }
     }
 }

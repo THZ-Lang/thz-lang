@@ -1,4 +1,4 @@
-package thz.lang.cli;
+package thz.lang.cli.comandos;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -9,6 +9,8 @@ import thz.lang.lexico.ThzLexer;
 import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
+import thz.lang.cli.CliHelper;
+import thz.lang.cli.ErrosCli;
 
 public class ComandoAudit implements ComandoCli {
 
@@ -21,8 +23,7 @@ public class ComandoAudit implements ComandoCli {
     public void executar(List<String> argumentos, boolean estrito) throws Exception {
         String arquivo = CliHelper.resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank() || !Files.exists(Path.of(arquivo))) {
-            System.err.println("[ERRO] Arquivo não encontrado: " + arquivo);
-            System.exit(1);
+            ErrosCli.erroArquivoNaoEncontrado(arquivo);
         }
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
         List<Token> tokens = new ThzLexer(fonte).tokenize();
@@ -59,8 +60,7 @@ public class ComandoAudit implements ComandoCli {
         }
 
         if (estrito && !rel.metricas().aprovado()) {
-            System.err.println(
-                    "\n[THZ AUDIT] Falha de conformidade estrita: o programa possui pendências críticas de governança.");
+            ErrosCli.statusAuditConformidadeEstrita();
             System.exit(1);
         }
     }

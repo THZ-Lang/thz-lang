@@ -1,4 +1,4 @@
-package thz.lang.cli;
+package thz.lang.cli.comandos;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,6 +10,9 @@ import thz.lang.lexico.ThzLexer;
 import thz.lang.lexico.Token;
 import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
+import thz.lang.cli.CliHelper;
+import thz.lang.cli.ErrosCli;
+import thz.lang.cli.ThzCli;
 
 /**
  * Comando para exibir a interface gráfica de um programa Thz.
@@ -26,8 +29,7 @@ public class ComandoUi implements ComandoCli {
     public void executar(List<String> argumentos, boolean estrito) throws Exception {
         String arquivo = CliHelper.resolverArquivo(argumentos);
         if (arquivo == null || arquivo.isBlank() || !Files.exists(Path.of(arquivo))) {
-            System.err.println("[ERRO] Arquivo não encontrado: " + arquivo);
-            System.exit(1);
+            ErrosCli.erroArquivoNaoEncontrado(arquivo);
         }
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
         List<Token> tokens = new ThzLexer(fonte).tokenize();
@@ -58,7 +60,7 @@ public class ComandoUi implements ComandoCli {
                     return;
                 }
             } catch (Throwable t) {
-                System.err.println("[THZ-UI] Display gráfico indisponível (" + t.getMessage() + "). Alternando para modo HTML/Web...");
+                ErrosCli.displayIndisponivel(t.getMessage(), "HTML/Web");
             }
         }
 

@@ -1,8 +1,10 @@
-package thz.lang.cli;
+package thz.lang.cli.comandos;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
+import thz.lang.cli.ErrosCli;
 
 public class ComandoLivro implements ComandoCli {
 
@@ -39,7 +41,7 @@ public class ComandoLivro implements ComandoCli {
                 System.out.println("[SUCESSO] Manuais gerados com sucesso!");
             }
         } catch (Exception e) {
-            System.err.println("[ERRO] Falha ao compilar manuais PDF: " + e.getMessage());
+            ErrosCli.falhaManualPdf(e.getMessage());
             e.printStackTrace();
         }
     }
