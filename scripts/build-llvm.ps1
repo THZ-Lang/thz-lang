@@ -2,7 +2,7 @@
 # DEPRECIADO Fase 3: Win32 thz_runtime.c gerava .exe feio/truncado (ver screenshot).
 # NAO USE para GUI. Padrao agora: thz.exe WebView + jpackage.
 #   thz gui          -> IDE WebView (thz_webview2.c host, sem thz_runtime Win32)
-#   thz run *.thz    -> TELA.* via LancadorWebviewNativo
+#   thz run *.thz    -> TELA.* via ThzWebViewLauncher
 # Este script foi desativado para alvos GUI. Use .\scripts\package-all.ps1
 # ou .\thz.ps1 run <arquivo>. Para forcar legado: -ForceLegado
 # ==============================================================================

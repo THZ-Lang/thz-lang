@@ -92,17 +92,17 @@ Registrados por `JVM/thz-gui-jvm/src/main/java/thz/lang/gui/BibliotecaTela.java:
 graph LR
     THZUI[".thz / .thzui<br/>(TELA.*)"] --> CORE["thz-core<br/>(BibliotecaTela)"]
     CORE --> SWING["thz-gui-jvm<br/>Swing + FlatLaf<br/>(RenderizadorFormularioSwing<br/>FabricaCamposFormulario<br/>ThzGui)"]
-    CORE --> HTML["thz-core ThzUiHtmlEmitter<br/>+ LancadorWebviewNativo<br/>→ HTML5 + window.thz"]
+    CORE --> HTML["thz-core ThzUiHtmlEmitter<br/>+ ThzWebViewLauncher<br/>→ HTML5 + window.thz"]
     SWING --> DESKTOP["Desktop<br/>thz gui"]
     HTML --> WEBVIEW["WebView<br/>thz run / thz ui --html"]
 ```
 
 | Dimensão | Swing + FlatLaf (`thz gui`) | WebView/HTML5 (`thz run`/`thz ui --html`) |
 | :--- | :--- | :--- |
-| Engine | `JVM/thz-gui-jvm` (`ThzGui.java`, `EditorThz.java`, `Gutter.java`, `RenderizadorFormularioSwing.java`, `FabricaCamposFormulario.java`, `ExportadorFormularioGui.java`) | `ThzUiHtmlEmitter` + `LancadorWebviewNativo.java` + `ThzWebviewBridge.java` + `thz_webview2.c` |
+| Engine | `JVM/thz-gui-jvm` (`ThzGui.java`, `EditorThz.java`, `Gutter.java`, `RenderizadorFormularioSwing.java`, `FabricaCamposFormulario.java`, `ExportadorFormularioGui.java`) | `ThzUiHtmlEmitter` + `ThzWebViewLauncher.java` + `ThzWebViewBridge.java` + `thz_webview2.c` |
 | Tema | FlatLaf Dark/Light Glassmorphism (`com.formdev:flatlaf:3.5.4`, `thz-gui-jvm/build.gradle.kts:34`) | CSS Glassmorphism (`ThzUiHtmlEmitter`) |
-| Janela | `JFrame` nativo (GraalVM `-Djava.awt.headless=false`, `thz-gui-jvm/build.gradle.kts:52`) | `Edge --app` ou `ThzWebView2ComHost` (COM sem `--app`, `LancadorWebviewNativo.java:65`) |
-| Eventos | `JButton.addActionListener → Operacao` | `window.thz.operacao → ThzWebviewBridge.emitir` |
+| Janela | `JFrame` nativo (GraalVM `-Djava.awt.headless=false`, `thz-gui-jvm/build.gradle.kts:52`) | `Edge --app` ou `ThzWebView2ComHost` (COM sem `--app`, `ThzWebViewLauncher.java:65`) |
+| Eventos | `JButton.addActionListener → Operacao` | `window.thz.operacao → ThzWebViewBridge.emitir` |
 | Nativo | `thz-gui.exe` via `nativeCompile` (precisa `reflect-config.json` via `guiColetarMetadadosAgente:90`) | `thz.exe` + `thz_webview2.c` (`LoadLibraryA WebView2Loader.dll`, `thz_webview2.c:42`) |
 | Quando usar | IDE `thz gui`, apps desktop instalados via `jpackage` | `thz run *.thzui`, `thz ui --html > out.html`, serverless |
 

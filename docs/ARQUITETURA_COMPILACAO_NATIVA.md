@@ -561,7 +561,7 @@ FIM_CASO
 | **`i128` decimal vs `double`** | Exatidão ISO 10967 | `i128` não vetoriza tão bem quanto `f32` em AVX | `DecimalFixo` com `BigInteger` + LLVM `i128` vetorial futuro |
 | **SoA vs AoS** | 8–16× throughput | Código menos intuitivo (colunas) | `LAYOUT_COLUNAR` é opt-in; `ValidadorSimd` avisa R1 se não usar |
 | **Win32 API direto vs CRT** | Binário menor, sem `msvcrt.dll` | Código mais verboso (`HeapAlloc`, `WriteFile`) | `thz_runtime.c:9-189` comenta cada `__declspec(dllimport)` |
-| **GUI legada Win32 truncada** | — | Janela feia, sem WebView | `build-llvm.ps1:37-48` bloqueia `_gui` sem `-ForceLegado`; padrão é `thz gui` WebView (`LancadorWebviewNativo.java`, `thz_webview2.c`) |
+| **GUI legada Win32 truncada** | — | Janela feia, sem WebView | `build-llvm.ps1:37-48` bloqueia `_gui` sem `-ForceLegado`; padrão é `thz gui` WebView (`ThzWebViewLauncher.java`, `thz_webview2.c`) |
 
 > [!TIP]
 > **Regra de ouro:** se o programa é `PROGRAMA NEGOCIO`/`PIPELINE_DADOS` (sem `TELA`), use `scripts/build-llvm.ps1` — é o tubo mais rápido e testado. Se é `TELA`/`PROGRAMA VISUAL`, use `thz run` / `thz gui` (WebView) — Win32 `thz_runtime.c` GUI está arquivado como stub (`thz_runtime.c:144-188`, `AVISO: legado descontinuado`).
@@ -914,7 +914,7 @@ __declspec(dllexport) void thz_exiba_str(const char* msg) {
 
 ### C.4 GUI legada (arquivada)
 
-`thz_runtime.c:144-188` — `thz_gui_iniciar`/`adicionar_campo`/`exibir`/`loop_mensagens` são **stubs** que apenas `thz_exiba_str` + `MessageBoxA` e avisam `Use thz.exe WebView`. O fluxo real de GUI é `LancadorWebviewNativo.java` + `src/runtime/thz_webview2.c` (WebView2/Edge), não este runtime.
+`thz_runtime.c:144-188` — `thz_gui_iniciar`/`adicionar_campo`/`exibir`/`loop_mensagens` são **stubs** que apenas `thz_exiba_str` + `MessageBoxA` e avisam `Use thz.exe WebView`. O fluxo real de GUI é `ThzWebViewLauncher.java` + `src/runtime/thz_webview2.c` (WebView2/Edge), não este runtime.
 
 ---
 

@@ -1,6 +1,6 @@
 # ADR-005 — Swing+FlatLaf vs WebView2 para TELA
 
-**Data:** 2025-08-25 · **Status:** Aceito · **Contexto:** `TELA`/`thz-gui-jvm` vs `thz_webview2.c` + `LancadorWebviewNativo.java`.
+**Data:** 2025-08-25 · **Status:** Aceito · **Contexto:** `TELA`/`thz-gui-jvm` vs `thz_webview2.c` + `ThzWebViewLauncher.java`.
 
 ## Contexto
 
@@ -10,7 +10,7 @@
 
 **Dois renderizadores, mesmo fonte (`TELA.*`):**
 - **Swing+FlatLaf** para `thz gui` IDE (`JVM/thz-gui-jvm`, `ThzGui.java`, `EditorThz.java`, `Gutter.java`) — `jpackage` padrão.
-- **WebView/HTML5** para `thz run`/`thz ui --html` (`LancadorWebviewNativo.java:65`, `ThzUiHtmlEmitter`, `thz_webview2.c:52` `thz_webview_navigate`) — `thz_webview2.c` linkado via `build-llvm.ps1:79`, fallback `Edge --app` com `userDataDir=%TEMP%\thz_webview_profile` (`LancadorWebviewNativo.java:74`).
+- **WebView/HTML5** para `thz run`/`thz ui --html` (`ThzWebViewLauncher.java:65`, `ThzUiHtmlEmitter`, `thz_webview2.c:52` `thz_webview_navigate`) — `thz_webview2.c` linkado via `build-llvm.ps1:79`, fallback `Edge --app` com `userDataDir=%TEMP%\thz_webview_profile` (`ThzWebViewLauncher.java:74`).
 
 ## Consequências
 
