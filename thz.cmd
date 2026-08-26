@@ -1,5 +1,7 @@
 @echo off
 REM thz.cmd — shim raiz (Windows CMD) — aceita --gui -> gui
+REM Garante UTF-8 no console Windows (corrige Verificação/Código/Governança)
+chcp 65001 >nul 2>&1
 setlocal
 set "ARGS=%*"
 if "%ARGS%"=="" set "ARGS=gui"

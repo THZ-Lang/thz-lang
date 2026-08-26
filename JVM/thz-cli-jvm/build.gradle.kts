@@ -111,9 +111,10 @@ tasks.register<JavaExec>("cli") {
     mainClass.set("thz.lang.cli.ThzCli")
     classpath = sourceSets["main"].runtimeClasspath
     workingDir = rootProject.projectDir.resolve("../../")
-    jvmArgs("-Dfile.encoding=UTF-8")
+    jvmArgs("-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dnative.encoding=UTF-8")
 }
 
 tasks.named<JavaExec>("run") {
     workingDir = rootProject.projectDir.resolve("../../")
+    jvmArgs("-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dnative.encoding=UTF-8")
 }

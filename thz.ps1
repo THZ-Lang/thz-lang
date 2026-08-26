@@ -8,6 +8,13 @@
 
 param([Parameter(ValueFromRemainingArguments=$true)][string[]]$ArgsRest)
 
+# Garante UTF-8 no console Windows (corrige Verificação/Código/Governança)
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding  = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+try { chcp 65001 | Out-Null } catch {}
+# Encoding JVM já configurado em gradle.properties + build.gradle.kts (stdout.encoding=UTF-8)
+
 $Raiz = $PSScriptRoot
 
 # Auto-detecção de Rust Portátil (.tools\rust)

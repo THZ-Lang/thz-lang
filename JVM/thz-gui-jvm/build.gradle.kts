@@ -91,7 +91,7 @@ tasks.register<JavaExec>("gui") {
     mainClass.set("thz.lang.gui.ThzGui")
     classpath = sourceSets["main"].runtimeClasspath
     workingDir = rootProject.projectDir.resolve("../../")
-    jvmArgs("-Dfile.encoding=UTF-8", "-Djava.awt.headless=false")
+    jvmArgs("-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dnative.encoding=UTF-8", "-Djava.awt.headless=false")
 }
 
 // Task para executar a IDE com o GraalVM Tracing Agent e coletar metadados de AWT/FlatLaf
@@ -103,6 +103,11 @@ tasks.register<JavaExec>("guiColetarMetadadosAgente") {
     workingDir = rootProject.projectDir.resolve("../../")
     jvmArgs(
         "-Dfile.encoding=UTF-8",
+        "-Dstdout.encoding=UTF-8",
+        "-Dstderr.encoding=UTF-8",
+        "-Dsun.stdout.encoding=UTF-8",
+        "-Dsun.stderr.encoding=UTF-8",
+        "-Dnative.encoding=UTF-8",
         "-Djava.awt.headless=false",
         "-agentlib:native-image-agent=config-merge-dir=src/main/resources/META-INF/native-image/thz.lang/thz-gui"
     )
