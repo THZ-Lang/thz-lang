@@ -35,7 +35,7 @@ public final class BibliotecaConsole {
             String opAlvo = ((ValorThz.Texto) args.get(1)).valor();
             // Tenta renderer WebView autônomo (thz-core, sem Swing). Fallback para mensagem amigável se falhar.
             try {
-                String msg = thz.lang.ui.RenderizadorFormularioWeb.renderizar(reg, opAlvo, interp);
+                String msg = thz.lang.ui.ThzFormWebRenderer.renderizar(reg, opAlvo, interp);
                 return ValorThz.TEXTO(msg);
             } catch (Exception e) {
                 CliErros.webViewFalha("Falha ao renderizar formulário: " + e.getMessage());
@@ -96,7 +96,7 @@ public final class BibliotecaConsole {
                 </head><body><div class="card"><span class="badge">%s</span><h2>%s</h2><p>%s</p>
                 <p style="margin-top:16px;font-size:0.8rem;color:#64748b">Veja o console para interação. Feche esta janela para continuar.</p></div></body></html>
                 """.formatted(HtmlEscape.escapeHtml(titulo), HtmlEscape.escapeHtml(tipo), HtmlEscape.escapeHtml(titulo), HtmlEscape.escapeHtml(mensagem));
-        thz.lang.webview.LancadorWebviewNativo.abrirHtml(titulo, html, 560, 320);
+        thz.lang.webview.ThzWebViewLauncher.abrirHtml(titulo, html, 560, 320);
     }
 
     private static String lerLinha(String aviso) {

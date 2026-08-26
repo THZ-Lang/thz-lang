@@ -58,7 +58,7 @@ graalvmNative {
                 "-H:IncludeResources=.*\\.thz.*",
                 "-H:Log=registerResource:"
             )
-            // Recursos para HttpServer + ThzUiHtmlEmitter + LancadorWebviewNativo
+            // Recursos para HttpServer + ThzUiHtmlEmitter + ThzWebViewLauncher
         }
     }
     metadataRepository {

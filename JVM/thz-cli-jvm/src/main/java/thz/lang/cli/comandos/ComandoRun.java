@@ -86,7 +86,7 @@ public class ComandoRun implements ComandoCli {
 
             List<String> logsExecucao = new ArrayList<>();
             InterpretadorThz interpWeb = new InterpretadorThz(ast, logsExecucao::add, entrada);
-            thz.lang.webview.ThzWebviewBridge.setFallbackRpcHandler(acao -> {
+            thz.lang.webview.ThzWebViewBridge.setFallbackRpcHandler(acao -> {
                 logsExecucao.clear();
                 ProcedimentoAst proc = ast.procedimentos() != null ? ast.procedimentos().stream()
                         .filter(p -> p.nome().equalsIgnoreCase(acao)).findFirst().orElse(null) : null;
@@ -131,7 +131,7 @@ public class ComandoRun implements ComandoCli {
                 html = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
             }
 
-            String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
+            String url = thz.lang.webview.ThzWebViewLauncher.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
             CliLogger.info("[THZ-UI " + (usarVaadin ? "VAADIN" : "WEB") + "] Interface declarativa '" + ast.nome() + "' aberta em: " + url);
             return;
         }
@@ -161,7 +161,7 @@ public class ComandoRun implements ComandoCli {
             CliErros.displaySwingIndisponivel(t.getMessage());
             var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {});
             String html = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
-            String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
+            String url = thz.lang.webview.ThzWebViewLauncher.abrirHtml("THZ-UI: " + ast.nome(), html, 1024, 768);
             CliLogger.info("[THZ-UI WEB] Interface aberta em: " + url);
             return;
         }

@@ -1,7 +1,7 @@
 package thz.lang.gui.webview;
 
-import thz.lang.webview.LancadorWebviewNativo;
-import thz.lang.webview.ThzWebviewBridge;
+import thz.lang.webview.ThzWebViewLauncher;
+import thz.lang.webview.ThzWebViewBridge;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ThzNativeWebview — Host de janela gráfica nativa para WebView em Windows, Linux e macOS.
+ * ThzNativeWebView — Host de janela gráfica nativa para WebView em Windows, Linux e macOS.
  * Compatível com GraalVM Native Image e execução HotSpot.
  */
-public final class ThzNativeWebview {
+public final class ThzNativeWebView {
 
     public record JanelaConfig(
             String titulo,
@@ -30,7 +30,7 @@ public final class ThzNativeWebview {
     private static Process processoNativo = null;
     private static JanelaConfig configAtiva = null;
 
-    private ThzNativeWebview() {}
+    private ThzNativeWebView() {}
 
     public static JanelaConfig getConfigAtiva() {
         return configAtiva;
@@ -43,14 +43,12 @@ public final class ThzNativeWebview {
         if (config.urlOuHtml().startsWith("http://") || config.urlOuHtml().startsWith("https://")) {
             url = config.urlOuHtml();
         } else {
-            url = ThzWebviewBridge.iniciar(config.urlOuHtml()) >= 0 ? ThzWebviewBridge.getUrl() : config.urlOuHtml();
+            url = ThzWebViewBridge.iniciar(config.urlOuHtml()) >= 0 ? ThzWebViewBridge.getUrl() : config.urlOuHtml();
         }
 
-        // Delega para launcher do core (sem AWT); fallback interno já usa rundll32/xdg-open
-        LancadorWebviewNativo.JanelaConfig coreCfg = new LancadorWebviewNativo.JanelaConfig(config.titulo(), url, config.largura(), config.altura());
-        // Tenta app-mode; se falhar, LancadorWebviewNativo já faz fallback
+        ThzWebViewLauncher.JanelaConfig coreCfg = new ThzWebViewLauncher.JanelaConfig(config.titulo(), url, config.largura(), config.altura());
         if (!lancarNativo(url, config)) {
-            LancadorWebviewNativo.abrir(coreCfg);
+            ThzWebViewLauncher.abrir(coreCfg);
         }
     }
 
@@ -67,7 +65,7 @@ public final class ThzNativeWebview {
             processoNativo.destroyForcibly();
             processoNativo = null;
         }
-        ThzWebviewBridge.parar();
+        ThzWebViewBridge.parar();
         configAtiva = null;
     }
 
@@ -80,7 +78,6 @@ public final class ThzNativeWebview {
         List<String> cmd = new ArrayList<>();
 
         if (os.contains("win")) {
-            // Windows: Microsoft Edge ou Google Chrome em App Mode (janela isolada sem abas/URL bar)
             String[] caminhosWin = {
                     System.getenv("ProgramFiles(x86)") + "\\Microsoft\\Edge\\Application\\msedge.exe",
                     System.getenv("ProgramFiles") + "\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -100,7 +97,6 @@ public final class ThzNativeWebview {
                 }
             }
         } else if (os.contains("mac")) {
-            // macOS: Safari ou Chrome App Mode
             String chromeMac = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
             if (new File(chromeMac).exists()) {
                 cmd.add(chromeMac);
@@ -108,7 +104,6 @@ public final class ThzNativeWebview {
                 cmd.add("--window-size=" + config.largura() + "," + config.altura());
             }
         } else {
-            // Linux: Chromium, Google Chrome ou WebKit
             String[] binsLinux = {"chromium", "chromium-browser", "google-chrome", "google-chrome-stable"};
             for (String b : binsLinux) {
                 cmd.add(b);
@@ -131,10 +126,9 @@ public final class ThzNativeWebview {
 
     @SuppressWarnings("unused")
     private static void abrirNavegadorPadrao(String url) {
-        // Delegado para LancadorWebviewNativo (sem AWT). Mantido para compatibilidade.
         try {
-            thz.lang.webview.LancadorWebviewNativo.abrir(
-                    new thz.lang.webview.LancadorWebviewNativo.JanelaConfig("THZ", url, 1024, 768));
+            thz.lang.webview.ThzWebViewLauncher.abrir(
+                    new thz.lang.webview.ThzWebViewLauncher.JanelaConfig("THZ", url, 1024, 768));
         } catch (Exception ignored) {}
     }
 }

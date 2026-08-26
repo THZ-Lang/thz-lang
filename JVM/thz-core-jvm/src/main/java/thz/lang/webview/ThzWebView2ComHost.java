@@ -8,7 +8,7 @@ import java.util.Locale;
  *
  * Tenta carregar WebView2 via JNA (User32/Ole32 + WebView2Loader.dll) para janela sem dependência
  * de Edge/Chrome --app. Se JNA ou WebView2 não estiver disponível, retorna false e o
- * LancadorWebviewNativo cai para --app / rundll32.
+ * ThzWebViewLauncher cai para --app / rundll32.
  *
  * Design sem dependência obrigatória: JNA é carregado via reflection. Se não estiver no
  * classpath (ex.: native-image sem jna), o host simplesmente não é usado — zero quebra.

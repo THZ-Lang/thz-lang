@@ -22,12 +22,12 @@ import com.sun.net.httpserver.HttpServer;
 import thz.lang.interpretador.ValorThz;
 
 /**
- * ThzWebviewBridge — Ponte de comunicação bidirecional de alta velocidade entre
+ * ThzWebViewBridge — Ponte de comunicação bidirecional de alta velocidade entre
  * THZ-LANG e JavaScript na WebView.
  * Fornece servidor local em Virtual Threads com injeção automática de SDK
  * JavaScript e barramento RPC.
  */
-public final class ThzWebviewBridge {
+public final class ThzWebViewBridge {
 
     private static HttpServer server;
     private static int porta = 0;
@@ -36,13 +36,12 @@ public final class ThzWebviewBridge {
     private static final Queue<String> EVENTOS_PENDENTES = new ConcurrentLinkedQueue<>();
     private static final Map<String, List<Function<ValorThz, ValorThz>>> LISTENERS_EVENTOS = new ConcurrentHashMap<>();
 
-    private ThzWebviewBridge() {
+    private ThzWebViewBridge() {
     }
 
     public static synchronized int iniciar(String htmlInicial) {
         htmlAtual = htmlInicial != null ? htmlInicial : "";
         if (server != null) {
-            // atualiza html em caso de reuso e retorna porta existente
             return porta;
         }
 
@@ -51,8 +50,6 @@ public final class ThzWebviewBridge {
             try {
                 server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
             } catch (Throwable t) {
-                // Fallback para ambientes onde Virtual Threads não estão disponíveis
-                // (native-image antigo)
                 server.setExecutor(Executors.newCachedThreadPool(r -> {
                     Thread th = new Thread(r, "thz-webview-" + System.nanoTime());
                     th.setDaemon(true);
@@ -66,14 +63,13 @@ public final class ThzWebviewBridge {
 
             server.start();
             porta = server.getAddress().getPort();
-            // shutdown hook para garantir liberação de porta ao encerrar JVM/nativo
             try {
-                Runtime.getRuntime().addShutdownHook(new Thread(ThzWebviewBridge::parar, "thz-bridge-shutdown"));
+                Runtime.getRuntime().addShutdownHook(new Thread(ThzWebViewBridge::parar, "thz-bridge-shutdown"));
             } catch (Exception ignore) {
             }
             return porta;
         } catch (IOException e) {
-            throw new RuntimeException("Falha ao iniciar ThzWebviewBridge: " + e.getMessage(), e);
+            throw new RuntimeException("Falha ao iniciar ThzWebViewBridge: " + e.getMessage(), e);
         }
     }
 
@@ -165,7 +161,6 @@ public final class ThzWebviewBridge {
     private static class DespachanteHtml implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            // CORS preflight
             if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
                 exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
                 exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -189,7 +184,6 @@ public final class ThzWebviewBridge {
     private static class DespachanteRpc implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            // CORS preflight
             if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
                 exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
                 exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -208,7 +202,6 @@ public final class ThzWebviewBridge {
                 corpo = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             }
 
-            // Parse via ThzJson (robusto)
             String canal = ThzJson.extrairCampo(corpo, "canal");
             String payload = ThzJson.extrairBruto(corpo, "payload");
 

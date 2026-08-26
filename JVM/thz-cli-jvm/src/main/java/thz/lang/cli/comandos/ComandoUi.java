@@ -78,7 +78,7 @@ public class ComandoUi implements ComandoCli {
         });
         if (html) {
             String codigoHtml = maker.renderizarHtml(ast.nome(), thz.lang.ui.ThzUiTema.escuroGlass());
-            String url = thz.lang.webview.LancadorWebviewNativo.abrirHtml("THZ-UI: " + ast.nome(), codigoHtml, 1024, 768);
+            String url = thz.lang.webview.ThzWebViewLauncher.abrirHtml("THZ-UI: " + ast.nome(), codigoHtml, 1024, 768);
             CliLogger.info("[THZ-UI WEB] Interface '" + ast.nome() + "' aberta via Web / WebView em: " + url);
         } else {
             CliLogger.saida(maker.gerarCodigoThz(ast.nome()));

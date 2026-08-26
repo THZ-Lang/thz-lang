@@ -4,21 +4,21 @@ import thz.lang.interpretador.ErroContrato;
 import thz.lang.interpretador.ErroExecucao;
 import thz.lang.interpretador.InterpretadorThz;
 import thz.lang.interpretador.ValorThz;
-import thz.lang.webview.LancadorWebviewNativo;
+import thz.lang.webview.ThzWebViewLauncher;
 import thz.lang.webview.ThzJson;
-import thz.lang.webview.ThzWebviewBridge;
+import thz.lang.webview.ThzWebViewBridge;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Renderizador WebView autônomo — não depende de Swing/AWT.
+ * ThzFormWebRenderer — renderizador WebView autônomo (sem AWT/Swing).
  * Compatível com GraalVM Native Image no Windows.
  *
- * Gera HTML via ConversorFormularioUi + ThzUiHtmlEmitter e serve via ThzWebviewBridge (VirtualThreads).
- * Abre janela nativa via LancadorWebviewNativo (Edge/Chrome --app ou fallback rundll32).
+ * Gera HTML via ConversorFormularioUi + ThzUiHtmlEmitter e serve via ThzWebViewBridge (VirtualThreads).
+ * Abre janela nativa via ThzWebViewLauncher (Edge/Chrome --app ou fallback rundll32).
  */
-public final class RenderizadorFormularioWeb implements ThzRenderer {
+public final class ThzFormWebRenderer implements ThzRenderer {
 
     @Override
     public String renderizarFormulario(ValorThz.Registro registro, String operacaoAlvo, InterpretadorThz interpretador) {
@@ -36,37 +36,37 @@ public final class RenderizadorFormularioWeb implements ThzRenderer {
             String canal = operacaoAlvo.contains(".") ? operacaoAlvo : operacaoAlvo;
             String nomeOpSimples = canal.contains(".") ? canal.substring(canal.lastIndexOf('.') + 1) : canal;
             final ValorThz.Registro registroOrig = registro;
-            ThzWebviewBridge.registrarCanal(canal, payload -> {
+            ThzWebViewBridge.registrarCanal(canal, payload -> {
                 try {
                     Map<String, String> estado = extrairEstado(payload);
                     Map<String, ValorThz> args = construirArgs(estado, registroOrig, nomeOpSimples, interpretador);
                     ValorThz resultado = interpretador.executarOperacao(nomeOpSimples, args);
                     String resStr = resultado != null ? resultado.formatar() : "OK";
-                    ThzWebviewBridge.emitirParaJs("thz:operacao_sucesso", ThzJson.stringify(Map.of("operacao", canal, "resultado", resStr)));
+                    ThzWebViewBridge.emitirParaJs("thz:operacao_sucesso", ThzJson.stringify(Map.of("operacao", canal, "resultado", resStr)));
                     return ThzJson.stringify(Map.of("status", "ok", "resultado", resStr));
                 } catch (ErroContrato ec) {
                     String msg = ec.getMessage();
-                    ThzWebviewBridge.emitirParaJs("thz:operacao_erro", ThzJson.stringify(Map.of("operacao", canal, "erro", msg)));
+                    ThzWebViewBridge.emitirParaJs("thz:operacao_erro", ThzJson.stringify(Map.of("operacao", canal, "erro", msg)));
                     return ThzJson.erro(msg);
                 } catch (ErroExecucao ee) {
                     String msg = ee.getMessage();
-                    ThzWebviewBridge.emitirParaJs("thz:operacao_erro", ThzJson.stringify(Map.of("operacao", canal, "erro", msg)));
+                    ThzWebViewBridge.emitirParaJs("thz:operacao_erro", ThzJson.stringify(Map.of("operacao", canal, "erro", msg)));
                     return ThzJson.erro(msg);
                 } catch (Exception e) {
                     return ThzJson.erro(e.getMessage());
                 }
             });
-            ThzWebviewBridge.registrarCanal("__thz_restaurar__", payload -> ThzJson.okMensagem("restaurado"));
+            ThzWebViewBridge.registrarCanal("__thz_restaurar__", payload -> ThzJson.okMensagem("restaurado"));
         }
 
         // Inicia bridge e abre janela
-        String url = LancadorWebviewNativo.abrirHtml(titulo, html, 1024, 768);
+        String url = ThzWebViewLauncher.abrirHtml(titulo, html, 1024, 768);
         System.err.println("[THZ WebView] Formulário '" + titulo + "' disponível em: " + url);
         return "Formulário '" + titulo + "' aberto com sucesso em: " + url;
     }
 
     public static String renderizar(ValorThz.Registro registro, String operacaoAlvo, InterpretadorThz interpretador) {
-        return new RenderizadorFormularioWeb().renderizarFormulario(registro, operacaoAlvo, interpretador);
+        return new ThzFormWebRenderer().renderizarFormulario(registro, operacaoAlvo, interpretador);
     }
 
     private static Map<String, String> extrairEstado(String payload) {

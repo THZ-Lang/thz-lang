@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * LancadorWebviewNativo — host de janela gráfica para a WebView sem depender de AWT/Swing/Desktop.
+ * ThzWebViewLauncher — host de janela gráfica para a WebView sem depender de AWT/Swing/Desktop.
  *
  * Compatível com GraalVM Native Image (sem java.awt) e execução HotSpot.
  * Tenta lançar Edge/Chrome em App Mode (--app=); fallback usa comando do SO sem Desktop API.
  */
-public final class LancadorWebviewNativo {
+public final class ThzWebViewLauncher {
 
     public record JanelaConfig(String titulo, String urlOuHtml, int largura, int altura) {
         public static JanelaConfig padrao(String titulo, String urlOuHtml) {
@@ -22,15 +22,15 @@ public final class LancadorWebviewNativo {
 
     private static Process processoNativo = null;
 
-    private LancadorWebviewNativo() {}
+    private ThzWebViewLauncher() {}
 
     public static synchronized String abrir(JanelaConfig config) {
         String url;
         if (config.urlOuHtml().startsWith("http://") || config.urlOuHtml().startsWith("https://")) {
             url = config.urlOuHtml();
         } else {
-            ThzWebviewBridge.iniciar(config.urlOuHtml());
-            url = ThzWebviewBridge.getUrl();
+            ThzWebViewBridge.iniciar(config.urlOuHtml());
+            url = ThzWebViewBridge.getUrl();
         }
 
         if (!lancarNativo(url, config)) {
@@ -47,8 +47,8 @@ public final class LancadorWebviewNativo {
         }
 
         // Sempre serve via bridge para ter porta conhecida
-        ThzWebviewBridge.iniciar(html);
-        String url = ThzWebviewBridge.getUrl();
+        ThzWebViewBridge.iniciar(html);
+        String url = ThzWebViewBridge.getUrl();
 
         // Aguarda servidor HTTP estar pronto antes de abrir o navegador
         for (int i = 0; i < 10; i++) {
@@ -76,7 +76,7 @@ public final class LancadorWebviewNativo {
             try { processoNativo.destroyForcibly(); } catch (Exception ignore) {}
             processoNativo = null;
         }
-        ThzWebviewBridge.parar();
+        ThzWebViewBridge.parar();
     }
 
     public static boolean estaAberta() {

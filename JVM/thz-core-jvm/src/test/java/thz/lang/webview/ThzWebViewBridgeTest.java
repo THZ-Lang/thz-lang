@@ -11,21 +11,21 @@ import java.net.http.HttpResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ThzWebviewTest {
+public class ThzWebViewBridgeTest {
 
     @AfterEach
     void tearDown() {
-        ThzWebviewBridge.parar();
+        ThzWebViewBridge.parar();
     }
 
     @Test
-    @DisplayName("ThzWebviewBridge deve iniciar servidor local, injetar SDK JS e responder a chamadas RPC")
+    @DisplayName("ThzWebViewBridge deve iniciar servidor local, injetar SDK JS e responder a chamadas RPC")
     void testBridgeRpcEInjecao() throws Exception {
         String htmlOriginal = "<h1>Aplicação Visual THZ</h1><p>Conteúdo de teste</p>";
-        int porta = ThzWebviewBridge.iniciar(htmlOriginal);
+        int porta = ThzWebViewBridge.iniciar(htmlOriginal);
         assertTrue(porta > 0);
 
-        ThzWebviewBridge.registrarCanal("somar", payload -> {
+        ThzWebViewBridge.registrarCanal("somar", payload -> {
             return "{\"resultado\":42}";
         });
 
@@ -53,10 +53,10 @@ public class ThzWebviewTest {
     }
 
     @Test
-    @DisplayName("ThzWebviewBridge deve enfileirar e despachar eventos para o JS")
+    @DisplayName("ThzWebViewBridge deve enfileirar e despachar eventos para o JS")
     void testEventosBridge() throws Exception {
-        int porta = ThzWebviewBridge.iniciar("<div></div>");
-        ThzWebviewBridge.emitirParaJs("atualizacao_saldo", "{\"saldo\":\"1500.50\"}");
+        int porta = ThzWebViewBridge.iniciar("<div></div>");
+        ThzWebViewBridge.emitirParaJs("atualizacao_saldo", "{\"saldo\":\"1500.50\"}");
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest req = HttpRequest.newBuilder()

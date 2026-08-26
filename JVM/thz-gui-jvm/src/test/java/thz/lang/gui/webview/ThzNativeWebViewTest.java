@@ -5,17 +5,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ThzNativeWebviewTest {
+public class ThzNativeWebViewTest {
 
     @AfterEach
     void tearDown() {
-        ThzNativeWebview.fechar();
+        ThzNativeWebView.fechar();
     }
 
     @Test
-    @DisplayName("ThzNativeWebview deve aceitar configurações de janela e gerenciar ciclo de vida")
+    @DisplayName("ThzNativeWebView deve aceitar configurações de janela e gerenciar ciclo de vida")
     void testConfiguracaoJanela() {
-        ThzNativeWebview.JanelaConfig config = new ThzNativeWebview.JanelaConfig(
+        ThzNativeWebView.JanelaConfig config = new ThzNativeWebView.JanelaConfig(
                 "Dashboard Financeiro THZ",
                 "<html><body><h1>Dashboard</h1></body></html>",
                 800,
@@ -28,8 +28,7 @@ public class ThzNativeWebviewTest {
         assertEquals(800, config.largura());
         assertEquals(600, config.altura());
 
-        // Fecha o webview e a ponte
-        ThzNativeWebview.fechar();
-        assertFalse(ThzNativeWebview.estaAberta());
+        ThzNativeWebView.fechar();
+        assertFalse(ThzNativeWebView.estaAberta());
     }
 }

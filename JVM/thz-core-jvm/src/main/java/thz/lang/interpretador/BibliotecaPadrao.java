@@ -76,7 +76,7 @@ public final class BibliotecaPadrao {
         BibliotecaAnalytics.registrar(m);
         BibliotecaMensageria.registrar(m);
         BibliotecaVetorIa.registrar(m);
-        BibliotecaWebviewUi.registrar(m);
+        ThzWebViewStdlib.registrar(m);
 
         return new java.util.concurrent.ConcurrentHashMap<>(m);
     }

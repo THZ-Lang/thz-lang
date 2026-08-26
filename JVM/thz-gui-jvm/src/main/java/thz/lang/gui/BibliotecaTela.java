@@ -56,7 +56,12 @@ public final class BibliotecaTela {
             }
             return ValorThz.LOGICO(true);
         });
-
+        
+        /** 
+        TELA.pedirTexto é uma função que exibe um diálogo de entrada de texto usando Swing. 
+        Ela recebe dois argumentos: o título do diálogo e o prompt para o usuário. 
+        Se o modo não interativo estiver ativado ou se o ambiente gráfico não estiver disponível, a função retorna uma string vazia.
+        */
         BibliotecaPadrao.registrar("TELA.pedirTexto", (args, ctx, interp) -> {
             exigirAridade("TELA.pedirTexto", args, 2, ctx);
             exigirClasse("TELA.pedirTexto", args.get(0), "TEXTO", ctx);

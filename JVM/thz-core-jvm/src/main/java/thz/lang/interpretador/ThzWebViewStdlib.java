@@ -8,9 +8,9 @@ import java.util.Map;
  * Funções de webview, UI, log, versão, config e nativo da stdlib THZ-LANG.
  * Domínio: WEBVIEW.*, UI.*, LOG.*, VERSAO.*, CONFIG.*, NATIVO.*
  */
-public final class BibliotecaWebviewUi {
+public final class ThzWebViewStdlib {
 
-    private BibliotecaWebviewUi() {}
+    private ThzWebViewStdlib() {}
 
     public static void registrar(Map<String, BibliotecaPadrao.FuncaoStdlib> m) {
         // ---- WEBVIEW ----
@@ -18,21 +18,21 @@ public final class BibliotecaWebviewUi {
             StdlibHelper.exigirAridade("WEBVIEW.iniciar", args, 1, ctx);
             StdlibHelper.exigirClasse("WEBVIEW.iniciar", args.get(0), "TEXTO", ctx);
             String html = ((ValorThz.Texto) args.get(0)).valor();
-            thz.lang.webview.ThzWebviewBridge.iniciar(html);
-            return ValorThz.TEXTO(thz.lang.webview.ThzWebviewBridge.getUrl());
+            thz.lang.webview.ThzWebViewBridge.iniciar(html);
+            return ValorThz.TEXTO(thz.lang.webview.ThzWebViewBridge.getUrl());
         });
         BibliotecaPadrao.registrarPublico(m, "WEBVIEW.emitir", (args, ctx, interp) -> {
             StdlibHelper.exigirAridade("WEBVIEW.emitir", args, 2, ctx);
             StdlibHelper.exigirClasse("WEBVIEW.emitir", args.get(0), "TEXTO", ctx);
             StdlibHelper.exigirClasse("WEBVIEW.emitir", args.get(1), "TEXTO", ctx);
-            thz.lang.webview.ThzWebviewBridge.emitirParaJs(
+            thz.lang.webview.ThzWebViewBridge.emitirParaJs(
                     ((ValorThz.Texto) args.get(0)).valor(),
                     ((ValorThz.Texto) args.get(1)).valor()
             );
             return ValorThz.LOGICO(true);
         });
         BibliotecaPadrao.registrarPublico(m, "WEBVIEW.parar", (args, ctx, interp) -> {
-            thz.lang.webview.ThzWebviewBridge.parar();
+            thz.lang.webview.ThzWebViewBridge.parar();
             return ValorThz.LOGICO(true);
         });
 

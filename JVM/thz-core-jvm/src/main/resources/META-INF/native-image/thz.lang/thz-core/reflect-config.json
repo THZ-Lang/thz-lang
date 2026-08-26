@@ -1,18 +1,18 @@
 [
   {
-    "name": "thz.lang.webview.ThzWebviewBridge",
+    "name": "thz.lang.webview.ThzWebViewBridge",
     "allDeclaredMethods": true,
     "allPublicMethods": true,
     "allDeclaredConstructors": true
   },
   {
-    "name": "thz.lang.webview.LancadorWebviewNativo",
+    "name": "thz.lang.webview.ThzWebViewLauncher",
     "allDeclaredMethods": true,
     "allPublicMethods": true,
     "allDeclaredConstructors": true
   },
   {
-    "name": "thz.lang.ui.RenderizadorFormularioWeb",
+    "name": "thz.lang.ui.ThzFormWebRenderer",
     "allDeclaredMethods": true,
     "allPublicMethods": true,
     "allDeclaredConstructors": true

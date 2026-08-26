@@ -65,7 +65,7 @@ public final class ThzJson {
         return s.replace("\\","\\\\").replace("\"","\\\"").replace("\n","\\n").replace("\r","\\r").replace("\t","\\t");
     }
 
-    // --- parsing helpers já existentes em ThzWebviewBridge, centralizados aqui ---
+    // --- parsing helpers já existentes em ThzWebViewBridge, centralizados aqui ---
 
     /**
      * Extrai valor string simples de um JSON raso: "campo": "valor"
