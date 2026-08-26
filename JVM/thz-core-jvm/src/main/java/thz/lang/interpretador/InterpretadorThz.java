@@ -606,16 +606,8 @@ public class InterpretadorThz {
         return ValorThzUtils.comparar(a, b, operador, ctx);
     }
 
-    private boolean ehNumerico(ValorThz v) {
-        return ValorThzUtils.ehNumerico(v);
-    }
-
     private Integer ordemNumerica(ValorThz x, ValorThz y, ExprAst ctx) {
         return ValorThzUtils.ordemNumerica(x, y, ctx);
-    }
-
-    private DecimalFixo comoDecimal(ValorThz v, ExprAst ctx) {
-        return ValorThzUtils.comoDecimal(v, ctx);
     }
 
     private ValorThz aritmetica(ValorThz a, ValorThz b, String operador, ExprAst ctx) {

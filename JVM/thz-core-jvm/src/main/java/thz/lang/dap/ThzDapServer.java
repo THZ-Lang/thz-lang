@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ThzDapServer implements ThzDebugListener, AutoCloseable {
 
     private final Set<Integer> breakpoints = ConcurrentHashMap.newKeySet();
-    private final CompletableFuture<Void> sessaoFinalizada = new CompletableFuture<>();
     private final AtomicBoolean pausado = new AtomicBoolean(false);
     private final Semaphore semaforoPasso = new Semaphore(0);
 
@@ -33,8 +32,6 @@ public class ThzDapServer implements ThzDebugListener, AutoCloseable {
     private volatile boolean rodando = true;
 
     private ServerSocket serverSocket;
-    private Thread workerThread;
-
     public void adicionarBreakpoint(int linha) {
         breakpoints.add(linha);
     }
@@ -121,7 +118,7 @@ public class ThzDapServer implements ThzDebugListener, AutoCloseable {
      */
     public void iniciarServidorTcp(int porta) throws IOException {
         serverSocket = new ServerSocket(porta);
-        workerThread = Thread.ofVirtual().start(() -> {
+        Thread.ofVirtual().start(() -> {
             while (rodando && !serverSocket.isClosed()) {
                 try {
                     Socket client = serverSocket.accept();

@@ -7,15 +7,12 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ThzRustRunner — Gerenciador de compilação e execução JIT de código Rust embutido (Inline Rust).
  * Procura o compilador Rust portátil em .tools/rust ou no PATH do sistema.
  */
 public final class ThzRustRunner {
-
-    private static final Map<String, java.lang.reflect.Method> CACHE_FUNCOES_NATIVAS = new ConcurrentHashMap<>();
 
     private ThzRustRunner() {}
 

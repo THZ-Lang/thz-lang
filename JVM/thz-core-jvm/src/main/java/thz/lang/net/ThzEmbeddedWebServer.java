@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,15 +59,12 @@ public final class ThzEmbeddedWebServer {
     private final Map<String, Object> estadoGlobal = new ConcurrentHashMap<>();
     private ProgramaAst astAtiva;
     private InterpretadorThz interpretador;
-    private Path arquivoFonte;
-
     public ThzEmbeddedWebServer() {}
 
     /**
      * Inicia o servidor embutido a partir de um código-fonte ou arquivo .thz / .thzui.
      */
     public synchronized String iniciar(Path caminhoArquivo, ConfiguracaoServidor config) throws IOException {
-        this.arquivoFonte = caminhoArquivo;
         String fonte = Files.readString(caminhoArquivo, StandardCharsets.UTF_8);
         List<Token> tokens = new ThzLexer(fonte).tokenize();
         this.astAtiva = new ThzParser(tokens).parse();

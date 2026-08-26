@@ -136,7 +136,7 @@ public final class ThzUiVaadinEmitter {
             }
             case SELECAO -> {
                 String vinculo = c.getPropriedade("vinculo", id);
-                @SuppressWarnings("unchecked")
+                
                 List<String> opcoes = c.getPropriedade("opcoes", List.of());
                 sb.append(indent).append("<div class=\"").append(TEMA.classe(c.tipo())).append("\">\n");
                 if (!rotulo.isBlank()) sb.append(indent).append("  <label class=\"vaadin-field-label\">").append(HtmlEscape.escapeHtml(rotulo)).append("</label>\n");
@@ -188,7 +188,7 @@ public final class ThzUiVaadinEmitter {
             case TABELA_DADOS -> {
                 sb.append(indent).append("<div id=\"").append(id).append("\" class=\"").append(TEMA.classe(c.tipo())).append("\">\n");
                 sb.append(indent).append("  <table class=\"vaadin-grid\"><thead><tr>");
-                @SuppressWarnings("unchecked")
+                
                 List<String> colunas = c.getPropriedade("colunas", List.of("Coluna"));
                 for (String col : colunas) sb.append("<th>").append(HtmlEscape.escapeHtml(col)).append("</th>");
                 sb.append("</tr></thead><tbody id=\"").append(id).append("_body\"></tbody></table>\n");
