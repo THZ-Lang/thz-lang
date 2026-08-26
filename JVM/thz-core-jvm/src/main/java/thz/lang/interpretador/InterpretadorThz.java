@@ -3,13 +3,11 @@ package thz.lang.interpretador;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 import thz.lang.ast.CampoEstruturaAst;
 import thz.lang.ast.ClausulaContratoAst;
@@ -17,7 +15,6 @@ import thz.lang.ast.ComandoAst;
 import thz.lang.ast.EnumeracaoAst;
 import thz.lang.ast.EstruturaAst;
 import thz.lang.ast.ExprAst;
-import thz.lang.ast.InvarianteAst;
 import thz.lang.ast.OperacaoAst;
 import thz.lang.ast.ParametroOperacaoAst;
 import thz.lang.ast.ProcedimentoAst;
@@ -27,9 +24,6 @@ import thz.lang.runtime.BlocoMemoria;
 import thz.lang.runtime.DataHoraThz;
 import thz.lang.runtime.DataThz;
 import thz.lang.runtime.DecimalFixo;
-import thz.lang.runtime.ErroData;
-import thz.lang.runtime.ErroMonetario;
-import thz.lang.runtime.Monetario;
 import thz.lang.runtime.RegistroIdempotencia;
 
 /**
@@ -44,6 +38,7 @@ public class InterpretadorThz {
     private final int maxIteracoes;
     private final Supplier<String> lerEntrada;
     private final RegistroIdempotencia registroIdempotencia = new RegistroIdempotencia();
+    private final ValidadorContratos validadorContratos;
 
     private static final int LIMITE_PADRAO_ITERACOES = 10_000_000;
 
@@ -80,6 +75,7 @@ public class InterpretadorThz {
                         "[Erro de Execução] LER exige provedor de entrada (use --arg ou modo interativo).");
             };
         }
+        this.validadorContratos = new ValidadorContratos(ast, this::avaliar);
     }
 
     public InterpretadorThz(ProgramaAst ast) {
@@ -269,84 +265,10 @@ public class InterpretadorThz {
         executarProcedimento(nome, Map.of());
     }
 
-    // ---- Contratos formais ----
+    // ---- Contratos formais (delegação) ----
 
     private void validarContratos(List<ClausulaContratoAst> clausulas, Escopo escopo, String natureza) {
-        if (clausulas == null)
-            return;
-        for (ClausulaContratoAst clausula : clausulas) {
-            if (!avaliarClausulaUniversal(clausula.expressao(), escopo)) {
-                throw new ErroContrato("[Violação de Contrato " + natureza + "][Linha " + clausula.linha() + ":"
-                        + clausula.coluna() + "] Cláusula reprovada: " + clausula.textoCanonico());
-            }
-        }
-    }
-
-    private boolean avaliarClausulaUniversal(ExprAst expr, Escopo escopo) {
-        Set<String> raizes = coletarRaizesDeFatias(expr, escopo);
-        return quantificar(expr, escopo, new ArrayList<>(raizes), 0);
-    }
-
-    private Set<String> coletarRaizesDeFatias(ExprAst expr, Escopo escopo) {
-        Set<String> raizes = new HashSet<>();
-        visitarRaizes(expr, escopo, raizes);
-        return raizes;
-    }
-
-    private void visitarRaizes(ExprAst e, Escopo escopo, Set<String> raizes) {
-        switch (e) {
-            case ExprAst.AcessoCampo ac -> {
-                if (!ac.caminho().isEmpty()) {
-                    ValorThz base = escopo.resolver(ac.caminho().get(0));
-                    if (base instanceof ValorThz.Fatia)
-                        raizes.add(ac.caminho().get(0));
-                }
-            }
-            case ExprAst.Chamada ch -> {
-                for (ExprAst arg : ch.argumentos())
-                    visitarRaizes(arg, escopo, raizes);
-            }
-            case ExprAst.Indexacao idx -> {
-                visitarRaizes(idx.alvo(), escopo, raizes);
-                visitarRaizes(idx.indice(), escopo, raizes);
-            }
-            case ExprAst.FatiaLiteral fl -> {
-                for (ExprAst el : fl.elementos())
-                    visitarRaizes(el, escopo, raizes);
-            }
-            case ExprAst.CriarRegistro cr -> {
-                for (ExprAst.CampoValor c : cr.campos())
-                    visitarRaizes(c.valor(), escopo, raizes);
-            }
-            case ExprAst.OpBinaria ob -> {
-                visitarRaizes(ob.esquerda(), escopo, raizes);
-                visitarRaizes(ob.direita(), escopo, raizes);
-            }
-            case ExprAst.OpUnaria ou -> visitarRaizes(ou.operando(), escopo, raizes);
-            case ExprAst.ConsultaTipada ct -> visitarRaizes(ct.fonte(), escopo, raizes);
-            case ExprAst.LiteralInteiro _,ExprAst.LiteralDecimal _,ExprAst.LiteralTexto _,ExprAst.LiteralLogico _,ExprAst.Nulo _ ->
-                {
-                }
-        }
-    }
-
-    private boolean quantificar(ExprAst expr, Escopo escopo, List<String> raizes, int indice) {
-        if (indice >= raizes.size()) {
-            return exigirLogico(avaliar(expr, escopo), "cláusula de contrato");
-        }
-        String nome = raizes.get(indice);
-        ValorThz valor = escopo.resolver(nome);
-        if (!(valor instanceof ValorThz.Fatia fatia)) {
-            return quantificar(expr, escopo, raizes, indice + 1);
-        }
-        for (ValorThz elemento : fatia.elementos()) {
-            Escopo sub = new Escopo(escopo);
-            sub.definir(nome, elemento);
-            if (!quantificar(expr, sub, raizes, indice + 1)) {
-                return false;
-            }
-        }
-        return true;
+        validadorContratos.validarContratos(clausulas, escopo, natureza);
     }
 
     // ---- Avaliação de expressões (Pattern Matching Switch Exaustivo) ----
@@ -677,220 +599,31 @@ public class InterpretadorThz {
     }
 
     private boolean exigirLogico(ValorThz v, String contexto) {
-        if (!(v instanceof ValorThz.Logico l))
-            throw new ErroExecucao("[Erro de Execução] Esperado valor lógico em " + contexto + ".");
-        return l.valor();
+        return ValorThzUtils.exigirLogico(v, contexto);
     }
 
     private boolean comparar(ValorThz a, ValorThz b, String operador, ExprAst ctx) {
-        // TEXTO
-        if (a instanceof ValorThz.Texto ta && b instanceof ValorThz.Texto tb) {
-            int cmp = ta.valor().compareTo(tb.valor());
-            return switch (operador) {
-                case "=" -> cmp == 0;
-                case "<>" -> cmp != 0;
-                case "<" -> cmp < 0;
-                case "<=" -> cmp <= 0;
-                case ">" -> cmp > 0;
-                case ">=" -> cmp >= 0;
-                default -> false;
-            };
-        }
-        // LOGICO
-        if (a instanceof ValorThz.Logico la && b instanceof ValorThz.Logico lb) {
-            if ("=".equals(operador))
-                return la.valor() == lb.valor();
-            if ("<>".equals(operador))
-                return la.valor() != lb.valor();
-        } else if (a instanceof ValorThz.Logico || b instanceof ValorThz.Logico) {
-            // mismatch will fall through to incompatível
-        }
-        // MONETARIO
-        if (a instanceof ValorThz.Monetario ma && b instanceof ValorThz.Monetario mb) {
-            int c = ma.valor().comparar(mb.valor());
-            return switch (operador) {
-                case "=" -> c == 0;
-                case "<>" -> c != 0;
-                case "<" -> c < 0;
-                case "<=" -> c <= 0;
-                case ">" -> c > 0;
-                case ">=" -> c >= 0;
-                default -> false;
-            };
-        }
-        // DATA
-        if (a instanceof ValorThz.Data da && b instanceof ValorThz.Data db) {
-            int c = da.valor().comparar(db.valor());
-            return switch (operador) {
-                case "=" -> c == 0;
-                case "<>" -> c != 0;
-                case "<" -> c < 0;
-                case "<=" -> c <= 0;
-                case ">" -> c > 0;
-                case ">=" -> c >= 0;
-                default -> false;
-            };
-        }
-        if (a instanceof ValorThz.DataHora dha && b instanceof ValorThz.DataHora dhb) {
-            int c = dha.valor().comparar(dhb.valor());
-            return switch (operador) {
-                case "=" -> c == 0;
-                case "<>" -> c != 0;
-                case "<" -> c < 0;
-                case "<=" -> c <= 0;
-                case ">" -> c > 0;
-                case ">=" -> c >= 0;
-                default -> false;
-            };
-        }
-        // NUMERICO
-        if (ehNumerico(a) && ehNumerico(b)) {
-            Integer ord = ordemNumerica(a, b, ctx);
-            if (ord != null) {
-                return switch (operador) {
-                    case "=" -> ord == 0;
-                    case "<>" -> ord != 0;
-                    case "<" -> ord < 0;
-                    case "<=" -> ord <= 0;
-                    case ">" -> ord > 0;
-                    case ">=" -> ord >= 0;
-                    default -> false;
-                };
-            }
-        }
-        // ENUMERADO
-        if (a instanceof ValorThz.Enumerado ea && b instanceof ValorThz.Enumerado eb) {
-            boolean mesma = ea.nomeEnumeracao().equals(eb.nomeEnumeracao());
-            if ("=".equals(operador))
-                return mesma && ea.valor().equals(eb.valor());
-            if ("<>".equals(operador))
-                return !(mesma && ea.valor().equals(eb.valor()));
-            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna()
-                    + "] ENUMERACAO suporta apenas os operadores = e <>.");
-        }
-        // fallback logico equality already handled? If not numeric etc, still throw
-        if (a instanceof ValorThz.Logico && b instanceof ValorThz.Logico) {
-            // only = and <> supported, if other operator like < then incompatível
-            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna()
-                    + "] Comparação entre tipos incompatíveis (" + a.classe() + " " + operador + " " + b.classe()
-                    + ").");
-        }
-        throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna()
-                + "] Comparação entre tipos incompatíveis (" + a.classe() + " " + operador + " " + b.classe() + ").");
+        return ValorThzUtils.comparar(a, b, operador, ctx);
     }
 
     private boolean ehNumerico(ValorThz v) {
-        return v instanceof ValorThz.Inteiro || v instanceof ValorThz.Decimal;
+        return ValorThzUtils.ehNumerico(v);
     }
 
     private Integer ordemNumerica(ValorThz x, ValorThz y, ExprAst ctx) {
-        if (x instanceof ValorThz.Inteiro xi && y instanceof ValorThz.Inteiro yi) {
-            int cmp = xi.valor().compareTo(yi.valor());
-            return Integer.compare(cmp, 0);
-        }
-        try {
-            DecimalFixo dx = comoDecimal(x, ctx);
-            DecimalFixo dy = comoDecimal(y, ctx);
-            int cmp = dx.comparar(dy);
-            return cmp;
-        } catch (ErroExecucao e) {
-            return null;
-        }
+        return ValorThzUtils.ordemNumerica(x, y, ctx);
     }
 
     private DecimalFixo comoDecimal(ValorThz v, ExprAst ctx) {
-        if (v instanceof ValorThz.Decimal d)
-            return d.valor();
-        if (v instanceof ValorThz.Inteiro i)
-            return DecimalFixo.deInteiro(i.valor());
-        throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna()
-                + "] Esperado valor numérico, recebido " + v.classe() + ".");
+        return ValorThzUtils.comoDecimal(v, ctx);
     }
 
     private ValorThz aritmetica(ValorThz a, ValorThz b, String operador, ExprAst ctx) {
-        if ("+".equals(operador) && (a instanceof ValorThz.Texto || b instanceof ValorThz.Texto)) {
-            return ValorThz.TEXTO(formatar(a) + formatar(b));
-        }
-        if (a instanceof ValorThz.Inteiro ia && b instanceof ValorThz.Inteiro ib) {
-            switch (operador) {
-                case "+":
-                    return ValorThz.INTEIRO(ia.valor().add(ib.valor()));
-                case "-":
-                    return ValorThz.INTEIRO(ia.valor().subtract(ib.valor()));
-                case "*":
-                    return ValorThz.INTEIRO(ia.valor().multiply(ib.valor()));
-                case "/":
-                    if (ib.valor().equals(BigInteger.ZERO))
-                        throw new ErroExecucao(
-                                "[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Divisão por zero.");
-                    return ValorThz.INTEIRO(ia.valor().divide(ib.valor()));
-                case "%":
-                    if (ib.valor().equals(BigInteger.ZERO))
-                        throw new ErroExecucao(
-                                "[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Módulo por zero.");
-                    return ValorThz.INTEIRO(ia.valor().remainder(ib.valor()));
-            }
-        }
-
-        if (ehNumerico(a) && ehNumerico(b)) {
-            DecimalFixo da = comoDecimal(a, ctx);
-            DecimalFixo db = comoDecimal(b, ctx);
-            return switch (operador) {
-                case "+" -> ValorThz.DECIMAL(da.somar(db));
-                case "-" -> ValorThz.DECIMAL(da.subtrair(db));
-                case "*" -> ValorThz.DECIMAL(da.multiplicar(db));
-                case "/" -> {
-                    if (db.getValorEscalado().equals(BigInteger.ZERO))
-                        throw new ErroExecucao(
-                                "[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Divisão por zero.");
-                    yield ValorThz.DECIMAL(da.dividir(db));
-                }
-                case "%" -> throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna()
-                        + "] Operador '%' suportado apenas entre inteiros.");
-                default -> throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna()
-                        + "] Operação " + operador + " inválida entre " + a.classe() + " e " + b.classe() + ".");
-            };
-        }
-        if (a instanceof ValorThz.Monetario ma && b instanceof ValorThz.Monetario mb) {
-            switch (operador) {
-                case "+":
-                    return ValorThz.MONETARIO(ma.valor().somar(mb.valor()));
-                case "-":
-                    return ValorThz.MONETARIO(ma.valor().subtrair(mb.valor()));
-            }
-        }
-        if (a instanceof ValorThz.Monetario ma2 && b instanceof ValorThz.Decimal db) {
-            if ("*".equals(operador))
-                return ValorThz.MONETARIO(ma2.valor().multiplicar(db.valor()));
-            throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna()
-                    + "] Monetário só admite multiplicação por fator decimal.");
-        }
-        if (a instanceof ValorThz.Decimal da2 && b instanceof ValorThz.Monetario mb2 && "*".equals(operador)) {
-            return ValorThz.MONETARIO(mb2.valor().multiplicar(da2.valor()));
-        }
-        throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] Operação " + operador
-                + " inválida entre " + a.classe() + " e " + b.classe() + ".");
+        return ValorThzUtils.aritmetica(a, b, operador, ctx);
     }
 
     public String formatar(ValorThz v) {
-        if (v == null)
-            return "NULO";
-        return switch (v) {
-            case ValorThz.Inteiro i -> i.valor().toString();
-            case ValorThz.Decimal d -> d.valor().formatar();
-            case ValorThz.Monetario m -> m.valor().formatar();
-            case ValorThz.Texto t -> t.valor();
-            case ValorThz.Logico l -> l.valor() ? "VERDADEIRO" : "FALSO";
-            case ValorThz.Nulo _ -> "NULO";
-            case ValorThz.Data d -> d.valor().formatar();
-            case ValorThz.DataHora dh -> dh.valor().formatar();
-            case ValorThz.Enumerado e -> e.valor();
-            case ValorThz.Resultado r -> r.sucesso()
-                    ? "SUCESSO(" + (r.valor() != null ? formatar(r.valor()) : "NULO") + ")"
-                    : "FALHA(" + (r.erro() != null ? formatar(r.erro()) : "NULO") + ")";
-            case ValorThz.Registro reg -> reg.nomeEstrutura() + "{...}";
-            case ValorThz.Fatia f -> "FATIA[" + f.tipoInterno() + "](" + f.elementos().size() + ")";
-        };
+        return ValorThzUtils.formatar(v);
     }
 
     // ---- Execução de comandos (Pattern Matching Switch Exaustivo) ----
@@ -1105,38 +838,14 @@ public class InterpretadorThz {
         }
     }
 
-    // ---- Invariantes ----
+    // ---- Invariantes (delegação) ----
 
-    /**
-     * Valida os INVARIANTE declarados na ESTRUTURA do registro informado.
-     * Chamado após toda mutação de campos e na construção.
-     */
     public void validarInvariantes(ValorThz valor, ComandoAst cmd) {
-        if (!(valor instanceof ValorThz.Registro reg))
-            return;
-        EstruturaAst estrutura = ast.estruturas().stream().filter(e -> e.nome().equals(reg.nomeEstrutura())).findFirst()
-                .orElse(null);
-        if (estrutura == null || estrutura.invariantes().isEmpty())
-            return;
-        Escopo escopo = new Escopo();
-        for (Map.Entry<String, ValorThz> e : reg.campos().entrySet())
-            escopo.definir(e.getKey(), e.getValue());
-        for (InvarianteAst invariante : estrutura.invariantes()) {
-            ValorThz resultado = avaliar(invariante.expressao(), escopo);
-            if (!(resultado instanceof ValorThz.Logico l) || !l.valor()) {
-                String posicao;
-                if (cmd != null)
-                    posicao = "[Linha " + cmd.linha() + ":" + cmd.coluna() + "] ";
-                else
-                    posicao = "[Linha " + invariante.linha() + ":" + invariante.coluna() + "] ";
-                throw new ErroContrato("[Violação de Invariante]" + posicao + "Estrutura '" + reg.nomeEstrutura()
-                        + "' reprovou: " + invariante.textoCanonico());
-            }
-        }
+        validadorContratos.validarInvariantes(valor, cmd);
     }
 
     public void validarInvariantes(ValorThz valor) {
-        validarInvariantes(valor, null);
+        validadorContratos.validarInvariantes(valor);
     }
 
     private void atribuirCampo(ValorThz alvo, List<String> caminhoRestante, ValorThz valor, ComandoAst cmd) {
@@ -1184,75 +893,9 @@ public class InterpretadorThz {
         reg.campos().put(campoFinal, valor);
     }
 
-    // ---- Utilidades numéricas ----
+    // ---- Utilidades numéricas (delegação) ----
 
-    /**
-     * Converte valores (de fixtures) para o universo THZ segundo um tipo declarado.
-     * Port exato de valorThzDe em interpretador.ts.
-     */
     public static ValorThz valorThzDe(String tipoDado, Object bruto) {
-        if (tipoDado.startsWith("NATURAL") || tipoDado.startsWith("INTEIRO")) {
-            if (bruto instanceof BigInteger bi)
-                return ValorThz.INTEIRO(bi);
-            if (bruto instanceof Number n) {
-                double d = n.doubleValue();
-                long trunc = (long) (d >= 0 ? Math.floor(d) : Math.ceil(d));
-                return ValorThz.INTEIRO(BigInteger.valueOf(trunc));
-            }
-            // String case
-            String s = String.valueOf(bruto).trim();
-            // Handle decimal representation trunc
-            if (s.contains("."))
-                s = s.substring(0, s.indexOf('.'));
-            return ValorThz.INTEIRO(new BigInteger(s));
-        }
-        if (tipoDado.startsWith("MONETARIO")) {
-            Pattern p = Pattern.compile("^MONETARIO\\s*\\(\\s*\"?([A-Z]{3})\"?\\s*\\)");
-            var m = p.matcher(tipoDado);
-            String codigoMoeda = null;
-            if (m.find())
-                codigoMoeda = m.group(1);
-            if (codigoMoeda == null)
-                throw new ErroMonetario("[Erro Monetário] Tipo '" + tipoDado
-                        + "' exige código ISO 4217: MONETARIO(\"BRL\") por exemplo.");
-            if (bruto instanceof BigInteger bi)
-                return ValorThz.MONETARIO(Monetario.deInteiro(bi, codigoMoeda));
-            return ValorThz.MONETARIO(Monetario.deTexto(String.valueOf(bruto), codigoMoeda));
-        }
-        if (tipoDado.startsWith("DECIMAL")) {
-            Pattern pEscala = Pattern.compile(",\\s*(\\d+)\\s*\\)\\s*$");
-            var m = pEscala.matcher(tipoDado);
-            int escala = DecimalFixo.ESCALA_PADRAO;
-            if (m.find())
-                escala = Math.min(Integer.parseInt(m.group(1), 10), DecimalFixo.ESCALA_PADRAO);
-            String numero;
-            if (bruto instanceof String s)
-                numero = s;
-            else
-                numero = String.format(java.util.Locale.US, "%." + escala + "f", ((Number) bruto).doubleValue());
-            // Use locale independent formatting — Number formatting may use comma; prefer
-            // BigDecimal style
-            // If bruto is Number, we used format; but ensure dot separator.
-            // Alternative: if bruto is Number, we can use DecimalFixo.deTexto(numero,
-            // escala) already handles.
-            return ValorThz.DECIMAL(DecimalFixo.deTexto(numero, escala));
-        }
-        if ("DATA".equals(tipoDado)) {
-            if (bruto instanceof String s)
-                return ValorThz.DATA(DataThz.deTexto(s));
-            throw new ErroData("[Erro Data] Valor para DATA deve ser texto 'AAAA-MM-DD'.");
-        }
-        if ("DATA_HORA".equals(tipoDado)) {
-            if (bruto instanceof String s)
-                return ValorThz.DATA_HORA(DataHoraThz.deTexto(s));
-            throw new ErroData("[Erro DataHora] Valor para DATA_HORA deve ser texto 'AAAA-MM-DDTHH:MM[:SS]'.");
-        }
-        if ("TEXTO".equals(tipoDado))
-            return ValorThz.TEXTO(String.valueOf(bruto));
-        if ("LOGICO".equals(tipoDado)) {
-            String s = String.valueOf(bruto).toUpperCase();
-            return ValorThz.LOGICO(s.equals("VERDADEIRO") || s.equals("TRUE") || s.equals("1"));
-        }
-        return ValorThz.TEXTO(String.valueOf(bruto));
+        return ValorThzUtils.valorThzDe(tipoDado, bruto);
     }
 }
