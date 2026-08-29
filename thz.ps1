@@ -40,6 +40,10 @@ if ($ArgsRest.Count -ge 1 -and $ArgsRest[0] -eq "gui") {
     } else {
         & "$Raiz\gradlew.bat" :thz-gui-jvm:gui
     }
+} elseif ($ArgsRest.Count -ge 1 -and ($ArgsRest[0] -eq "agent" -or $ArgsRest[0] -eq "agente")) {
+    # Agent roda direto via java -jar (sem Gradle no console)
+    $agentArgs = if ($ArgsRest.Count -ge 2) { $ArgsRest[1..($ArgsRest.Count - 1)] } else { @() }
+    & "$Raiz\thz-agent.ps1" @agentArgs
 } else {
     & "$Raiz\gradlew.bat" :thz-cli-jvm:run --args="$joined"
 }

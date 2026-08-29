@@ -31,6 +31,10 @@ if [ "${ARGS[0]}" = "gui" ]; then
     else
         ./gradlew :thz-gui-jvm:gui
     fi
+elif [ "${ARGS[0]}" = "agent" ] || [ "${ARGS[0]}" = "agente" ]; then
+    # Agent roda direto via java -jar (sem Gradle no console)
+    AGENT_ARGS=("${ARGS[@]:1}")
+    ./thz-agent.sh "${AGENT_ARGS[@]}"
 else
     ./gradlew :thz-cli-jvm:run --args="${ARGS[*]}"
 fi

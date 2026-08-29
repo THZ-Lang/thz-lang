@@ -34,6 +34,7 @@ java {
 dependencies {
     implementation("thz.lang:thz-core:$thzVersion")
     implementation("thz.lang:thz-gui-jvm:$thzVersion")
+    implementation("thz.lang:thz-agent-jvm:$thzVersion")
 
     // Testes Automatizados
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
@@ -111,10 +112,20 @@ tasks.register<JavaExec>("cli") {
     mainClass.set("thz.lang.cli.ThzCli")
     classpath = sourceSets["main"].runtimeClasspath
     workingDir = rootProject.projectDir.resolve("../../")
-    jvmArgs("-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dnative.encoding=UTF-8")
+    jvmArgs(
+        "-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
+        "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dnative.encoding=UTF-8",
+        "--enable-native-access=ALL-UNNAMED"
+    )
+    standardInput = System.`in`
 }
 
 tasks.named<JavaExec>("run") {
     workingDir = rootProject.projectDir.resolve("../../")
-    jvmArgs("-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dnative.encoding=UTF-8")
+    jvmArgs(
+        "-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
+        "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dnative.encoding=UTF-8",
+        "--enable-native-access=ALL-UNNAMED"
+    )
+    standardInput = System.`in`
 }

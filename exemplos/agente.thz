@@ -1,0 +1,31 @@
+PROGRAMA NEGOCIO
+    METADADOS_ARQUITETURA
+        DOMINIO: "IA"
+        CAMADA: "Agent"
+        SLO_LATENCIA: "5s"
+        CRITICIDADE: "ALTA"
+    FIM_METADADOS
+
+    PROCEDIMENTO Principal
+    INICIO
+        # THZ-Agent: Assistente de Código Autônomo
+        # Este programa demonstra o uso do agente via stdlib
+
+        # Carregar modelo local
+        AGENTE.iniciar("modelos/phi3-mini.Q4_K_M.gguf")
+
+        # Indexar o projeto para RAG
+        AGENTE.indexar(".")
+
+        # Pergunta simples
+        TEXTO resposta <- AGENTE.perguntar("O que é THZ-LANG e quais são seus diferenciais?")
+        EXIBA resposta
+
+        # Executar um objetivo complexo (loop ReAct completo)
+        TEXTO resultado <- AGENTE.rodar(
+            "Analise o módulo de IA em src/runtime_rs/src/ml.rs " +
+            "e sugira melhorias para suportar embeddings neurais"
+        )
+        EXIBA resultado
+    FIM
+FIM_PROGRAMA

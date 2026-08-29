@@ -21,6 +21,7 @@ import thz.lang.cli.comandos.ComandoIr;
 import thz.lang.cli.comandos.ComandoLivro;
 import thz.lang.cli.comandos.ComandoRun;
 import thz.lang.cli.comandos.ComandoUi;
+import thz.lang.cli.comandos.ComandoAgent;
 
 /**
  * CLI principal da THZ-LANG — despachante delgado.
@@ -44,6 +45,7 @@ public class ThzCli {
         registrar(new ComandoAudit());
         registrar(new ComandoUi());
         registrar(new ComandoRun());
+        registrar(new ComandoAgent());
     }
 
     private static void registrar(ComandoCli cmd) {
@@ -99,7 +101,8 @@ public class ThzCli {
         Set<String> comandosConhecidos = Set.of(
                 "init", "inicializar", "livro", "manual", "book",
                 "compile-all", "compilar-tudo", "compile", "compilar", "build",
-                "dev", "serve", "check", "ast", "fmt", "run", "audit", "doc", "ir", "ui"
+                "dev", "serve", "check", "ast", "fmt", "run", "audit", "doc", "ir", "ui",
+                "agent", "agente"
         );
 
         if (!comandosConhecidos.contains(comando.toLowerCase())) {
@@ -144,6 +147,7 @@ public class ThzCli {
         CliLogger.saida("  livro [--saida <caminho.pdf>]               Compila toda a documentação Markdown em Livro-Manual PDF");
         CliLogger.saida("  repl                                        Inicia o shell interativo multi-linha");
         CliLogger.saida("  gui                                         Abre a Desktop IDE oficial (Swing + FlatLaf)");
+        CliLogger.saida("  agent                                       Assistente de código autônomo (IA local ou API)");
         CliLogger.saida("Exemplos:");
         CliLogger.saida("  thz check exemplos/faturamento.thz --estrito");
         CliLogger.saida("  thz run exemplos/faturamento.thz");
