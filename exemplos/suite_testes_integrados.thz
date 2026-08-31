@@ -43,15 +43,15 @@ REGRA_NEGOCIO ValidadorAssercoes
 
     OPERACAO ExecutarBateriaTestes(): RelatorioExecucaoTestes
     INICIO
-        VARIAVEL total : INTEIRO64 <- 0
-        VARIAVEL aprovados : INTEIRO64 <- 0
-        VARIAVEL reprovados : INTEIRO64 <- 0
+        VARIAVEL total: INTEIRO64 <- 0
+        VARIAVEL aprovados: INTEIRO64 <- 0
+        VARIAVEL reprovados: INTEIRO64 <- 0
 
         # Teste 1: Aritmética Financeira Exata (ISO/IEC 10967)
         total <- total + 1
-        VARIAVEL valor_a : DECIMAL(10, 4) <- 100.5000
-        VARIAVEL valor_b : DECIMAL(10, 4) <- 50.2500
-        VARIAVEL soma : DECIMAL(10, 4) <- valor_a + valor_b
+        VARIAVEL valor_a: DECIMAL(10, 4) <- 100.5000
+        VARIAVEL valor_b: DECIMAL(10, 4) <- 50.2500
+        VARIAVEL soma: DECIMAL(10, 4) <- valor_a + valor_b
 
         SE soma = 150.7500
             aprovados <- aprovados + 1
@@ -63,9 +63,9 @@ REGRA_NEGOCIO ValidadorAssercoes
 
         # Teste 2: Manipulação de Texto e Funções Stdlib
         total <- total + 1
-        VARIAVEL texto_origem : TEXTO <- " THZ-LANG Engine "
-        VARIAVEL texto_aparado : TEXTO <- TEXTO.aparar(texto_origem)
-        VARIAVEL texto_upper : TEXTO <- TEXTO.maiusculas(texto_aparado)
+        VARIAVEL texto_origem: TEXTO <- " THZ-LANG Engine "
+        VARIAVEL texto_aparado: TEXTO <- TEXTO.aparar(texto_origem)
+        VARIAVEL texto_upper: TEXTO <- TEXTO.maiusculas(texto_aparado)
 
         SE texto_upper = "THZ-LANG ENGINE"
             aprovados <- aprovados + 1
@@ -77,7 +77,7 @@ REGRA_NEGOCIO ValidadorAssercoes
 
         # Teste 3: Laços e Acumulação
         total <- total + 1
-        VARIAVEL contador_loop : INTEIRO64 <- 0
+        VARIAVEL contador_loop: INTEIRO64 <- 0
         PARA k DE 1 ATE 10 PASSO 1 FACA
             contador_loop <- contador_loop + 1
         FIM_PARA
@@ -91,12 +91,12 @@ REGRA_NEGOCIO ValidadorAssercoes
         FIM_SE
 
         # 4. Consolidação de Métricas do Teste
-        VARIAVEL taxa : DECIMAL(5, 2) <- 0.00
+        VARIAVEL taxa: DECIMAL(5, 2) <- 0.00
         SE total > 0
             taxa <- (aprovados * 100.00) / total
         FIM_SE
 
-        VARIAVEL relatorio : RelatorioExecucaoTestes <- CRIAR RelatorioExecucaoTestes(
+        VARIAVEL relatorio: RelatorioExecucaoTestes <- CRIAR RelatorioExecucaoTestes(
             total_testes: total,
             sucessos: aprovados,
             falhas: reprovados,

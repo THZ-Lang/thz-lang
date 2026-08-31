@@ -21,10 +21,10 @@ REGRA_NEGOCIO ExecutarCalculoHft
     OPERACAO Executar() : LOGICO
     INICIO
         EXIBA "=== MOTOR DE ALTA FREQUENCIA (RUST C ABI) ==="
-        VARIAVEL saldoA : INTEIRO <- 12500000
-        VARIAVEL saldoB : INTEIRO <- 7500000
+        VARIAVEL saldoA: INTEIRO <- 12500000
+        VARIAVEL saldoB: INTEIRO <- 7500000
 
-        VARIAVEL consolidado : INTEIRO <- NATIVO.somar_rapido(saldoA, saldoB)
+        VARIAVEL consolidado: INTEIRO <- NATIVO.somar_rapido(saldoA, saldoB)
         EXIBA "Posicao A: " + TEXTO.deInteiro(saldoA) + " centavos"
         EXIBA "Posicao B: " + TEXTO.deInteiro(saldoB) + " centavos"
         EXIBA "Consolidado Nativo Rust: " + TEXTO.deInteiro(consolidado) + " centavos"

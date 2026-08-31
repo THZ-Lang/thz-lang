@@ -23,15 +23,15 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO FiltrarFaturasAltaPrioridade
     OPERACAO Executar() : INTEIRO
     INICIO
-        VARIAVEL f1 : FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Alpha", score: 850, valor: 45000.00)
-        VARIAVEL f2 : FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Beta", score: 620, valor: 12000.00)
-        VARIAVEL f3 : FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Gama", score: 910, valor: 89000.00)
-        VARIAVEL f4 : FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Delta", score: 500, valor: 5000.00)
+        VARIAVEL f1: FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Alpha", score: 850, valor: 45000.00)
+        VARIAVEL f2: FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Beta", score: 620, valor: 12000.00)
+        VARIAVEL f3: FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Gama", score: 910, valor: 89000.00)
+        VARIAVEL f4: FaturaCliente <- CRIAR FaturaCliente(cliente: "Empresa Delta", score: 500, valor: 5000.00)
 
-        VARIAVEL todasFaturas : FATIA[FaturaCliente] <- [f1, f2, f3, f4]
+        VARIAVEL todasFaturas: FATIA[FaturaCliente] <- [f1, f2, f3, f4]
 
         # Consulta nativa LINQ tipada com filtro, ordenação e limite
-        VARIAVEL faturasVip : FATIA[FaturaCliente] <- CONSULTAR DE todasFaturas
+        VARIAVEL faturasVip: FATIA[FaturaCliente] <- CONSULTAR DE todasFaturas
                                                       ONDE valor > 10000.00 E score >= 700
                                                       ORDENAR_POR valor DESC
                                                       LIMITE 2

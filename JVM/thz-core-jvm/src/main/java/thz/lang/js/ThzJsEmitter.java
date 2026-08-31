@@ -115,6 +115,19 @@ public final class ThzJsEmitter {
             }
         }
 
+        if (ast.funcoes() != null) {
+            for (FuncaoAst funcao : ast.funcoes()) {
+                sb.append("function ").append(funcao.nome()).append("(");
+                for (int i = 0; i < funcao.parametros().size(); i++) {
+                    sb.append(funcao.parametros().get(i).nome());
+                    if (i + 1 < funcao.parametros().size()) sb.append(", ");
+                }
+                sb.append(") {\n");
+                for (ComandoAst c : funcao.corpo()) sb.append(emitirComando(c, 2));
+                sb.append("}\n\n");
+            }
+        }
+
         return sb.toString();
     }
 
@@ -183,6 +196,15 @@ public final class ThzJsEmitter {
                     for (ComandoAst c : cr.corpoErro()) sb.append(emitirComando(c, indent + 2));
                     sb.append(pad).append("}\n");
                 }
+                yield sb.toString();
+            }
+            case ComandoAst.Tente t -> {
+                StringBuilder sb = new StringBuilder();
+                sb.append(pad).append("try {\n");
+                for (ComandoAst c : t.corpoTente()) sb.append(emitirComando(c, indent + 2));
+                sb.append(pad).append("} catch (_erro) {\n");
+                for (ComandoAst c : t.corpoCapture()) sb.append(emitirComando(c, indent + 2));
+                sb.append(pad).append("}\n");
                 yield sb.toString();
             }
             case ComandoAst.Chamada ch -> pad + emitirExpr(ch.expressao()) + ";\n";

@@ -19,15 +19,15 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO SelecionarContratosUrgentes
     OPERACAO Executar() : INTEIRO
     INICIO
-        VARIAVEL ct1 : ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-A", diasRestantes: 15, valorMensal: 4500.00)
-        VARIAVEL ct2 : ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-B", diasRestantes: 120, valorMensal: 12000.00)
-        VARIAVEL ct3 : ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-C", diasRestantes: 5, valorMensal: 8900.00)
-        VARIAVEL ct4 : ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-D", diasRestantes: 45, valorMensal: 3100.00)
+        VARIAVEL ct1: ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-A", diasRestantes: 15, valorMensal: 4500.00)
+        VARIAVEL ct2: ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-B", diasRestantes: 120, valorMensal: 12000.00)
+        VARIAVEL ct3: ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-C", diasRestantes: 5, valorMensal: 8900.00)
+        VARIAVEL ct4: ContratoServico <- CRIAR ContratoServico(identificador: "CTR-2024-D", diasRestantes: 45, valorMensal: 3100.00)
 
-        VARIAVEL listaContratos : FATIA[ContratoServico] <- [ct1, ct2, ct3, ct4]
+        VARIAVEL listaContratos: FATIA[ContratoServico] <- [ct1, ct2, ct3, ct4]
 
         # Contratos com menos de 60 dias para vencer, ordenados do mais proximo ao mais distante
-        VARIAVEL urgentes : FATIA[ContratoServico] <- CONSULTAR DE listaContratos
+        VARIAVEL urgentes: FATIA[ContratoServico] <- CONSULTAR DE listaContratos
                                                       ONDE diasRestantes < 60
                                                       ORDENAR_POR diasRestantes ASC
 

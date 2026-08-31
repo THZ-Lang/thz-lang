@@ -230,7 +230,27 @@ VARIAVEL saldo : DECIMAL(12, 2) <- 1500.00
 VARIAVEL id_sessao <- SEGURANCA.uuid()
 ```
 
-### 7.2 Estruturas de Controle de Fluxo
+### 7.2 Funções reutilizáveis
+
+`FUNCAO` representa cálculo reutilizável com retorno tipado obrigatório. Ela
+não substitui `OPERACAO`, que pertence a `REGRA_NEGOCIO` e pode carregar
+contratos formais, nem `PROCEDIMENTO`, destinado à orquestração e efeitos
+externos.
+
+```thz
+FUNCAO somar(a: INTEIRO32, b: INTEIRO32): INTEIRO32
+    RETORNE a + b
+FIM_FUNCAO
+```
+
+Para cálculos de uma única expressão, o bloco pode ser reduzido:
+
+```thz
+FUNCAO dobrar(valor: INTEIRO32): INTEIRO32 = valor * 2
+```
+
+### 7.3 Estruturas de Controle de Fluxo
+
 
 #### Condicional (`SE`)
 ```thz

@@ -13,7 +13,7 @@ FIM_METADADOS
 REGRA_NEGOCIO TransicionarEstadoPedido
     OPERACAO Executar() : TEXTO
     INICIO
-        VARIAVEL estadoAtual : TEXTO <- "CRIADO"
+        VARIAVEL estadoAtual: TEXTO <- "CRIADO"
         EXIBA "=== RASTREAMENTO DE ESTADO DE PEDIDO ==="
         EXIBA "Estado Inicial: " + estadoAtual
 

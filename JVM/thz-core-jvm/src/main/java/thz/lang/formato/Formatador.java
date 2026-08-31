@@ -38,14 +38,14 @@ public final class Formatador {
             switch (c) {
                 case ComandoAst.DeclVariavel d -> {
                     String kw = en ? "VARIABLE " : "VARIAVEL ";
-                    String tipoStr = d.tipoDado() != null ? " : " + tipoCanonico(d.tipoDado(), dialeto) : "";
+                    String tipoStr = d.tipoDado() != null ? ": " + tipoCanonico(d.tipoDado(), dialeto) : "";
                     out.add(linha(kw + d.nome() + tipoStr + " <- " + formatarExpr(d.inicializacao()), nivel));
                 }
                 case ComandoAst.CasoResultado cr -> {
-                    String kwMatch = en ? "MATCH_RESULT " : "CASO_RESULTADO ";
-                    String kwSuccess = en ? "SUCCESS(" : "SUCESSO(";
-                    String kwError = en ? "ERROR(" : "ERRO(";
-                    String kwEndMatch = en ? "END_MATCH" : "FIM_CASO";
+                    String kwMatch = en ? "MATCH_RESULT " : "ESCOLHA ";
+                    String kwSuccess = en ? "SUCCESS(" : "CASO SUCESSO(";
+                    String kwError = en ? "ERROR(" : "CASO FALHA(";
+                    String kwEndMatch = en ? "END_MATCH" : "FIM_ESCOLHA";
 
                     out.add(linha(kwMatch + formatarExpr(cr.alvo()), nivel));
                     if (cr.varSucesso() != null) {
@@ -122,6 +122,13 @@ public final class Formatador {
                     out.add(linha(r.expressao() != null ? (en ? "RETURN " : "RETORNE ") + formatarExpr(r.expressao()) : (en ? "RETURN" : "RETORNE"), nivel));
                 case ComandoAst.FalharCom f ->
                     out.add(linha((en ? "FAIL_WITH " : "FALHAR_COM ") + formatarExpr(f.expressao()), nivel));
+                case ComandoAst.Tente t -> {
+                    out.add(linha(en ? "TRY" : "TENTE", nivel));
+                    out.addAll(formatarComandos(t.corpoTente(), nivel + 1, dialeto));
+                    out.add(linha((en ? "CATCH " : "CAPTURE ") + t.tipoCaptura(), nivel));
+                    out.addAll(formatarComandos(t.corpoCapture(), nivel + 1, dialeto));
+                    out.add(linha(en ? "END_TRY" : "FIM_TENTE", nivel));
+                }
             }
         }
         return out;
@@ -224,7 +231,7 @@ public final class Formatador {
                 if (!op.corpo().isEmpty()) {
                     out.add(linha(en ? "BEGIN" : "INICIO", 1));
                     out.addAll(formatarComandos(op.corpo(), 2, dialeto));
-                    out.add(linha(en ? "END" : "FIM", 1));
+                    out.add(linha(en ? "END_OPERATION" : "FIM_OPERACAO", 1));
                 }
             }
             out.add(en ? "END_BUSINESS_RULE" : "FIM_REGRA_NEGOCIO"); out.add("");
@@ -241,6 +248,23 @@ public final class Formatador {
                 out.addAll(formatarComandos(proc.corpo(), 2, dialeto));
                 out.add(linha(en ? "END" : "FIM", 1));
             }
+            out.add("");
+        }
+
+        for (FuncaoAst funcao : ast.funcoes() != null ? ast.funcoes() : List.<FuncaoAst>of()) {
+            String params = funcao.parametros().stream()
+                    .map(p -> p.nome() + ": " + tipoCanonico(p.tipo(), dialeto))
+                    .reduce((a, b) -> a + ", " + b).orElse("");
+            String cabecalho = (en ? "FUNCTION " : "FUNCAO ") + funcao.nome() + "(" + params + "): "
+                    + tipoCanonico(funcao.tipoRetorno(), dialeto);
+            if (funcao.corpo().size() == 1 && funcao.corpo().getFirst() instanceof ComandoAst.Retorne r && r.expressao() != null) {
+                out.add(cabecalho + " = " + formatarExpr(r.expressao()));
+                out.add("");
+                continue;
+            }
+            out.add(cabecalho);
+            out.addAll(formatarComandos(funcao.corpo(), 1, dialeto));
+            out.add(en ? "END_FUNCTION" : "FIM_FUNCAO");
             out.add("");
         }
 

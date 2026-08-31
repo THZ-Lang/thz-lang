@@ -13,14 +13,14 @@ FIM_METADADOS
 REGRA_NEGOCIO AuditarBalanco
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL totalDebitos : DECIMAL <- 158420.50
-        VARIAVEL totalCreditos : DECIMAL <- 158420.50
+        VARIAVEL totalDebitos: DECIMAL <- 158420.50
+        VARIAVEL totalCreditos: DECIMAL <- 158420.50
 
         EXIBA "=== CONCILIACAO CONTABIL DE PARTIDAS DOBRADAS ==="
         EXIBA "Total Debitos:  R$ " + TEXTO.deDecimal(totalDebitos)
         EXIBA "Total Creditos: R$ " + TEXTO.deDecimal(totalCreditos)
 
-        VARIAVEL diferenca : DECIMAL <- totalDebitos - totalCreditos
+        VARIAVEL diferenca: DECIMAL <- totalDebitos - totalCreditos
         EXIBA "Diferenca de Balanco: R$ " + TEXTO.deDecimal(diferenca)
 
         SE diferenca = 0.00 ENTAO

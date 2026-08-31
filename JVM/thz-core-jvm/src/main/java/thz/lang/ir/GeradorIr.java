@@ -88,6 +88,17 @@ public final class GeradorIr {
             }
         }
 
+        if (ast.funcoes() != null) {
+            for (FuncaoAst funcao : ast.funcoes()) {
+                List<IrPrograma.IrParametro> params = new ArrayList<>();
+                for (ParametroOperacaoAst p : funcao.parametros()) {
+                    params.add(new IrPrograma.IrParametro(p.nome(), mapearTipoIr(p.tipo())));
+                }
+                funcoes.add(new IrPrograma.IrFuncao(funcao.nome(), mapearTipoIr(funcao.tipoRetorno()),
+                        List.copyOf(params), List.copyOf(baixarComandosParaIr(funcao.corpo())), false, null));
+            }
+        }
+
         // Loops SIMD
         List<IrPrograma.IrSimdLoop> loopsSimd = new ArrayList<>();
         List<ResultadoValidacaoSimd> simdVal = ValidadorSimd.analisarTudo(ast);
@@ -130,6 +141,13 @@ public final class GeradorIr {
                 case ComandoAst.Retorne r -> out.add("ret " + (r.expressao() != null ? ThzParser.textoCanonicoDe(r.expressao()) : "void"));
                 case ComandoAst.FalharCom fc -> out.add("fail " + ThzParser.textoCanonicoDe(fc.expressao()));
                 case ComandoAst.CasoResultado cr -> out.add("match_result " + ThzParser.textoCanonicoDe(cr.alvo()));
+                case ComandoAst.Tente t -> {
+                    out.add("try_begin capture " + t.tipoCaptura());
+                    out.addAll(baixarComandosParaIr(t.corpoTente()));
+                    out.add("catch_begin " + t.tipoCaptura());
+                    out.addAll(baixarComandosParaIr(t.corpoCapture()));
+                    out.add("try_end");
+                }
             }
         }
         return out;
@@ -349,6 +367,24 @@ public final class GeradorIr {
             sb.append("\n");
         }
 
+        // Funções puras declaradas no módulo (inclui a forma compacta `= expressão`).
+        // A assinatura é preservada no LLVM para permitir chamadas tipadas pelo AOT.
+        if (ast.funcoes() != null) {
+            for (FuncaoAst funcao : ast.funcoes()) {
+                sb.append("define ").append(mapearTipoLlvm(funcao.tipoRetorno())).append(" @")
+                  .append(funcao.nome()).append("(");
+                for (int i = 0; i < funcao.parametros().size(); i++) {
+                    ParametroOperacaoAst p = funcao.parametros().get(i);
+                    if (i > 0) sb.append(", ");
+                    sb.append(mapearTipoLlvm(p.tipo())).append(" %").append(p.nome());
+                }
+                sb.append(") {\nentry:\n");
+                emitirCorpoProcedimento(sb, funcao.corpo(), mapaStringGlobal);
+                emitirRetornoLlvm(sb, funcao);
+                sb.append("}\n\n");
+            }
+        }
+
         // Emite Funções para as Operações das Regras de Negócio
         if (ast.regras() != null) {
             for (RegraNegocioAst r : ast.regras()) {
@@ -512,5 +548,79 @@ public final class GeradorIr {
         if (t.contains("LOGICO")) return "i1";
         if (t.contains("FATIA")) return "ptr";
         return "ptr";
+    }
+
+    private static String valorRetornoLlvm(FuncaoAst funcao) {
+        if (funcao.corpo() != null) {
+            for (ComandoAst c : funcao.corpo()) {
+                if (c instanceof ComandoAst.Retorne r) {
+                    String valor = valorExpressaoLlvm(r.expressao(), funcao);
+                    if (valor != null) return valor;
+                }
+            }
+        }
+        return "0";
+    }
+
+    private static void emitirRetornoLlvm(StringBuilder sb, FuncaoAst funcao) {
+        String tipo = mapearTipoLlvm(funcao.tipoRetorno());
+        ExprAst expr = null;
+        if (funcao.corpo() != null) {
+            for (ComandoAst c : funcao.corpo()) if (c instanceof ComandoAst.Retorne r) { expr = r.expressao(); break; }
+        }
+        if (expr instanceof ExprAst.OpBinaria b && (tipo.equals("i32") || tipo.equals("i64") || tipo.equals("i128"))) {
+            String esq = operandoLlvm(b.esquerda(), funcao), dir = operandoLlvm(b.direita(), funcao);
+            String op = switch (b.operador()) { case "+" -> "add"; case "-" -> "sub"; case "*" -> "mul"; case "/" -> "sdiv"; default -> null; };
+            if (esq != null && dir != null && op != null) {
+                sb.append("  %ret = ").append(op).append(" ").append(tipo).append(" ").append(esq).append(", ").append(dir).append("\n");
+                sb.append("  ret ").append(tipo).append(" %ret\n");
+                return;
+            }
+        }
+        sb.append("  ret ").append(tipo).append(" ").append(valorExpressaoLlvm(expr, funcao)).append("\n");
+    }
+
+    private static String operandoLlvm(ExprAst expr, FuncaoAst funcao) {
+        if (expr instanceof ExprAst.LiteralInteiro i) return i.valor().toString();
+        if (expr instanceof ExprAst.LiteralDecimal d) return d.escalado().toString();
+        if (expr instanceof ExprAst.AcessoCampo a && a.caminho().size() == 1
+                && funcao.parametros().stream().anyMatch(p -> p.nome().equals(a.caminho().getFirst()))) return "%" + a.caminho().getFirst();
+        return null;
+    }
+
+    /** Avalia somente a sublinguagem constante, evitando emitir LLVM incorreto para efeitos/chamadas. */
+    private static String avaliarConstanteLlvm(ExprAst expr) {
+        if (expr instanceof ExprAst.LiteralInteiro i) return i.valor().toString();
+        if (expr instanceof ExprAst.LiteralDecimal d) return d.escalado().toString();
+        if (expr instanceof ExprAst.LiteralLogico b) return b.valor() ? "1" : "0";
+        if (expr instanceof ExprAst.OpUnaria u) {
+            String v = avaliarConstanteLlvm(u.operando());
+            if (v != null && u.operador().equals("-")) return v.startsWith("-") ? v.substring(1) : "-" + v;
+            return v;
+        }
+        if (expr instanceof ExprAst.OpBinaria b) {
+            String a = avaliarConstanteLlvm(b.esquerda());
+            String z = avaliarConstanteLlvm(b.direita());
+            if (a == null || z == null) return null;
+            try {
+                java.math.BigInteger x = new java.math.BigInteger(a), y = new java.math.BigInteger(z);
+                return switch (b.operador()) {
+                    case "+" -> x.add(y).toString();
+                    case "-" -> x.subtract(y).toString();
+                    case "*" -> x.multiply(y).toString();
+                    case "/" -> y.signum() == 0 ? null : x.divide(y).toString();
+                    default -> null;
+                };
+            } catch (NumberFormatException ignored) { return null; }
+        }
+        return null;
+    }
+
+    private static String valorExpressaoLlvm(ExprAst expr, FuncaoAst funcao) {
+        if (expr instanceof ExprAst.AcessoCampo a && a.caminho().size() == 1
+                && funcao.parametros().stream().anyMatch(p -> p.nome().equals(a.caminho().getFirst()))) {
+            return "%" + a.caminho().getFirst();
+        }
+        return avaliarConstanteLlvm(expr);
     }
 }

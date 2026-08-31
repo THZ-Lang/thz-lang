@@ -233,6 +233,17 @@ public final class ThzDocGen {
             sb.append("\n");
         }
 
+        if (ast.funcoes() != null && !ast.funcoes().isEmpty()) {
+            sb.append("## 8. Funções\n\n");
+            for (FuncaoAst funcao : ast.funcoes()) {
+                String params = funcao.parametros().stream().map(p -> p.nome() + ": " + p.tipo())
+                        .collect(java.util.stream.Collectors.joining(", "));
+                sb.append("* `FUNCAO ").append(funcao.nome()).append("(").append(params).append("): ")
+                        .append(funcao.tipoRetorno()).append("`\n");
+            }
+            sb.append("\n");
+        }
+
 
         return sb.toString();
     }

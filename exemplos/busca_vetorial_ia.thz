@@ -22,19 +22,19 @@ REGRA_NEGOCIO ProcessarConsultaSemantica
     OPERACAO ExecutarBusca() : LOGICO
     INICIO
         # 1. Definir vetor de consulta do usuário (embedding normalizado de 3 dimensões)
-        VARIAVEL consulta : TEXTO <- "[0.8944, 0.4472, 0.0000]"
+        VARIAVEL consulta: TEXTO <- "[0.8944, 0.4472, 0.0000]"
 
         # 2. Base de conhecimento documental (embeddings de artigos da empresa)
-        VARIAVEL doc1 : TEXTO <- "[0.8944, 0.4472, 0.0000]"   # Idêntico / Relevância Máxima
-        VARIAVEL doc2 : TEXTO <- "[0.7071, 0.7071, 0.0000]"   # Similaridade Alta
-        VARIAVEL doc3 : TEXTO <- "[0.0000, 1.0000, 0.0000]"   # Relevância Média
-        VARIAVEL doc4 : TEXTO <- "[0.0000, 0.0000, 1.0000]"   # Ortogonal / Irrelevante
+        VARIAVEL doc1: TEXTO <- "[0.8944, 0.4472, 0.0000]"   # Idêntico / Relevância Máxima
+        VARIAVEL doc2: TEXTO <- "[0.7071, 0.7071, 0.0000]"   # Similaridade Alta
+        VARIAVEL doc3: TEXTO <- "[0.0000, 1.0000, 0.0000]"   # Relevância Média
+        VARIAVEL doc4: TEXTO <- "[0.0000, 0.0000, 1.0000]"   # Ortogonal / Irrelevante
 
         # 3. Cálculo de similaridade de cosseno acelerado por SIMD
-        VARIAVEL sim1 : DECIMAL <- VETOR.similaridadeCosseno(consulta, doc1)
-        VARIAVEL sim2 : DECIMAL <- VETOR.similaridadeCosseno(consulta, doc2)
-        VARIAVEL sim3 : DECIMAL <- VETOR.similaridadeCosseno(consulta, doc3)
-        VARIAVEL sim4 : DECIMAL <- VETOR.similaridadeCosseno(consulta, doc4)
+        VARIAVEL sim1: DECIMAL <- VETOR.similaridadeCosseno(consulta, doc1)
+        VARIAVEL sim2: DECIMAL <- VETOR.similaridadeCosseno(consulta, doc2)
+        VARIAVEL sim3: DECIMAL <- VETOR.similaridadeCosseno(consulta, doc3)
+        VARIAVEL sim4: DECIMAL <- VETOR.similaridadeCosseno(consulta, doc4)
 
         LOG.info("Similaridade Doc 1 (Exato): " + TEXTO.deDecimal(sim1))
         LOG.info("Similaridade Doc 2 (Alto): " + TEXTO.deDecimal(sim2))

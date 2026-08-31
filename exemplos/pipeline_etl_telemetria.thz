@@ -51,9 +51,9 @@ REGRA_NEGOCIO ProcessamentoTelemetriaStreaming
 
     OPERACAO AgregarMetricas(eventos: FATIA[EventoTelemetria]): SumarioPipeline
     INICIO
-        VARIAVEL total : INTEIRO64 <- 0
-        VARIAVEL criticos : INTEIRO64 <- 0
-        VARIAVEL soma_latencia : DECIMAL(18, 2) <- 0.00
+        VARIAVEL total: INTEIRO64 <- 0
+        VARIAVEL criticos: INTEIRO64 <- 0
+        VARIAVEL soma_latencia: DECIMAL(18, 2) <- 0.00
 
         VETORIZAR_PARA ev EM eventos PASSO_SIMD 8
             total <- total + 1
@@ -68,12 +68,12 @@ REGRA_NEGOCIO ProcessamentoTelemetriaStreaming
             FIM_SE
         FIM_PARA
 
-        VARIAVEL media : DECIMAL(10, 2) <- 0.00
+        VARIAVEL media: DECIMAL(10, 2) <- 0.00
         SE total > 0
             media <- soma_latencia / total
         FIM_SE
 
-        VARIAVEL sumario : SumarioPipeline <- CRIAR SumarioPipeline(
+        VARIAVEL sumario: SumarioPipeline <- CRIAR SumarioPipeline(
             total_eventos: total,
             eventos_criticos: criticos,
             latencia_media_ms: media

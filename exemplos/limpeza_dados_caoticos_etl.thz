@@ -29,13 +29,13 @@ REGRA_NEGOCIO ProcessarDataQuality
 
         # 1. Parsing Resiliente de Moedas em Formatos Caóticos Reais
         EXIBA "1. Normalizacao de Valores Monetarios e Contabeis Sujos..."
-        VARIAVEL v1 : TEXTO <- " R$ 1.250.450,75 "
-        VARIAVEL v2 : TEXTO <- "(450,20)"
-        VARIAVEL v3 : TEXTO <- "- 1500.50"
+        VARIAVEL v1: TEXTO <- " R$ 1.250.450,75 "
+        VARIAVEL v2: TEXTO <- "(450,20)"
+        VARIAVEL v3: TEXTO <- "- 1500.50"
 
-        VARIAVEL d1 : DECIMAL <- DADOS.decimalPtBr(v1)
-        VARIAVEL d2 : DECIMAL <- DADOS.decimalPtBr(v2)
-        VARIAVEL d3 : DECIMAL <- DADOS.decimalPtBr(v3)
+        VARIAVEL d1: DECIMAL <- DADOS.decimalPtBr(v1)
+        VARIAVEL d2: DECIMAL <- DADOS.decimalPtBr(v2)
+        VARIAVEL d3: DECIMAL <- DADOS.decimalPtBr(v3)
 
         EXIBA "-> Parse de '" + v1 + "' => R$ " + TEXTO.deDecimal(d1)
         EXIBA "-> Parse Contabil de '" + v2 + "' => R$ " + TEXTO.deDecimal(d2)
@@ -43,9 +43,9 @@ REGRA_NEGOCIO ProcessarDataQuality
 
         # 2. Normalização de Datas em Múltiplos Formatos Híbridos
         EXIBA "2. Padronizacao Canonica ISO (YYYY-MM-DD) de Datas Mistas..."
-        VARIAVEL dtBr : TEXTO <- DADOS.dataPtBr("25/08/2026")
-        VARIAVEL dtIsoHora : TEXTO <- DADOS.dataPtBr("2026-08-25 14:30:00")
-        VARIAVEL dtPonto : TEXTO <- DADOS.dataPtBr("25.08.26")
+        VARIAVEL dtBr: TEXTO <- DADOS.dataPtBr("25/08/2026")
+        VARIAVEL dtIsoHora: TEXTO <- DADOS.dataPtBr("2026-08-25 14:30:00")
+        VARIAVEL dtPonto: TEXTO <- DADOS.dataPtBr("25.08.26")
 
         EXIBA "-> 25/08/2026         => " + dtBr
         EXIBA "-> 2026-08-25 14:30:00 => " + dtIsoHora
@@ -53,25 +53,25 @@ REGRA_NEGOCIO ProcessarDataQuality
 
         # 3. Validação de Documentos Oficiais (CPF / CNPJ) e Mascaramento LGPD
         EXIBA "3. Validacao de CPF / CNPJ e Mascaramento de Privacidade LGPD..."
-        VARIAVEL cnpjValido : TEXTO <- "11.222.333/0001-81"
-        VARIAVEL cnpjInvalido : TEXTO <- "00.000.000/0000-00"
-        VARIAVEL cpfTitular : TEXTO <- "529.982.247-25"
+        VARIAVEL cnpjValido: TEXTO <- "11.222.333/0001-81"
+        VARIAVEL cnpjInvalido: TEXTO <- "00.000.000/0000-00"
+        VARIAVEL cpfTitular: TEXTO <- "529.982.247-25"
 
         EXIBA "-> CNPJ 11.222.333/0001-81 e Valido? " + TEXTO.deLogico(DADOS.validarCnpj(cnpjValido))
         EXIBA "-> CNPJ 00.000.000/0000-00 e Valido? " + TEXTO.deLogico(DADOS.validarCnpj(cnpjInvalido))
         EXIBA "-> CPF 529.982.247-25 e Valido?       " + TEXTO.deLogico(DADOS.validarCpf(cpfTitular))
 
-        VARIAVEL cpfProtegido : TEXTO <- DADOS.mascarar(cpfTitular, 3, 2)
+        VARIAVEL cpfProtegido: TEXTO <- DADOS.mascarar(cpfTitular, 3, 2)
         EXIBA "-> CPF Anonimizado conforme LGPD: " + cpfProtegido
 
         # 4. Deduplicação em Lote de Dataset Corporativo
         EXIBA "4. Deduplicacao de Registros Duplicados por Chave Composta..."
-        VARIAVEL r1 : RegistroCru <- CRIAR RegistroCru(cnpj: "11222333000181", dataNf: "2026-08-25", valorBruto: "100.00")
-        VARIAVEL r2 : RegistroCru <- CRIAR RegistroCru(cnpj: "11222333000181", dataNf: "2026-08-25", valorBruto: "100.00")
-        VARIAVEL r3 : RegistroCru <- CRIAR RegistroCru(cnpj: "11222333000181", dataNf: "2026-08-26", valorBruto: "250.00")
+        VARIAVEL r1: RegistroCru <- CRIAR RegistroCru(cnpj: "11222333000181", dataNf: "2026-08-25", valorBruto: "100.00")
+        VARIAVEL r2: RegistroCru <- CRIAR RegistroCru(cnpj: "11222333000181", dataNf: "2026-08-25", valorBruto: "100.00")
+        VARIAVEL r3: RegistroCru <- CRIAR RegistroCru(cnpj: "11222333000181", dataNf: "2026-08-26", valorBruto: "250.00")
 
-        VARIAVEL loteSujo : FATIA[RegistroCru] <- [r1, r2, r3]
-        VARIAVEL loteLimpo : FATIA[REGISTRO] <- DADOS.removerDuplicatas(loteSujo, ["cnpj", "dataNf"])
+        VARIAVEL loteSujo: FATIA[RegistroCru] <- [r1, r2, r3]
+        VARIAVEL loteLimpo: FATIA[REGISTRO] <- DADOS.removerDuplicatas(loteSujo, ["cnpj", "dataNf"])
 
         EXIBA "-> Total de Linhas Antes: " + TEXTO.deInteiro(FATIA.tamanho(loteSujo))
         EXIBA "-> Total de Linhas Higienizadas Apos Deduplicacao: " + TEXTO.deInteiro(FATIA.tamanho(loteLimpo))

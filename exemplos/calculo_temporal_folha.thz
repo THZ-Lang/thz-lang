@@ -48,30 +48,30 @@ REGRA_NEGOCIO MotorCalculoFolha
     OPERACAO CalcularHolerite(funcionario: FuncionarioContrato, data_referencia: DATA): HoleriteCalculado
     INICIO
         # 1. Operações da biblioteca DATA
-        VARIAVEL dias_trabalhados : INTEIRO64 <- DATA.diferencaDias(data_referencia, funcionario.data_admissao)
-        VARIAVEL dia_semana : INTEIRO64 <- DATA.diaDaSemana(data_referencia)
-        VARIAVEL ano_ref : INTEIRO64 <- DATA.ano(data_referencia)
-        VARIAVEL mes_ref : INTEIRO64 <- DATA.mes(data_referencia)
-        VARIAVEL data_vencimento : DATA <- DATA.adicionarDias(data_referencia, 5)
+        VARIAVEL dias_trabalhados: INTEIRO64 <- DATA.diferencaDias(data_referencia, funcionario.data_admissao)
+        VARIAVEL dia_semana: INTEIRO64 <- DATA.diaDaSemana(data_referencia)
+        VARIAVEL ano_ref: INTEIRO64 <- DATA.ano(data_referencia)
+        VARIAVEL mes_ref: INTEIRO64 <- DATA.mes(data_referencia)
+        VARIAVEL data_vencimento: DATA <- DATA.adicionarDias(data_referencia, 5)
 
         EXIBA "[FOLHA] Processando competencia " + mes_ref + "/" + ano_ref + " para matricula " + funcionario.matricula + " (Dias: " + dias_trabalhados + ")"
 
         # 2. Cálculos de remuneração com MATEMATICA e decimais exatos
-        VARIAVEL valor_hora : DECIMAL(12, 4) <- funcionario.salario_base / 220
-        VARIAVEL adicional_extra : DECIMAL(12, 4) <- valor_hora * 1.5000 * funcionario.horas_extras
-        VARIAVEL bruto_calculado : DECIMAL(14, 4) <- funcionario.salario_base + adicional_extra
+        VARIAVEL valor_hora: DECIMAL(12, 4) <- funcionario.salario_base / 220
+        VARIAVEL adicional_extra: DECIMAL(12, 4) <- valor_hora * 1.5000 * funcionario.horas_extras
+        VARIAVEL bruto_calculado: DECIMAL(14, 4) <- funcionario.salario_base + adicional_extra
 
         # 3. Arredondamento e funções matemáticas auxiliares
-        VARIAVEL fator_inss : DECIMAL(5, 4) <- 0.1100
-        VARIAVEL valor_inss_bruto : DECIMAL(14, 4) <- bruto_calculado * fator_inss
-        VARIAVEL inss_arredondado : DECIMAL(14, 4) <- MATEMATICA.arredondar(valor_inss_bruto, 2)
-        VARIAVEL liquido_final : DECIMAL(14, 4) <- bruto_calculado - inss_arredondado
+        VARIAVEL fator_inss: DECIMAL(5, 4) <- 0.1100
+        VARIAVEL valor_inss_bruto: DECIMAL(14, 4) <- bruto_calculado * fator_inss
+        VARIAVEL inss_arredondado: DECIMAL(14, 4) <- MATEMATICA.arredondar(valor_inss_bruto, 2)
+        VARIAVEL liquido_final: DECIMAL(14, 4) <- bruto_calculado - inss_arredondado
 
         # Validações matemáticas adicionais
-        VARIAVEL piso_garantido : INTEIRO64 <- MATEMATICA.max(1412, 1000)
-        VARIAVEL bonus_tempo : INTEIRO64 <- MATEMATICA.min(dias_trabalhados, 3650)
+        VARIAVEL piso_garantido: INTEIRO64 <- MATEMATICA.max(1412, 1000)
+        VARIAVEL bonus_tempo: INTEIRO64 <- MATEMATICA.min(dias_trabalhados, 3650)
 
-        VARIAVEL holerite : HoleriteCalculado <- CRIAR HoleriteCalculado(
+        VARIAVEL holerite: HoleriteCalculado <- CRIAR HoleriteCalculado(
             matricula: funcionario.matricula,
             tempo_casa_dias: dias_trabalhados,
             salario_bruto: bruto_calculado,

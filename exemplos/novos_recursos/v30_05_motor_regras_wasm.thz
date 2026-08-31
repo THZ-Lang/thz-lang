@@ -14,10 +14,10 @@ REGRA_NEGOCIO CalcularImpostoSimples
     OPERACAO Executar() : DECIMAL
     INICIO
         EXIBA "=== MOTOR TRIBUTARIO PORTAVEL PARA WEBASSEMBLY (WASM) ==="
-        VARIAVEL faturamentoMensal : DECIMAL <- 32000.00
-        VARIAVEL aliquotaEfetiva : DECIMAL <- 0.06
+        VARIAVEL faturamentoMensal: DECIMAL <- 32000.00
+        VARIAVEL aliquotaEfetiva: DECIMAL <- 0.06
 
-        VARIAVEL impostoDevido : DECIMAL <- faturamentoMensal * aliquotaEfetiva
+        VARIAVEL impostoDevido: DECIMAL <- faturamentoMensal * aliquotaEfetiva
         EXIBA "Faturamento: R$ " + TEXTO.deDecimal(faturamentoMensal)
         EXIBA "Imposto Devido (6%): R$ " + TEXTO.deDecimal(impostoDevido)
 

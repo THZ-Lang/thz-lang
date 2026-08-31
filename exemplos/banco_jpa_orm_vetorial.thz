@@ -32,20 +32,20 @@ REGRA_NEGOCIO OperarPersistenciaUniversal
         BANCO.criarTabela("clientes", "id:TEXT, nome:TEXT, score:INTEGER, renda:DECIMAL, vetorInteresse:TEXT")
 
         # 2. Persistência estilo JPA (salvar)
-        VARIAVEL c1 : ClienteDominio <- CRIAR ClienteDominio(id: "CLI-01", nome: "Empresa Alpha", score: 850, renda: 45000.00, vetorInteresse: IA.embedding("Investimentos e Crédito PJ"))
-        VARIAVEL c2 : ClienteDominio <- CRIAR ClienteDominio(id: "CLI-02", nome: "Empresa Beta", score: 620, renda: 12000.00, vetorInteresse: IA.embedding("Conta digital e boletos"))
+        VARIAVEL c1: ClienteDominio <- CRIAR ClienteDominio(id: "CLI-01", nome: "Empresa Alpha", score: 850, renda: 45000.00, vetorInteresse: IA.embedding("Investimentos e Crédito PJ"))
+        VARIAVEL c2: ClienteDominio <- CRIAR ClienteDominio(id: "CLI-02", nome: "Empresa Beta", score: 620, renda: 12000.00, vetorInteresse: IA.embedding("Conta digital e boletos"))
 
         BANCO.salvar("clientes", c1)
         BANCO.salvar("clientes", c2)
         EXIBA "Clientes salvos com sucesso via ORM!"
 
         # 3. Busca por ID estilo JPA
-        VARIAVEL buscado : ClienteDominio <- BANCO.buscarPorId("clientes", "CLI-01")
+        VARIAVEL buscado: ClienteDominio <- BANCO.buscarPorId("clientes", "CLI-01")
         EXIBA "Buscado por ID CLI-01: " + buscado.nome + " | Renda: R$ " + TEXTO.deDecimal(buscado.renda)
 
         # 4. Busca Semântica Vetorial KNN no Banco
-        VARIAVEL vetorConsulta : TEXTO <- IA.embedding("Financiamento empresarial para expansão")
-        VARIAVEL similares : FATIA[REGISTRO] <- BANCO.consultarVetorial("clientes", "vetorInteresse", vetorConsulta, 1)
+        VARIAVEL vetorConsulta: TEXTO <- IA.embedding("Financiamento empresarial para expansão")
+        VARIAVEL similares: FATIA[REGISTRO] <- BANCO.consultarVetorial("clientes", "vetorInteresse", vetorConsulta, 1)
 
         EXIBA "Cliente mais aderente por IA: " + similares[0].nome + " | Similaridade: " + TEXTO.deDecimal(similares[0]._similaridade)
 

@@ -18,18 +18,18 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO InspecionarFila
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL c1 : ChamadoFila <- CRIAR ChamadoFila(protocolo: "CH-101", prioridade: 1)
-        VARIAVEL c2 : ChamadoFila <- CRIAR ChamadoFila(protocolo: "CH-102", prioridade: 3)
-        VARIAVEL c3 : ChamadoFila <- CRIAR ChamadoFila(protocolo: "CH-103", prioridade: 2)
+        VARIAVEL c1: ChamadoFila <- CRIAR ChamadoFila(protocolo: "CH-101", prioridade: 1)
+        VARIAVEL c2: ChamadoFila <- CRIAR ChamadoFila(protocolo: "CH-102", prioridade: 3)
+        VARIAVEL c3: ChamadoFila <- CRIAR ChamadoFila(protocolo: "CH-103", prioridade: 2)
 
-        VARIAVEL fila : FATIA[ChamadoFila] <- [c1, c2, c3]
+        VARIAVEL fila: FATIA[ChamadoFila] <- [c1, c2, c3]
 
         EXIBA "=== GESTAO DE FILA E FATIAS ==="
         EXIBA "Fila esta vazia? " + TEXTO.deLogico(FATIA.vazia(fila))
         EXIBA "Tamanho da fila: " + TEXTO.deInteiro(FATIA.tamanho(fila))
 
-        VARIAVEL primeiroChamado : ChamadoFila <- FATIA.primeiro(fila)
-        VARIAVEL ultimoChamado : ChamadoFila <- FATIA.ultimo(fila)
+        VARIAVEL primeiroChamado: ChamadoFila <- FATIA.primeiro(fila)
+        VARIAVEL ultimoChamado: ChamadoFila <- FATIA.ultimo(fila)
 
         EXIBA "Primeiro protocolo na fila: " + primeiroChamado.protocolo
         EXIBA "Ultimo protocolo na fila: " + ultimoChamado.protocolo

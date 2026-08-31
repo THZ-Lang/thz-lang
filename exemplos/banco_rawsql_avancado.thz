@@ -32,14 +32,14 @@ REGRA_NEGOCIO ExecutarOperacoesRawSql
         EXIBA "Transacao confirmada com sucesso via Raw SQL!"
 
         # 3. Consulta Escalar Direta (COUNT / SUM)
-        VARIAVEL totalContas : INTEIRO <- BANCO.consultarValor("SELECT COUNT(*) FROM contas_financeiras WHERE ativo = ?", [1])
-        VARIAVEL saldoTotal : DECIMAL <- BANCO.consultarValor("SELECT SUM(saldo) FROM contas_financeiras WHERE ativo = ?", [1])
+        VARIAVEL totalContas: INTEIRO <- BANCO.consultarValor("SELECT COUNT(*) FROM contas_financeiras WHERE ativo = ?", [1])
+        VARIAVEL saldoTotal: DECIMAL <- BANCO.consultarValor("SELECT SUM(saldo) FROM contas_financeiras WHERE ativo = ?", [1])
 
         EXIBA "Total de Contas Ativas: " + TEXTO.deInteiro(totalContas)
         EXIBA "Saldo Consolidado Total: R$ " + TEXTO.deDecimal(saldoTotal)
 
         # 4. Consulta Tabular com JOIN / Filtros Parametrizados
-        VARIAVEL linhas : FATIA[REGISTRO] <- BANCO.consultar("SELECT titular, saldo FROM contas_financeiras WHERE saldo > ? ORDER BY saldo DESC", [100000.00])
+        VARIAVEL linhas: FATIA[REGISTRO] <- BANCO.consultar("SELECT titular, saldo FROM contas_financeiras WHERE saldo > ? ORDER BY saldo DESC", [100000.00])
         EXIBA "Conta VIP encontrada: " + linhas[0].titular + " com Saldo R$ " + TEXTO.deDecimal(linhas[0].saldo)
 
         RETORNE VERDADEIRO

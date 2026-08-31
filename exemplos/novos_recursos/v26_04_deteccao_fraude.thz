@@ -17,11 +17,11 @@ REGRA_NEGOCIO AnalisarTransacaoSuspeita
 
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL dadosTransacao : TEXTO <- "[15000.00, 850.0, 7.0]"
-        VARIAVEL pesosFraude : TEXTO <- "[0.0003, 0.002, 0.15]"
-        VARIAVEL biasFraude : DECIMAL <- -2.50
+        VARIAVEL dadosTransacao: TEXTO <- "[15000.00, 850.0, 7.0]"
+        VARIAVEL pesosFraude: TEXTO <- "[0.0003, 0.002, 0.15]"
+        VARIAVEL biasFraude: DECIMAL <- -2.50
 
-        VARIAVEL probabilidadeFraude : DECIMAL <- ML.classificar(dadosTransacao, pesosFraude, biasFraude)
+        VARIAVEL probabilidadeFraude: DECIMAL <- ML.classificar(dadosTransacao, pesosFraude, biasFraude)
 
         EXIBA "=== ANALISE DE RISCO DE FRAUDE ==="
         EXIBA "Probabilidade de Fraude: " + TEXTO.deDecimal(probabilidadeFraude)

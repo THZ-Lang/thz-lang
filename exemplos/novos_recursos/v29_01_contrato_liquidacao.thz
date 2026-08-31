@@ -17,14 +17,14 @@ REGRA_NEGOCIO ExecutarLiquidacaoContratual
 
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL saldoDisponivel : DECIMAL <- 50000.00
-        VARIAVEL valorTransferencia : DECIMAL <- 12500.00
+        VARIAVEL saldoDisponivel: DECIMAL <- 50000.00
+        VARIAVEL valorTransferencia: DECIMAL <- 12500.00
 
         EXIBA "=== EXECUCAO DE CONTRATO FORMAL DE LIQUIDACAO ==="
         EXIBA "Saldo Anterior: R$ " + TEXTO.deDecimal(saldoDisponivel)
         EXIBA "Transferencia: R$ " + TEXTO.deDecimal(valorTransferencia)
 
-        VARIAVEL saldoFinal : DECIMAL <- saldoDisponivel - valorTransferencia
+        VARIAVEL saldoFinal: DECIMAL <- saldoDisponivel - valorTransferencia
         EXIBA "Saldo Final Pos-Transacao: R$ " + TEXTO.deDecimal(saldoFinal)
 
         RETORNE VERDADEIRO

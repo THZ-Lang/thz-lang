@@ -23,8 +23,8 @@ REGRA_NEGOCIO CalcularHashSeguro
         EXIBA "=== HASHING BITWISE DE ALTA PERFORMANCE EM RUST EMBUTIDO ==="
         EXIBA "Runtime Nativo: " + NATIVO.versao_rust()
 
-        VARIAVEL idTransacao : INTEIRO <- 987654321
-        VARIAVEL hashCalculado : INTEIRO <- NATIVO.calcular_hash_customizado(idTransacao)
+        VARIAVEL idTransacao: INTEIRO <- 987654321
+        VARIAVEL hashCalculado: INTEIRO <- NATIVO.calcular_hash_customizado(idTransacao)
 
         EXIBA "Transacao Original: " + TEXTO.deInteiro(idTransacao)
         EXIBA "Hash Bitwise Calculado no Rust: " + TEXTO.deInteiro(hashCalculado)

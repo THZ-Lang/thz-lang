@@ -15,6 +15,7 @@ import thz.lang.ast.ComandoAst;
 import thz.lang.ast.EnumeracaoAst;
 import thz.lang.ast.EstruturaAst;
 import thz.lang.ast.ExprAst;
+import thz.lang.ast.FuncaoAst;
 import thz.lang.ast.OperacaoAst;
 import thz.lang.ast.ParametroOperacaoAst;
 import thz.lang.ast.ProcedimentoAst;
@@ -127,6 +128,31 @@ public class InterpretadorThz {
 
     public List<ProcedimentoAst> listarProcedimentos() {
         return ast.procedimentos() != null ? ast.procedimentos() : List.of();
+    }
+
+    public List<FuncaoAst> listarFuncoes() {
+        return ast.funcoes() != null ? ast.funcoes() : List.of();
+    }
+
+    public ValorThz executarFuncao(String nome, Map<String, ValorThz> argumentos) {
+        FuncaoAst funcao = listarFuncoes().stream().filter(f -> f.nome().equals(nome)).findFirst()
+                .orElseThrow(() -> new ErroExecucao("[Erro de Execução] Função '" + nome + "' não encontrada."));
+        Escopo escopo = new Escopo();
+        Map<String, ValorThz> args = argumentos != null ? argumentos : Map.of();
+        for (ParametroOperacaoAst p : funcao.parametros()) {
+            ValorThz valor = args.get(p.nome());
+            if (valor == null) throw new ErroExecucao("[Erro de Execução] Parâmetro '" + p.nome() + "' não fornecido para função '" + nome + "'.");
+            escopo.definir(p.nome(), valor);
+        }
+        try {
+            executarComandos(funcao.corpo(), escopo);
+        } catch (SinalRetorne retorno) {
+            if (retorno.getValor() == null) throw new ErroExecucao("[Erro de Execução] FUNCAO deve retornar um valor.");
+            return retorno.getValor();
+        } catch (SinalFalhar falha) {
+            throw new ErroExecucao("[Erro de Execução] FALHAR_COM não permitido em FUNCAO.");
+        }
+        throw new ErroExecucao("[Erro de Execução] Função '" + nome + "' terminou sem RETORNE.");
     }
 
     private static boolean ehValorResultado(ValorThz v) {
@@ -465,6 +491,17 @@ public class InterpretadorThz {
         // procedimento?
         if (ch.caminho().size() == 1) {
             String nome = ch.caminho().get(0);
+            FuncaoAst funcao = ast.funcoes() != null
+                    ? ast.funcoes().stream().filter(f -> f.nome().equals(nome)).findFirst().orElse(null)
+                    : null;
+            if (funcao != null) {
+                if (args.size() != funcao.parametros().size())
+                    throw new ErroExecucao("[Erro de Execução][Linha " + ch.linha() + ":" + ch.coluna()
+                            + "] Função '" + funcao.nome() + "' exige " + funcao.parametros().size() + " arg(s), recebidos " + args.size() + ".");
+                Map<String, ValorThz> mapa = new HashMap<>();
+                for (int i = 0; i < funcao.parametros().size(); i++) mapa.put(funcao.parametros().get(i).nome(), args.get(i));
+                return executarFuncao(nome, mapa);
+            }
             ProcedimentoAst proc = ast.procedimentos() != null
                     ? ast.procedimentos().stream().filter(p -> p.nome().equals(nome)).findFirst().orElse(null)
                     : null;
@@ -636,6 +673,7 @@ public class InterpretadorThz {
             case ComandoAst.Atribuicao atr -> executarAtribuicao(atr, escopo);
             case ComandoAst.Se se -> executarSe(se, escopo);
             case ComandoAst.Enquanto enq -> executarEnquanto(enq, escopo);
+            case ComandoAst.Tente tente -> executarTente(tente, escopo);
             case ComandoAst.Para para -> executarPara(para, escopo);
             case ComandoAst.VetorizarPara vp -> executarVetorizarPara(vp, escopo);
             case ComandoAst.BlocoMemoria bm -> executarBlocoMemoria(bm, escopo);
@@ -667,6 +705,14 @@ public class InterpretadorThz {
                 escopoErro.definir(cr.varErro(), res.erro());
                 executarComandos(cr.corpoErro(), escopoErro);
             }
+        }
+    }
+
+    private void executarTente(ComandoAst.Tente tente, Escopo escopo) {
+        try {
+            executarComandos(tente.corpoTente(), new Escopo(escopo));
+        } catch (SinalFalhar falha) {
+            executarComandos(tente.corpoCapture(), new Escopo(escopo));
         }
     }
 

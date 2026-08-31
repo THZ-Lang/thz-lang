@@ -19,11 +19,11 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO ProcessarTelemetria
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL topico : TEXTO <- "telemetria.maquinas"
+        VARIAVEL topico: TEXTO <- "telemetria.maquinas"
         MENSAGERIA.limparTopico(topico)
 
-        VARIAVEL l1 : LeituraSensor <- CRIAR LeituraSensor(sensorId: "TURBINA-01", temperatura: 88.5, pressao: 101.3)
-        VARIAVEL l2 : LeituraSensor <- CRIAR LeituraSensor(sensorId: "TURBINA-02", temperatura: 104.2, pressao: 105.8)
+        VARIAVEL l1: LeituraSensor <- CRIAR LeituraSensor(sensorId: "TURBINA-01", temperatura: 88.5, pressao: 101.3)
+        VARIAVEL l2: LeituraSensor <- CRIAR LeituraSensor(sensorId: "TURBINA-02", temperatura: 104.2, pressao: 105.8)
 
         MENSAGERIA.publicar(topico, l1)
         MENSAGERIA.publicar(topico, l2)
@@ -31,7 +31,7 @@ REGRA_NEGOCIO ProcessarTelemetria
         EXIBA "=== PROCESSAMENTO REATIVO DE TELEMETRIA IOT ==="
         EXIBA "Mensagens enfileiradas: " + TEXTO.deInteiro(MENSAGERIA.tamanhoFila(topico))
 
-        VARIAVEL recebida : LeituraSensor <- MENSAGERIA.consumir(topico, 50)
+        VARIAVEL recebida: LeituraSensor <- MENSAGERIA.consumir(topico, 50)
         EXIBA "Leitura lida: Sensor " + recebida.sensorId + " | Temp: " + TEXTO.deDecimal(recebida.temperatura) + " C"
 
         RETORNE VERDADEIRO

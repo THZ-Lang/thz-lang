@@ -19,14 +19,14 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO ProcessarFilaPix
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL canalPix : TEXTO <- "pagamentos.pix.entrada"
+        VARIAVEL canalPix: TEXTO <- "pagamentos.pix.entrada"
         MENSAGERIA.limparTopico(canalPix)
 
-        VARIAVEL ord1 : OrdemPix <- CRIAR OrdemPix(chavePix: "financeiro@empresa.com", valor: 450.00, idTransacao: "TX-9901")
+        VARIAVEL ord1: OrdemPix <- CRIAR OrdemPix(chavePix: "financeiro@empresa.com", valor: 450.00, idTransacao: "TX-9901")
         MENSAGERIA.publicar(canalPix, ord1)
 
         EXIBA "=== LIQUIDACAO REATIVA PIX ==="
-        VARIAVEL ordRecebida : OrdemPix <- MENSAGERIA.consumir(canalPix, 100)
+        VARIAVEL ordRecebida: OrdemPix <- MENSAGERIA.consumir(canalPix, 100)
         EXIBA "Processando liquidacao Pix: " + ordRecebida.idTransacao + " | Valor: R$ " + TEXTO.deDecimal(ordRecebida.valor)
 
         RETORNE VERDADEIRO

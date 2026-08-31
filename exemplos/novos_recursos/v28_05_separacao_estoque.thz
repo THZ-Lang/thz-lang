@@ -19,14 +19,14 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO DespacharOrdemPicking
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL canalEstoque : TEXTO <- "armazem.picking.fila"
+        VARIAVEL canalEstoque: TEXTO <- "armazem.picking.fila"
         MENSAGERIA.limparTopico(canalEstoque)
 
-        VARIAVEL ordem : OrdemPicking <- CRIAR OrdemPicking(idOrdem: "PICK-770", skuProduto: "SKU-ELETR-99", quantidade: 5)
+        VARIAVEL ordem: OrdemPicking <- CRIAR OrdemPicking(idOrdem: "PICK-770", skuProduto: "SKU-ELETR-99", quantidade: 5)
         MENSAGERIA.publicar(canalEstoque, ordem)
 
         EXIBA "=== SEPARACAO DE ESTOQUE REATIVA ==="
-        VARIAVEL ordemRecebida : OrdemPicking <- MENSAGERIA.consumir(canalEstoque, 50)
+        VARIAVEL ordemRecebida: OrdemPicking <- MENSAGERIA.consumir(canalEstoque, 50)
         EXIBA "Ordem de picking recebida: " + ordemRecebida.idOrdem + " | SKU: " + ordemRecebida.skuProduto + " | Qtd: " + TEXTO.deInteiro(ordemRecebida.quantidade)
 
         RETORNE VERDADEIRO

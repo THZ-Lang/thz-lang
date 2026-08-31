@@ -149,7 +149,7 @@ public class DialetoLinguagemTest {
         assertTrue(codigoEn.contains("STRUCTURE ItemFatura"));
         assertTrue(codigoEn.contains("BUSINESS_RULE CalcularTotal"));
         assertTrue(codigoEn.contains("REQUIRES valor > 0"));
-        assertTrue(codigoEn.contains("VARIABLE total : DECIMAL(18, 2) <- item.valor"));
+        assertTrue(codigoEn.contains("VARIABLE total: DECIMAL(18, 2) <- item.valor"));
         assertTrue(codigoEn.contains("IF total > 1000"));
         assertTrue(codigoEn.contains("PRINT \"Fatura Alta\""));
         assertTrue(codigoEn.contains("RETURN total"));
@@ -167,7 +167,7 @@ public class DialetoLinguagemTest {
         assertTrue(codigoPtRevertido.contains("PROGRAMA Faturamento"));
         assertTrue(codigoPtRevertido.contains("REGRA_NEGOCIO CalcularTotal"));
         assertTrue(codigoPtRevertido.contains("EXIGE valor > 0"));
-        assertTrue(codigoPtRevertido.contains("VARIAVEL total : DECIMAL(18, 2) <- item.valor"));
+        assertTrue(codigoPtRevertido.contains("VARIAVEL total: DECIMAL(18, 2) <- item.valor"));
         assertTrue(codigoPtRevertido.contains("SE total > 1000"));
         assertTrue(codigoPtRevertido.contains("EXIBA \"Fatura Alta\""));
         assertTrue(codigoPtRevertido.contains("RETORNE total"));

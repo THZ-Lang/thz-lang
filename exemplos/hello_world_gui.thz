@@ -33,7 +33,7 @@ REGRA_NEGOCIO SaudacaoNegocio
 
     OPERACAO DizerOla(seuNome: TEXTO): TEXTO
     INICIO
-        VARIAVEL mensagem : TEXTO <- ""
+        VARIAVEL mensagem: TEXTO <- ""
         
         SE TEXTO.comprimento(seuNome) > 0 ENTAO
             mensagem <- "Hello World, " + seuNome + "!"
@@ -59,11 +59,11 @@ REGRA_NEGOCIO Inicializacao
 
     OPERACAO MontarTela(): TEXTO
     INICIO
-        VARIAVEL form : FormularioHelloWorld <- CRIAR FormularioHelloWorld(
+        VARIAVEL form: FormularioHelloWorld <- CRIAR FormularioHelloWorld(
             titulo: "Meu Primeiro App GUI — THZ-LANG",
             seuNome: "Mundo"
         )
-        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "SaudacaoNegocio.DizerOla")
+        VARIAVEL status: TEXTO <- TELA.renderizarFormulario(form, "SaudacaoNegocio.DizerOla")
         EXIBA status
         RETORNE status
     FIM

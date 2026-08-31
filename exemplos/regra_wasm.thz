@@ -22,8 +22,8 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO CalcularImpostoUniversal
     OPERACAO Executar() : DECIMAL
     INICIO
-        VARIAVEL param : ParametroCalculo <- CRIAR ParametroCalculo(baseCalculo: 100000.00, aliquota: 0.1800)
-        VARIAVEL imposto : DECIMAL <- param.baseCalculo * param.aliquota
+        VARIAVEL param: ParametroCalculo <- CRIAR ParametroCalculo(baseCalculo: 100000.00, aliquota: 0.1800)
+        VARIAVEL imposto: DECIMAL <- param.baseCalculo * param.aliquota
 
         EXIBA "Calculado no WebAssembly: R$ " + TEXTO.deDecimal(imposto)
         RETORNE imposto

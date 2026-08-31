@@ -27,9 +27,10 @@ public final class AnalisadorSemantico {
 
     // ---------------------------------------------------------------- Contexto
 
-    private sealed interface ContextoExec permits ContextoOperacao, ContextoProcedimento {}
+    private sealed interface ContextoExec permits ContextoOperacao, ContextoProcedimento, ContextoFuncao {}
     private record ContextoOperacao(RegraNegocioAst regra, OperacaoAst operacao) implements ContextoExec {}
     private record ContextoProcedimento(ProcedimentoAst procedimento) implements ContextoExec {}
+    private record ContextoFuncao(FuncaoAst funcao) implements ContextoExec {}
 
     private static boolean ehContextoOperacao(ContextoExec c) {
         return c instanceof ContextoOperacao;
@@ -76,6 +77,7 @@ public final class AnalisadorSemantico {
             }
         }
         validarProcedimentos();
+        validarFuncoes();
         if (opcoes.estrito()) aplicarLintEstrito();
         return deduplicar(erros);
     }
@@ -249,6 +251,22 @@ public final class AnalisadorSemantico {
         }
     }
 
+    private void validarFuncoes() {
+        List<FuncaoAst> funcoes = ast.funcoes() != null ? ast.funcoes() : List.of();
+        Set<String> vistas = new LinkedHashSet<>();
+        for (FuncaoAst funcao : funcoes) {
+            if (!vistas.add(funcao.nome())) erros.add(new ErroSemantico(1, 1, "Função duplicada: '" + funcao.nome() + "'."));
+            TipoThz retorno = tipoValido(funcao.tipoRetorno(), 1, 1);
+            EscopoTipos escopo = new EscopoTipos();
+            for (ParametroOperacaoAst p : funcao.parametros()) {
+                TipoThz t = tipoValido(p.tipo(), 1, 1);
+                escopo.definir(p.nome(), t != null ? t : TIPO_NULO, 1, 1, erros);
+            }
+            validarBlocoFilho(funcao.corpo(), escopo, new ContextoFuncao(funcao));
+            if (retorno == null) continue;
+        }
+    }
+
     // ---------------- Comandos ----------------
 
     private void validarBlocoFilho(List<ComandoAst> comandos, EscopoTipos escopoPai, ContextoExec contexto) {
@@ -370,6 +388,18 @@ public final class AnalisadorSemantico {
             }
             case ComandoAst.Chamada ch -> inferir(ch.expressao(), escopo);
             case ComandoAst.Retorne ret -> {
+                if (contexto instanceof ContextoFuncao ctxFuncao) {
+                    if (ret.expressao() == null) {
+                        erros.add(new ErroSemantico(ret.linha(), ret.coluna(), "FUNCAO exige RETORNE com valor."));
+                        return;
+                    }
+                    TipoThz esperado = tipoValido(ctxFuncao.funcao().tipoRetorno(), ret.linha(), ret.coluna());
+                    TipoThz obtido = inferir(ret.expressao(), escopo);
+                    if (esperado != null && obtido != null && !Tipos.saoCompativeis(obtido, esperado)) {
+                        erros.add(new ErroSemantico(ret.linha(), ret.coluna(), "RETORNE incompatível: " + Tipos.descrever(obtido) + " → " + Tipos.descrever(esperado) + "."));
+                    }
+                    return;
+                }
                 if (!ehContextoOperacao(contexto)) {
                     if (ret.expressao() != null) {
                         erros.add(new ErroSemantico(ret.linha(), ret.coluna(), "RETORNE com valor não permitido dentro de PROCEDIMENTO."));
@@ -409,6 +439,10 @@ public final class AnalisadorSemantico {
                     erros.add(new ErroSemantico(fc.linha(), fc.coluna(),
                             "FALHAR_COM incompatível: " + Tipos.descrever(valorErro) + " → " + Tipos.descrever(canalErro) + "."));
                 }
+            }
+            case ComandoAst.Tente tente -> {
+                validarBlocoFilho(tente.corpoTente(), escopo, contexto);
+                validarBlocoFilho(tente.corpoCapture(), escopo, contexto);
             }
         }
     }
@@ -664,6 +698,22 @@ public final class AnalisadorSemantico {
 
         if (expr.caminho().size() == 1) {
             String simples = expr.caminho().get(0);
+            List<FuncaoAst> funcoes = ast.funcoes() != null ? ast.funcoes() : List.of();
+            Optional<FuncaoAst> funcaoOpt = funcoes.stream().filter(f -> f.nome().equals(simples)).findFirst();
+            if (funcaoOpt.isPresent()) {
+                FuncaoAst funcao = funcaoOpt.get();
+                if (expr.argumentos().size() != funcao.parametros().size()) {
+                    erros.add(new ErroSemantico(expr.linha(), expr.coluna(), "Função '" + funcao.nome() + "' exige " + funcao.parametros().size() + " arg(s), recebidos " + expr.argumentos().size() + "."));
+                }
+                for (int i = 0; i < Math.min(expr.argumentos().size(), funcao.parametros().size()); i++) {
+                    TipoThz esperado = tipoValido(funcao.parametros().get(i).tipo(), expr.linha(), expr.coluna());
+                    TipoThz obtido = inferir(expr.argumentos().get(i), escopo);
+                    if (esperado != null && obtido != null && !Tipos.saoCompativeis(obtido, esperado))
+                        erros.add(new ErroSemantico(expr.linha(), expr.coluna(), "Arg " + (i + 1) + " de '" + funcao.nome() + "' incompatível: " + Tipos.descrever(obtido) + " → " + Tipos.descrever(esperado) + "."));
+                }
+                TipoThz retorno = tipoValido(funcao.tipoRetorno(), expr.linha(), expr.coluna());
+                return retorno != null ? retorno : TIPO_NULO;
+            }
             List<ProcedimentoAst> procs = ast.procedimentos() != null ? ast.procedimentos() : List.of();
             Optional<ProcedimentoAst> procOpt = procs.stream().filter(p -> p.nome().equals(simples)).findFirst();
             if (procOpt.isPresent()) {

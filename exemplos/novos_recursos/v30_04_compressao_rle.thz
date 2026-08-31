@@ -25,11 +25,11 @@ REGRA_NEGOCIO ProcessarLoteNativo
     OPERACAO Executar() : LOGICO
     INICIO
         EXIBA "=== PIPELINE HIBRIDO THZ + RUST EMBUTIDO ==="
-        VARIAVEL id1 : INTEIRO <- 1001
-        VARIAVEL id2 : INTEIRO <- 2002
+        VARIAVEL id1: INTEIRO <- 1001
+        VARIAVEL id2: INTEIRO <- 2002
 
-        VARIAVEL somaIds : INTEIRO <- NATIVO.somar_rapido(id1, id2)
-        VARIAVEL hashLote : INTEIRO <- NATIVO.calcular_hash_customizado(somaIds)
+        VARIAVEL somaIds: INTEIRO <- NATIVO.somar_rapido(id1, id2)
+        VARIAVEL hashLote: INTEIRO <- NATIVO.calcular_hash_customizado(somaIds)
 
         EXIBA "Soma dos IDs: " + TEXTO.deInteiro(somaIds)
         EXIBA "Assinatura do Lote (Rust Hash): " + TEXTO.deInteiro(hashLote)

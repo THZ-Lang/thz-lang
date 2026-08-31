@@ -26,12 +26,12 @@ FIM_ESTRUTURA
 
 PROCEDIMENTO MascararDocumento(documento: TEXTO, tipo: TEXTO)
 INICIO
-    VARIAVEL doc_limpo : TEXTO <- TEXTO.aparar(documento)
-    VARIAVEL tam : INTEIRO64 <- TEXTO.comprimento(doc_limpo)
+    VARIAVEL doc_limpo: TEXTO <- TEXTO.aparar(documento)
+    VARIAVEL tam: INTEIRO64 <- TEXTO.comprimento(doc_limpo)
 
     SE tam = 11
-        VARIAVEL inicio_cpf : TEXTO <- TEXTO.subtexto(doc_limpo, 0, 3)
-        VARIAVEL fim_cpf : TEXTO <- TEXTO.subtexto(doc_limpo, 9, 11)
+        VARIAVEL inicio_cpf: TEXTO <- TEXTO.subtexto(doc_limpo, 0, 3)
+        VARIAVEL fim_cpf: TEXTO <- TEXTO.subtexto(doc_limpo, 9, 11)
         EXIBA "[MASCARAMENTO CPF] " + inicio_cpf + ".***.***-" + fim_cpf
     SENAO
         EXIBA "[MASCARAMENTO GENÉRICO] ***" + doc_limpo
@@ -53,14 +53,14 @@ REGRA_NEGOCIO ValidadorChavesPix
 
     OPERACAO ValidarEFormatarChave(chave: TEXTO, moeda: MoedaSuportada): ChavePixFormatada
     INICIO
-        VARIAVEL limpa : TEXTO <- TEXTO.aparar(chave)
-        VARIAVEL eh_email : LOGICO <- TEXTO.contem(limpa, "@")
-        VARIAVEL tipo : TEXTO <- "CHAVE_ALEATORIA"
+        VARIAVEL limpa: TEXTO <- TEXTO.aparar(chave)
+        VARIAVEL eh_email: LOGICO <- TEXTO.contem(limpa, "@")
+        VARIAVEL tipo: TEXTO <- "CHAVE_ALEATORIA"
 
         SE eh_email
             tipo <- "EMAIL"
         SENAO
-            VARIAVEL len : INTEIRO64 <- TEXTO.comprimento(limpa)
+            VARIAVEL len: INTEIRO64 <- TEXTO.comprimento(limpa)
             SE len = 11
                 tipo <- "CPF"
             SENAO
@@ -70,9 +70,9 @@ REGRA_NEGOCIO ValidadorChavesPix
             FIM_SE
         FIM_SE
 
-        VARIAVEL masc : TEXTO <- TEXTO.subtexto(limpa, 0, 3) + "***"
+        VARIAVEL masc: TEXTO <- TEXTO.subtexto(limpa, 0, 3) + "***"
 
-        VARIAVEL res : ChavePixFormatada <- CRIAR ChavePixFormatada(
+        VARIAVEL res: ChavePixFormatada <- CRIAR ChavePixFormatada(
             tipo_chave: tipo,
             chave_bruta: limpa,
             mascarada: masc,

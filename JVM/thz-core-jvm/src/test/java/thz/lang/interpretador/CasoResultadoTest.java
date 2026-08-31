@@ -90,4 +90,54 @@ public class CasoResultadoTest {
         assertTrue(ret instanceof ValorThz.Texto, "Retorno deve ser texto");
         assertEquals("ErroDivisaoPorZero", ((ValorThz.Texto) ret).valor());
     }
+
+    @Test
+    @DisplayName("ESCOLHA deve aceitar a sintaxe moderna para RESULTADO")
+    void testEscolhaSintaxeModerna() {
+        String src = """
+                PROGRAMA EscolhaModerna
+                REGRA_NEGOCIO Processamento
+                    OPERACAO Falhar() : RESULTADO[INTEIRO64, TEXTO]
+                    INICIO
+                        FALHAR_COM "indisponivel"
+                    FIM
+                    OPERACAO Executar() : TEXTO
+                    INICIO
+                        VARIAVEL resultado <- Falhar()
+                        ESCOLHA resultado
+                            CASO SUCESSO(valor) -> RETORNE "ok"
+                            CASO FALHA(erro) -> RETORNE erro
+                        FIM_ESCOLHA
+                    FIM
+                FIM_REGRA_NEGOCIO
+                FIM_PROGRAMA
+                """;
+
+        InterpretadorThz interp = new InterpretadorThz(parse(src), s -> {}, () -> "");
+        ValorThz retorno = interp.executarOperacao("Executar", Map.of());
+        assertEquals("indisponivel", ((ValorThz.Texto) retorno).valor());
+    }
+
+    @Test
+    @DisplayName("TENTE deve capturar FALHAR_COM e preservar o fluxo explícito")
+    void testTenteCapture() {
+        String src = """
+                PROGRAMA TenteModerno
+                REGRA_NEGOCIO Processamento
+                    OPERACAO Executar() : TEXTO
+                    INICIO
+                        VARIAVEL mensagem: TEXTO <- "inicial"
+                        TENTE
+                            FALHAR_COM "indisponivel"
+                        CAPTURE ErroProcessamento
+                            mensagem <- "recuperado"
+                        FIM_TENTE
+                        RETORNE mensagem
+                    FIM
+                FIM_REGRA_NEGOCIO
+                FIM_PROGRAMA
+                """;
+        ValorThz retorno = new InterpretadorThz(parse(src), s -> {}, () -> "").executarOperacao("Executar", Map.of());
+        assertEquals("recuperado", ((ValorThz.Texto) retorno).valor());
+    }
 }

@@ -19,15 +19,15 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO FiltrarNotasAltoValor
     OPERACAO Executar() : INTEIRO
     INICIO
-        VARIAVEL n1 : NotaFiscal <- CRIAR NotaFiscal(numero: "NF-001", valorTotal: 45000.00, aliquota: 18.0)
-        VARIAVEL n2 : NotaFiscal <- CRIAR NotaFiscal(numero: "NF-002", valorTotal: 8500.00, aliquota: 12.0)
-        VARIAVEL n3 : NotaFiscal <- CRIAR NotaFiscal(numero: "NF-003", valorTotal: 125000.00, aliquota: 18.0)
-        VARIAVEL n4 : NotaFiscal <- CRIAR NotaFiscal(numero: "NF-004", valorTotal: 3200.00, aliquota: 7.0)
+        VARIAVEL n1: NotaFiscal <- CRIAR NotaFiscal(numero: "NF-001", valorTotal: 45000.00, aliquota: 18.0)
+        VARIAVEL n2: NotaFiscal <- CRIAR NotaFiscal(numero: "NF-002", valorTotal: 8500.00, aliquota: 12.0)
+        VARIAVEL n3: NotaFiscal <- CRIAR NotaFiscal(numero: "NF-003", valorTotal: 125000.00, aliquota: 18.0)
+        VARIAVEL n4: NotaFiscal <- CRIAR NotaFiscal(numero: "NF-004", valorTotal: 3200.00, aliquota: 7.0)
 
-        VARIAVEL lote : FATIA[NotaFiscal] <- [n1, n2, n3, n4]
+        VARIAVEL lote: FATIA[NotaFiscal] <- [n1, n2, n3, n4]
 
         # Seleciona notas com valor superior a 20.000 e aliquota de 18%
-        VARIAVEL notasAuditaveis : FATIA[NotaFiscal] <- CONSULTAR DE lote
+        VARIAVEL notasAuditaveis: FATIA[NotaFiscal] <- CONSULTAR DE lote
                                                         ONDE valorTotal > 20000.00 E aliquota = 18.0
                                                         ORDENAR_POR valorTotal DESC
 

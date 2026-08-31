@@ -64,6 +64,9 @@ public class ThzLspTest {
         assertTrue(labels.contains("NEGOCIO"));
         assertTrue(labels.contains("IMPORTAR"));
         assertTrue(labels.contains("CASO_RESULTADO"));
+        assertTrue(labels.contains("FUNCAO"));
+        assertTrue(labels.contains("ESCOLHA"));
+        assertTrue(labels.contains("TENTE"));
     }
 
     @Test

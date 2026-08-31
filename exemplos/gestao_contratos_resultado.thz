@@ -65,15 +65,15 @@ REGRA_NEGOCIO MotorReconciliacao
 
     OPERACAO ProcessarReconciliacaoLote(lancamentos: FATIA[LancamentoBancario], limite_maximo_centavos: INTEIRO64): ResultadoConciliacao
     INICIO
-        VARIAVEL total_acumulado : INTEIRO64 <- 0
-        VARIAVEL processados : INTEIRO64 <- 0
-        VARIAVEL indice : INTEIRO64 <- 0
-        VARIAVEL total_itens : INTEIRO64 <- 3
+        VARIAVEL total_acumulado: INTEIRO64 <- 0
+        VARIAVEL processados: INTEIRO64 <- 0
+        VARIAVEL indice: INTEIRO64 <- 0
+        VARIAVEL total_itens: INTEIRO64 <- 3
 
         # Exemplo de laço ENQUANTO com CASO_RESULTADO
         ENQUANTO indice < total_itens FACA
-            VARIAVEL lanc_atual : LancamentoBancario <- lancamentos[indice]
-            VARIAVEL res_validacao : RESULTADO[LancamentoBancario, TEXTO] <- ValidarLancamento(lanc_atual, limite_maximo_centavos)
+            VARIAVEL lanc_atual: LancamentoBancario <- lancamentos[indice]
+            VARIAVEL res_validacao: RESULTADO[LancamentoBancario, TEXTO] <- ValidarLancamento(lanc_atual, limite_maximo_centavos)
 
             CASO_RESULTADO res_validacao
                 SUCESSO(aprovado) -> INICIO
@@ -94,7 +94,7 @@ REGRA_NEGOCIO MotorReconciliacao
             EXIBA "[AUDITORIA CHECKPOINT] Etapa " + i + " validada."
         FIM_PARA
 
-        VARIAVEL res_final : ResultadoConciliacao <- CRIAR ResultadoConciliacao(
+        VARIAVEL res_final: ResultadoConciliacao <- CRIAR ResultadoConciliacao(
             total_conciliado_centavos: total_acumulado,
             itens_processados: processados,
             status_final: CONCILIADO

@@ -56,7 +56,7 @@ REGRA_NEGOCIO ProcessamentoPedido
 
     OPERACAO FecharPedido(cliente: TEXTO, canal: CanalVenda, entregaExpressa: LOGICO, itens: FATIA[ItemPedido], observacoes: TEXTO): TEXTO
     INICIO
-        VARIAVEL frete : TEXTO <- "Padrão"
+        VARIAVEL frete: TEXTO <- "Padrão"
         SE entregaExpressa
             frete <- "Expresso (24h)"
         FIM_SE
@@ -77,13 +77,13 @@ REGRA_NEGOCIO Inicializacao
 
     OPERACAO MontarTela(): TEXTO
     INICIO
-        VARIAVEL item1 : ItemPedido <- CRIAR ItemPedido(sku: "PRD-101", descricao: "Notebook Enterprise 16GB", quantidade: 2, precoUnitario: 4500.00)
-        VARIAVEL item2 : ItemPedido <- CRIAR ItemPedido(sku: "PRD-202", descricao: "Monitor UltraWide 34 Pol", quantidade: 1, precoUnitario: 2800.00)
-        VARIAVEL item3 : ItemPedido <- CRIAR ItemPedido(sku: "PRD-303", descricao: "Docking Station Thunderbolt", quantidade: 2, precoUnitario: 650.00)
+        VARIAVEL item1: ItemPedido <- CRIAR ItemPedido(sku: "PRD-101", descricao: "Notebook Enterprise 16GB", quantidade: 2, precoUnitario: 4500.00)
+        VARIAVEL item2: ItemPedido <- CRIAR ItemPedido(sku: "PRD-202", descricao: "Monitor UltraWide 34 Pol", quantidade: 1, precoUnitario: 2800.00)
+        VARIAVEL item3: ItemPedido <- CRIAR ItemPedido(sku: "PRD-303", descricao: "Docking Station Thunderbolt", quantidade: 2, precoUnitario: 650.00)
 
-        VARIAVEL gradeItens : FATIA[ItemPedido] <- [item1, item2, item3]
+        VARIAVEL gradeItens: FATIA[ItemPedido] <- [item1, item2, item3]
 
-        VARIAVEL form : FormularioPedido <- CRIAR FormularioPedido(
+        VARIAVEL form: FormularioPedido <- CRIAR FormularioPedido(
             titulo: "Emissão de Pedido de Vendas — THZ GUI",
             cliente: "Tech Corp Global S/A",
             canal: CORPORATIVO_B2B,
@@ -93,7 +93,7 @@ REGRA_NEGOCIO Inicializacao
             observacoes: "Entregar na doca principal das 08h às 17h. Solicitar nota fiscal com retenção de impostos."
         )
 
-        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "ProcessamentoPedido.FecharPedido")
+        VARIAVEL status: TEXTO <- TELA.renderizarFormulario(form, "ProcessamentoPedido.FecharPedido")
         EXIBA status
         RETORNE status
     FIM

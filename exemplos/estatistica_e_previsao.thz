@@ -22,37 +22,37 @@ REGRA_NEGOCIO ProcessarEstatisticaPreditiva
         EXIBA "================================================================================"
 
         # Histórico de Vendas em Milhares (Mês 1 a 6)
-        VARIAVEL meses : FATIA[DECIMAL] <- [1.0000, 2.0000, 3.0000, 4.0000, 5.0000, 6.0000]
-        VARIAVEL receita : FATIA[DECIMAL] <- [120.0000, 135.0000, 148.0000, 160.0000, 175.0000, 190.0000]
+        VARIAVEL meses: FATIA[DECIMAL] <- [1.0000, 2.0000, 3.0000, 4.0000, 5.0000, 6.0000]
+        VARIAVEL receita: FATIA[DECIMAL] <- [120.0000, 135.0000, 148.0000, 160.0000, 175.0000, 190.0000]
 
         EXIBA "1. Medidas de Tendencia Central e Dispersao..."
-        VARIAVEL mediaReceita : DECIMAL <- ESTATISTICA.media(receita)
-        VARIAVEL medianaReceita : DECIMAL <- ESTATISTICA.mediana(receita)
-        VARIAVEL desvioPadrao : DECIMAL <- ESTATISTICA.desvioPadrao(receita, VERDADEIRO)
+        VARIAVEL mediaReceita: DECIMAL <- ESTATISTICA.media(receita)
+        VARIAVEL medianaReceita: DECIMAL <- ESTATISTICA.mediana(receita)
+        VARIAVEL desvioPadrao: DECIMAL <- ESTATISTICA.desvioPadrao(receita, VERDADEIRO)
 
         EXIBA "-> Media Mensal: R$ " + TEXTO.deDecimal(mediaReceita) + " mil"
         EXIBA "-> Mediana: R$ " + TEXTO.deDecimal(medianaReceita) + " mil"
         EXIBA "-> Desvio Padrao Amostral: " + TEXTO.deDecimal(desvioPadrao)
 
         EXIBA "2. Correlacao Linear de Pearson (Mes x Receita)..."
-        VARIAVEL correlacao : DECIMAL <- ESTATISTICA.correlacao(meses, receita)
+        VARIAVEL correlacao: DECIMAL <- ESTATISTICA.correlacao(meses, receita)
         EXIBA "-> Coeficiente de Correlacao (r): " + TEXTO.deDecimal(correlacao)
 
         EXIBA "3. Deteccao de Anomalias e Outliers em Amostra Caotica..."
-        VARIAVEL amostraComOutlier : FATIA[DECIMAL] <- [10.0000, 12.0000, 11.0000, 14.0000, 12.0000, 950.0000]
-        VARIAVEL outliersDetectados : FATIA[DECIMAL] <- ESTATISTICA.outliers(amostraComOutlier)
+        VARIAVEL amostraComOutlier: FATIA[DECIMAL] <- [10.0000, 12.0000, 11.0000, 14.0000, 12.0000, 950.0000]
+        VARIAVEL outliersDetectados: FATIA[DECIMAL] <- ESTATISTICA.outliers(amostraComOutlier)
         EXIBA "-> Total de Outliers Identificados pelo Criterio IQR: " + TEXTO.deInteiro(FATIA.tamanho(outliersDetectados))
         EXIBA "-> Valor Anomalo: " + TEXTO.deDecimal(outliersDetectados[0])
 
         EXIBA "4. Modelagem Preditiva via Regressao Linear (Minimos Quadrados)..."
-        VARIAVEL modelo : REGISTRO <- ESTATISTICA.regressao(meses, receita)
+        VARIAVEL modelo: REGISTRO <- ESTATISTICA.regressao(meses, receita)
         EXIBA "-> Inclinacao (a / Coeficiente Angular): " + TEXTO.deDecimal(modelo.inclinacao)
         EXIBA "-> Intercepto (b / Ponto Inicial): " + TEXTO.deDecimal(modelo.intercepto)
         EXIBA "-> Aderencia do Modelo (R2 / Coeficiente de Determinacao): " + TEXTO.deDecimal(modelo.rQuadrado)
 
         # Projeção de Demanda para o Mês 7: Y = a*7 + b
-        VARIAVEL mes7 : DECIMAL <- 7.0000
-        VARIAVEL projecaoMes7 : DECIMAL <- (modelo.inclinacao * mes7) + modelo.intercepto
+        VARIAVEL mes7: DECIMAL <- 7.0000
+        VARIAVEL projecaoMes7: DECIMAL <- (modelo.inclinacao * mes7) + modelo.intercepto
         EXIBA "-> Projecao Estatistica de Faturamento para o Mes 7: R$ " + TEXTO.deDecimal(projecaoMes7) + " mil"
 
         RETORNE VERDADEIRO

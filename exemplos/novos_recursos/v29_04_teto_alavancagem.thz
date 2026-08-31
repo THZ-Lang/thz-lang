@@ -13,8 +13,8 @@ FIM_METADADOS
 REGRA_NEGOCIO ValidarLimiteAlavancagem
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL patrimonioLiquido : DECIMAL <- 1000000.00
-        VARIAVEL exposicaoTotal : DECIMAL <- 2500000.00
+        VARIAVEL patrimonioLiquido: DECIMAL <- 1000000.00
+        VARIAVEL exposicaoTotal: DECIMAL <- 2500000.00
 
         EXIBA "=== MONITORAMENTO DE TETO DE ALAVANCAGEM ==="
         EXIBA "Patrimonio Liquido: R$ " + TEXTO.deDecimal(patrimonioLiquido)

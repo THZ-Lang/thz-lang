@@ -23,9 +23,9 @@ REGRA_NEGOCIO ProcessarOperacoesDiaADia
 
         # 1. PIX (EMVco / BR Code & Validação de Chaves)
         EXIBA "1. Geracao de Payload PIX Copia e Cola com Checksum CRC16..."
-        VARIAVEL chavePix : TEXTO <- "11222333000181"
-        VARIAVEL valorPix : DECIMAL <- 150.5000
-        VARIAVEL pixPayload : TEXTO <- BRASIL.pixCopiaECola(
+        VARIAVEL chavePix: TEXTO <- "11222333000181"
+        VARIAVEL valorPix: DECIMAL <- 150.5000
+        VARIAVEL pixPayload: TEXTO <- BRASIL.pixCopiaECola(
             chavePix,
             "EMPRESA THZ TECNOLOGIA",
             "SAO PAULO",
@@ -37,10 +37,10 @@ REGRA_NEGOCIO ProcessarOperacoesDiaADia
 
         # 2. Boletos Bancários (Validação, Linha Digitável e Código de Barras)
         EXIBA "2. Validacao de Boleto Bancario Febraban e Conversao..."
-        VARIAVEL linhaDigitavel : TEXTO <- "00190.50095 40144.816069 06809.350314 3 37370000000100"
-        VARIAVEL linhaValida : LOGICO <- BRASIL.validarLinhaDigitavel(linhaDigitavel)
-        VARIAVEL codBarras : TEXTO <- BRASIL.linhaParaCodigoBarras(linhaDigitavel)
-        VARIAVEL valorBoleto : DECIMAL <- BRASIL.valorBoleto(linhaDigitavel)
+        VARIAVEL linhaDigitavel: TEXTO <- "00190.50095 40144.816069 06809.350314 3 37370000000100"
+        VARIAVEL linhaValida: LOGICO <- BRASIL.validarLinhaDigitavel(linhaDigitavel)
+        VARIAVEL codBarras: TEXTO <- BRASIL.linhaParaCodigoBarras(linhaDigitavel)
+        VARIAVEL valorBoleto: DECIMAL <- BRASIL.valorBoleto(linhaDigitavel)
 
         EXIBA "-> Linha Digitavel e Valida? " + TEXTO.deLogico(linhaValida)
         EXIBA "-> Codigo de Barras Febraban (44 posicoes): " + codBarras
@@ -59,12 +59,12 @@ REGRA_NEGOCIO ProcessarOperacoesDiaADia
         EXIBA "-> 25/12/2026 (Natal) e Feriado Nacional?             " + TEXTO.deLogico(BRASIL.ehFeriadoNacional("2026-12-25"))
         EXIBA "-> 03/04/2026 (Sexta-Feira Santa) e Dia Util?         " + TEXTO.deLogico(BRASIL.ehDiaUtil("2026-04-03"))
 
-        VARIAVEL proximoUtil : TEXTO <- BRASIL.proximoDiaUtil("2026-04-03")
+        VARIAVEL proximoUtil: TEXTO <- BRASIL.proximoDiaUtil("2026-04-03")
         EXIBA "-> Vencimento caindo na Sexta Santa prorroga para:    " + proximoUtil
 
         # 5. Valor por Extenso em Reais
         EXIBA "5. Escrita de Valor Monetario por Extenso..."
-        VARIAVEL valorExtenso : TEXTO <- BRASIL.valorPorExtenso(1250.5000)
+        VARIAVEL valorExtenso: TEXTO <- BRASIL.valorPorExtenso(1250.5000)
         EXIBA "-> R$ 1.250,50 por Extenso: " + valorExtenso
 
         RETORNE VERDADEIRO

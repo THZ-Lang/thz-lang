@@ -23,21 +23,21 @@ REGRA_NEGOCIO ProcessarSnapshotWorkspace
 
         # 1. Criação do Snapshot Ativo do Workspace
         EXIBA "1. Gerando Snapshot Comprimido do Workspace (Cabecalho THZSNAP)..."
-        VARIAVEL destinoSnap : TEXTO <- ".thz/internal/active_workspace.thzsnap"
-        VARIAVEL caminhoCriado : TEXTO <- SNAPSHOT.criar("exemplos", destinoSnap)
+        VARIAVEL destinoSnap: TEXTO <- ".thz/internal/active_workspace.thzsnap"
+        VARIAVEL caminhoCriado: TEXTO <- SNAPSHOT.criar("exemplos", destinoSnap)
         EXIBA "-> Snapshot Criado com Sucesso em: " + caminhoCriado
 
         # 2. Verificação de Integridade e Cota (< 100MB)
         EXIBA "2. Inspecionando Tamanho e Cota de Seguranca (< 100MB)..."
-        VARIAVEL bytesTamanho : INTEIRO <- SNAPSHOT.tamanho()
+        VARIAVEL bytesTamanho: INTEIRO <- SNAPSHOT.tamanho()
         EXIBA "-> Tamanho Atual do Snapshot: " + TEXTO.deInteiro(bytesTamanho) + " bytes"
 
-        VARIAVEL integro : LOGICO <- SNAPSHOT.verificar(destinoSnap)
+        VARIAVEL integro: LOGICO <- SNAPSHOT.verificar(destinoSnap)
         EXIBA "-> Integridade do Cabecalho Magico Validada? " + TEXTO.deLogico(integro)
 
         # 3. Restauração Simulada
         EXIBA "3. Restaurando Snapshot em Diretorio Alvo..."
-        VARIAVEL restaurado : LOGICO <- SNAPSHOT.restaurar(destinoSnap, ".thz/internal/restaurado_temp")
+        VARIAVEL restaurado: LOGICO <- SNAPSHOT.restaurar(destinoSnap, ".thz/internal/restaurado_temp")
         EXIBA "-> Snapshot Restaurado com Sucesso? " + TEXTO.deLogico(restaurado)
 
         RETORNE VERDADEIRO

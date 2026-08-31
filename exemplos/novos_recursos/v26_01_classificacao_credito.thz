@@ -17,11 +17,11 @@ REGRA_NEGOCIO AvaliarRiscoCliente
 
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL featuresCliente : TEXTO <- "[8500.00, 34.0, 720.0]"
-        VARIAVEL pesosModelo : TEXTO <- "[-0.0002, -0.015, -0.005]"
-        VARIAVEL bias : DECIMAL <- 3.50
+        VARIAVEL featuresCliente: TEXTO <- "[8500.00, 34.0, 720.0]"
+        VARIAVEL pesosModelo: TEXTO <- "[-0.0002, -0.015, -0.005]"
+        VARIAVEL bias: DECIMAL <- 3.50
 
-        VARIAVEL probabilidadeInadimplencia : DECIMAL <- ML.classificar(featuresCliente, pesosModelo, bias)
+        VARIAVEL probabilidadeInadimplencia: DECIMAL <- ML.classificar(featuresCliente, pesosModelo, bias)
 
         EXIBA "=== AVALIACAO DE RISCO DE CREDITO (ML ON-DEVICE) ==="
         EXIBA "Probabilidade calculada de default: " + TEXTO.deDecimal(probabilidadeInadimplencia)

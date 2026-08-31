@@ -74,3 +74,7 @@ Este documento define o contexto técnico, restrições arquiteturais e diretriz
 ## 6. Diretrizes de Testes e Documentação
 * Todos os arquivos de documentação DEVEM estar em português do Brasil (PT-BR).
 * Todos os arquivos de código-fonte e testes DEVEM seguir as diretrizes do AGENTS.md.
+
+## 7. Planos de evolução
+* Antes de alterar gramática, lexer, parser, AST ou codegen, consulte os planos versionados em [`plans/`](plans/), especialmente o [plano de refatoração do parser self-hosted](plans/plano-refatoracao-parser-self-hosted-31082026.md).
+* Ao concluir um marco, atualize o plano correspondente com evidências de testes; não declare paridade sem validação JVM/self-hosted.

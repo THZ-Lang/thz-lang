@@ -19,14 +19,14 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO RegistrarTrilhaAcesso
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL topicoSeguranca : TEXTO <- "seguranca.auditoria.logins"
+        VARIAVEL topicoSeguranca: TEXTO <- "seguranca.auditoria.logins"
         MENSAGERIA.limparTopico(topicoSeguranca)
 
-        VARIAVEL evt : EventoAcesso <- CRIAR EventoAcesso(usuario: "admin_corp", ipOrigem: "192.168.1.100", sucesso: VERDADEIRO)
+        VARIAVEL evt: EventoAcesso <- CRIAR EventoAcesso(usuario: "admin_corp", ipOrigem: "192.168.1.100", sucesso: VERDADEIRO)
         MENSAGERIA.publicar(topicoSeguranca, evt)
 
         EXIBA "=== TRILHA DE AUDITORIA DE SEGURANCA ==="
-        VARIAVEL auditado : EventoAcesso <- MENSAGERIA.consumir(topicoSeguranca, 50)
+        VARIAVEL auditado: EventoAcesso <- MENSAGERIA.consumir(topicoSeguranca, 50)
         EXIBA "Auditoria registrada: Usuario " + auditado.usuario + " de IP " + auditado.ipOrigem
 
         RETORNE VERDADEIRO

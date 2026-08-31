@@ -13,16 +13,16 @@ FIM_METADADOS
 REGRA_NEGOCIO CalcularTarifaConsumo
     OPERACAO Executar() : DECIMAL
     INICIO
-        VARIAVEL consumoKwh : DECIMAL <- 350.00
-        VARIAVEL tarifaTotal : DECIMAL <- 0.00
+        VARIAVEL consumoKwh: DECIMAL <- 350.00
+        VARIAVEL tarifaTotal: DECIMAL <- 0.00
 
         EXIBA "=== CALCULO DE TARIFA ESCALONADA AUDITAVEL ==="
 
         SE consumoKwh <= 100.00 ENTAO
             tarifaTotal <- consumoKwh * 0.40
         SENAO
-            VARIAVEL faixaBase : DECIMAL <- 100.00 * 0.40
-            VARIAVEL excedente : DECIMAL <- (consumoKwh - 100.00) * 0.65
+            VARIAVEL faixaBase: DECIMAL <- 100.00 * 0.40
+            VARIAVEL excedente: DECIMAL <- (consumoKwh - 100.00) * 0.65
             tarifaTotal <- faixaBase + excedente
         FIM_SE
 

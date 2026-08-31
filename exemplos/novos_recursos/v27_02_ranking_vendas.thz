@@ -19,15 +19,15 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO ApurarTopVendedores
     OPERACAO Executar() : INTEIRO
     INICIO
-        VARIAVEL v1 : VendedorScore <- CRIAR VendedorScore(nome: "Carlos Silva", totalVendido: 145000.00, contratosFechados: 12)
-        VARIAVEL v2 : VendedorScore <- CRIAR VendedorScore(nome: "Mariana Souza", totalVendido: 230000.00, contratosFechados: 19)
-        VARIAVEL v3 : VendedorScore <- CRIAR VendedorScore(nome: "Renato Lima", totalVendido: 98000.00, contratosFechados: 8)
-        VARIAVEL v4 : VendedorScore <- CRIAR VendedorScore(nome: "Fernanda Costa", totalVendido: 310000.00, contratosFechados: 25)
+        VARIAVEL v1: VendedorScore <- CRIAR VendedorScore(nome: "Carlos Silva", totalVendido: 145000.00, contratosFechados: 12)
+        VARIAVEL v2: VendedorScore <- CRIAR VendedorScore(nome: "Mariana Souza", totalVendido: 230000.00, contratosFechados: 19)
+        VARIAVEL v3: VendedorScore <- CRIAR VendedorScore(nome: "Renato Lima", totalVendido: 98000.00, contratosFechados: 8)
+        VARIAVEL v4: VendedorScore <- CRIAR VendedorScore(nome: "Fernanda Costa", totalVendido: 310000.00, contratosFechados: 25)
 
-        VARIAVEL time : FATIA[VendedorScore] <- [v1, v2, v3, v4]
+        VARIAVEL time: FATIA[VendedorScore] <- [v1, v2, v3, v4]
 
         # Seleciona os Top 2 vendedores com mais de 10 contratos
-        VARIAVEL podio : FATIA[VendedorScore] <- CONSULTAR DE time
+        VARIAVEL podio: FATIA[VendedorScore] <- CONSULTAR DE time
                                                 ONDE contratosFechados >= 10
                                                 ORDENAR_POR totalVendido DESC
                                                 LIMITE 2

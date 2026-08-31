@@ -6,6 +6,7 @@ import thz.lang.ast.ComandoAst;
 import thz.lang.ast.EnumeracaoAst;
 import thz.lang.ast.EstruturaAst;
 import thz.lang.ast.ExprAst;
+import thz.lang.ast.FuncaoAst;
 import thz.lang.ast.MetadadosArquiteturaAst;
 import thz.lang.ast.OperacaoAst;
 import thz.lang.ast.ProcedimentoAst;
@@ -28,6 +29,8 @@ public final class JsonEscritor {
         sb.append("  \"regras\": ").append(lista(p.regras(), JsonEscritor::regraJson)).append(",\n");
         sb.append("  \"procedimentos\": ")
                 .append(lista(p.procedimentos() == null ? List.of() : p.procedimentos(), JsonEscritor::procJson))
+                .append(",\n  \"funcoes\": ")
+                .append(lista(p.funcoes() == null ? List.of() : p.funcoes(), JsonEscritor::funcaoJson))
                 .append("\n");
         sb.append("}");
         return sb.toString();
@@ -83,6 +86,12 @@ public final class JsonEscritor {
         return "{\"nome\": " + q(p.nome()) + ", \"parametros\": "
                 + lista(p.parametros(), v -> "{\"nome\": " + q(v.nome()) + ", \"tipo\": " + q(v.tipo()) + "}")
                 + ", \"corpo\": " + lista(p.corpo(), JsonEscritor::cmdJson) + "}";
+    }
+
+    private static String funcaoJson(FuncaoAst f) {
+        return "{\"nome\": " + q(f.nome()) + ", \"parametros\": "
+                + lista(f.parametros(), v -> "{\"nome\": " + q(v.nome()) + ", \"tipo\": " + q(v.tipo()) + "}")
+                + ", \"tipoRetorno\": " + q(f.tipoRetorno()) + ", \"corpo\": " + lista(f.corpo(), JsonEscritor::cmdJson) + "}";
     }
 
     private static String cmdJson(ComandoAst c) {

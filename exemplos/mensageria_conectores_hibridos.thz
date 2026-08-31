@@ -28,18 +28,18 @@ REGRA_NEGOCIO ProcessarFilaUniversal
         EXIBA "Status de Conexao: " + TEXTO.deLogico(MENSAGERIA.statusConexao())
         EXIBA "URL do Broker: " + MENSAGERIA.urlAtiva()
 
-        VARIAVEL topico : TEXTO <- "pix.transferencias"
+        VARIAVEL topico: TEXTO <- "pix.transferencias"
         MENSAGERIA.limparTopico(topico)
 
         # Publica mensagem estruturada no broker ativo (RabbitMQ/Kafka/SQS ou Embutido)
-        VARIAVEL tx : TransacaoPix <- CRIAR TransacaoPix(idTransacao: "TX-9988", chavePix: "financeiro@empresa.com", valor: 1250.00)
-        VARIAVEL offset : INTEIRO <- MENSAGERIA.publicar(topico, tx)
+        VARIAVEL tx: TransacaoPix <- CRIAR TransacaoPix(idTransacao: "TX-9988", chavePix: "financeiro@empresa.com", valor: 1250.00)
+        VARIAVEL offset: INTEIRO <- MENSAGERIA.publicar(topico, tx)
 
         EXIBA "Mensagem publicada com sucesso! Offset: " + TEXTO.deInteiro(offset)
         EXIBA "Tamanho atual da fila: " + TEXTO.deInteiro(MENSAGERIA.tamanhoFila(topico))
 
         # Consome da fila com timeout de 100ms
-        VARIAVEL recebida : TransacaoPix <- MENSAGERIA.consumir(topico, 100)
+        VARIAVEL recebida: TransacaoPix <- MENSAGERIA.consumir(topico, 100)
         EXIBA "Mensagem consumida: " + recebida.idTransacao + " | Valor: R$ " + TEXTO.deDecimal(recebida.valor)
 
         RETORNE VERDADEIRO

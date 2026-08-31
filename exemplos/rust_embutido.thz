@@ -33,13 +33,13 @@ REGRA_NEGOCIO ProcessarCalculosNativos
         EXIBA "Ambiente: " + NATIVO.versao_rust()
 
         # Chamada direta para função nativa Rust
-        VARIAVEL a : INTEIRO <- 500000
-        VARIAVEL b : INTEIRO <- 250000
-        VARIAVEL total : INTEIRO <- NATIVO.somar_rapido(a, b)
+        VARIAVEL a: INTEIRO <- 500000
+        VARIAVEL b: INTEIRO <- 250000
+        VARIAVEL total: INTEIRO <- NATIVO.somar_rapido(a, b)
         EXIBA "Soma Nativa Rust (500k + 250k): " + TEXTO.deInteiro(total)
 
-        VARIAVEL chave : INTEIRO <- 123456789
-        VARIAVEL hashNativo : INTEIRO <- NATIVO.calcular_hash_customizado(chave)
+        VARIAVEL chave: INTEIRO <- 123456789
+        VARIAVEL hashNativo: INTEIRO <- NATIVO.calcular_hash_customizado(chave)
         EXIBA "Hash Bitwise Rust: " + TEXTO.deInteiro(hashNativo)
 
         RETORNE VERDADEIRO

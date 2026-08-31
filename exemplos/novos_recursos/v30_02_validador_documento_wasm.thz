@@ -14,11 +14,11 @@ REGRA_NEGOCIO ValidarDigitoVerificador
     OPERACAO Executar() : LOGICO
     INICIO
         EXIBA "=== VALIDACAO NUMERICA NO TARGET WEBASSEMBLY / EDGE ==="
-        VARIAVEL baseDoc : INTEIRO <- 12345678
-        VARIAVEL dvEsperado : INTEIRO <- 9
+        VARIAVEL baseDoc: INTEIRO <- 12345678
+        VARIAVEL dvEsperado: INTEIRO <- 9
 
-        VARIAVEL resto : INTEIRO <- baseDoc % 11
-        VARIAVEL valido : LOGICO <- (resto = dvEsperado)
+        VARIAVEL resto: INTEIRO <- baseDoc % 11
+        VARIAVEL valido: LOGICO <- (resto = dvEsperado)
 
         EXIBA "Documento Base: " + TEXTO.deInteiro(baseDoc)
         EXIBA "Digito Verificador: " + TEXTO.deInteiro(resto)

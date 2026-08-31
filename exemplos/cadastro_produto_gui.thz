@@ -63,8 +63,8 @@ REGRA_NEGOCIO GestaoEstoque
 
     OPERACAO SalvarProduto(sku: TEXTO, nomeProduto: TEXTO, categoria: CategoriaProduto, precoCusto: DECIMAL(12, 2), margemLucroPercentual: DECIMAL(5, 2), controladoPorLote: LOGICO, lotesDisponiveis: FATIA[LoteEstoque], especificacoesTecnicas: TEXTO): TEXTO
     INICIO
-        VARIAVEL lucroUnitario : DECIMAL(12, 2) <- precoCusto * (margemLucroPercentual / 100.00)
-        VARIAVEL precoVendaSugerido : DECIMAL(12, 2) <- precoCusto + lucroUnitario
+        VARIAVEL lucroUnitario: DECIMAL(12, 2) <- precoCusto * (margemLucroPercentual / 100.00)
+        VARIAVEL precoVendaSugerido: DECIMAL(12, 2) <- precoCusto + lucroUnitario
 
         EXIBA "[PRODUTO] SKU: " + sku + " | Categoria: " + categoria + " | Venda Sugerida: R$ " + precoVendaSugerido
         RETORNE "Produto [" + sku + "] cadastrado com sucesso! Preço Venda Sugerido: R$ " + precoVendaSugerido + " (Margem: " + margemLucroPercentual + "%)."
@@ -82,12 +82,12 @@ REGRA_NEGOCIO Inicializacao
 
     OPERACAO MontarTela(): TEXTO
     INICIO
-        VARIAVEL lote1 : LoteEstoque <- CRIAR LoteEstoque(numeroLote: "LOT-2026-A1", quantidade: 50, deposito: "Armazém Central SP")
-        VARIAVEL lote2 : LoteEstoque <- CRIAR LoteEstoque(numeroLote: "LOT-2026-B2", quantidade: 30, deposito: "Filial Sul Curitiba")
+        VARIAVEL lote1: LoteEstoque <- CRIAR LoteEstoque(numeroLote: "LOT-2026-A1", quantidade: 50, deposito: "Armazém Central SP")
+        VARIAVEL lote2: LoteEstoque <- CRIAR LoteEstoque(numeroLote: "LOT-2026-B2", quantidade: 30, deposito: "Filial Sul Curitiba")
 
-        VARIAVEL fLotes : FATIA[LoteEstoque] <- [lote1, lote2]
+        VARIAVEL fLotes: FATIA[LoteEstoque] <- [lote1, lote2]
 
-        VARIAVEL form : FormularioProduto <- CRIAR FormularioProduto(
+        VARIAVEL form: FormularioProduto <- CRIAR FormularioProduto(
             titulo: "Ficha Cadastral de Produto & Estoque — THZ GUI",
             sku: "SWT-CORE-10G",
             nomeProduto: "Switch Gerenciável L3 48 Portas PoE+",
@@ -101,7 +101,7 @@ REGRA_NEGOCIO Inicializacao
             especificacoesTecnicas: "Suporte a VLANs 802.1Q, roteamento estático/OSPF, 4 portas uplink SFP+ 10Gbps, fonte redundante hot-swap."
         )
 
-        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "GestaoEstoque.SalvarProduto")
+        VARIAVEL status: TEXTO <- TELA.renderizarFormulario(form, "GestaoEstoque.SalvarProduto")
         EXIBA status
         RETORNE status
     FIM

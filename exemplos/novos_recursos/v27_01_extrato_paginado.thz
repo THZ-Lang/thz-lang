@@ -19,16 +19,16 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO ObterSegundaPaginaExtrato
     OPERACAO Executar() : INTEIRO
     INICIO
-        VARIAVEL l1 : LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "PIX Recebido", valor: 1500.00, tipo: "CREDITO")
-        VARIAVEL l2 : LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "Supermercado", valor: 320.50, tipo: "DEBITO")
-        VARIAVEL l3 : LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "Pagamento Aluguel", valor: 2200.00, tipo: "DEBITO")
-        VARIAVEL l4 : LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "TED Salario", valor: 8500.00, tipo: "CREDITO")
-        VARIAVEL l5 : LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "Assinatura Streaming", valor: 45.90, tipo: "DEBITO")
+        VARIAVEL l1: LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "PIX Recebido", valor: 1500.00, tipo: "CREDITO")
+        VARIAVEL l2: LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "Supermercado", valor: 320.50, tipo: "DEBITO")
+        VARIAVEL l3: LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "Pagamento Aluguel", valor: 2200.00, tipo: "DEBITO")
+        VARIAVEL l4: LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "TED Salario", valor: 8500.00, tipo: "CREDITO")
+        VARIAVEL l5: LancamentoExtrato <- CRIAR LancamentoExtrato(descricao: "Assinatura Streaming", valor: 45.90, tipo: "DEBITO")
 
-        VARIAVEL todosLancamentos : FATIA[LancamentoExtrato] <- [l1, l2, l3, l4, l5]
+        VARIAVEL todosLancamentos: FATIA[LancamentoExtrato] <- [l1, l2, l3, l4, l5]
 
         # Paginacao LINQ: pular os 2 primeiros e pegar os 2 seguintes ordenados por valor desc
-        VARIAVEL pagina2 : FATIA[LancamentoExtrato] <- CONSULTAR DE todosLancamentos
+        VARIAVEL pagina2: FATIA[LancamentoExtrato] <- CONSULTAR DE todosLancamentos
                                                        ORDENAR_POR valor DESC
                                                        PULAR 2
                                                        LIMITE 2

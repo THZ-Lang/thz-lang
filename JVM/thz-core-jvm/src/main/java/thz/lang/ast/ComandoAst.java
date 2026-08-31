@@ -15,6 +15,7 @@ public sealed interface ComandoAst permits
         ComandoAst.Chamada,
         ComandoAst.Retorne,
         ComandoAst.FalharCom,
+        ComandoAst.Tente,
         ComandoAst.CasoResultado {
 
     int linha();
@@ -32,5 +33,6 @@ public sealed interface ComandoAst permits
     record Chamada(ExprAst expressao, int linha, int coluna) implements ComandoAst {}
     record Retorne(ExprAst expressao, int linha, int coluna) implements ComandoAst {}
     record FalharCom(ExprAst expressao, int linha, int coluna) implements ComandoAst {}
+    record Tente(List<ComandoAst> corpoTente, String tipoCaptura, List<ComandoAst> corpoCapture, int linha, int coluna) implements ComandoAst {}
     record CasoResultado(ExprAst alvo, String varSucesso, List<ComandoAst> corpoSucesso, String varErro, List<ComandoAst> corpoErro, int linha, int coluna) implements ComandoAst {}
 }

@@ -23,25 +23,25 @@ FIM_ESTRUTURA
 REGRA_NEGOCIO ProcessarStreamingEntregas
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL topico : TEXTO <- "entregas.status"
+        VARIAVEL topico: TEXTO <- "entregas.status"
         MENSAGERIA.limparTopico(topico)
 
         # 1. Publicação assíncrona de eventos de logística
-        VARIAVEL evt1 : EventoEntrega <- CRIAR EventoEntrega(codigoRastreio: "BR-987123", status: "EM_TRANSITO", tentativas: 1)
-        VARIAVEL evt2 : EventoEntrega <- CRIAR EventoEntrega(codigoRastreio: "BR-456789", status: "ENTREGUE", tentativas: 1)
+        VARIAVEL evt1: EventoEntrega <- CRIAR EventoEntrega(codigoRastreio: "BR-987123", status: "EM_TRANSITO", tentativas: 1)
+        VARIAVEL evt2: EventoEntrega <- CRIAR EventoEntrega(codigoRastreio: "BR-456789", status: "ENTREGUE", tentativas: 1)
 
-        VARIAVEL off1 : INTEIRO <- MENSAGERIA.publicar(topico, evt1)
-        VARIAVEL off2 : INTEIRO <- MENSAGERIA.publicar(topico, evt2)
+        VARIAVEL off1: INTEIRO <- MENSAGERIA.publicar(topico, evt1)
+        VARIAVEL off2: INTEIRO <- MENSAGERIA.publicar(topico, evt2)
 
         EXIBA "Publicado evento 1 no offset: " + TEXTO.deInteiro(off1)
         EXIBA "Publicado evento 2 no offset: " + TEXTO.deInteiro(off2)
         EXIBA "Eventos pendentes na fila: " + TEXTO.deInteiro(MENSAGERIA.tamanhoFila(topico))
 
         # 2. Consumo reativo
-        VARIAVEL recebido1 : EventoEntrega <- MENSAGERIA.consumir(topico, 100)
+        VARIAVEL recebido1: EventoEntrega <- MENSAGERIA.consumir(topico, 100)
         EXIBA "Processando evento: Rastreio " + recebido1.codigoRastreio + " | Status: " + recebido1.status
 
-        VARIAVEL recebido2 : EventoEntrega <- MENSAGERIA.consumir(topico, 100)
+        VARIAVEL recebido2: EventoEntrega <- MENSAGERIA.consumir(topico, 100)
         EXIBA "Processando evento: Rastreio " + recebido2.codigoRastreio + " | Status: " + recebido2.status
 
         RETORNE VERDADEIRO

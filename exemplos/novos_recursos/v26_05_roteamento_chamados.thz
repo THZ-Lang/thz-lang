@@ -17,12 +17,12 @@ REGRA_NEGOCIO TriarTicketChamado
 
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL chamadoRecebido : TEXTO <- "Meu boleto veio com valor duplicado e cobranca indevida"
-        VARIAVEL topicoFinanceiro : TEXTO <- "Duvidas sobre cobranca, fatura, boleto e pagamentos"
-        VARIAVEL topicoTecnico : TEXTO <- "Erro de conexao com servidor e lentidao no sistema"
+        VARIAVEL chamadoRecebido: TEXTO <- "Meu boleto veio com valor duplicado e cobranca indevida"
+        VARIAVEL topicoFinanceiro: TEXTO <- "Duvidas sobre cobranca, fatura, boleto e pagamentos"
+        VARIAVEL topicoTecnico: TEXTO <- "Erro de conexao com servidor e lentidao no sistema"
 
-        VARIAVEL simFinanceiro : DECIMAL <- IA.similaridade(chamadoRecebido, topicoFinanceiro)
-        VARIAVEL simTecnico : DECIMAL <- IA.similaridade(chamadoRecebido, topicoTecnico)
+        VARIAVEL simFinanceiro: DECIMAL <- IA.similaridade(chamadoRecebido, topicoFinanceiro)
+        VARIAVEL simTecnico: DECIMAL <- IA.similaridade(chamadoRecebido, topicoTecnico)
 
         EXIBA "=== ROTEAMENTO INTELIGENTE DE ATENDIMENTO ==="
         EXIBA "Similaridade com Fila Financeira: " + TEXTO.deDecimal(simFinanceiro)

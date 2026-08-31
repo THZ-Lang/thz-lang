@@ -47,14 +47,14 @@ REGRA_NEGOCIO MotorLiquidacaoVetorizada
 
     OPERACAO ProcessarLoteArena(lote: FATIA[TransacaoFinanceira]): RelatorioLiquidacao
     INICIO
-        VARIAVEL qtd_itens : INTEIRO64 <- 0
-        VARIAVEL vol_total : DECIMAL(18, 4) <- 0.0000
-        VARIAVEL spread_total : DECIMAL(18, 4) <- 0.0000
+        VARIAVEL qtd_itens: INTEIRO64 <- 0
+        VARIAVEL vol_total: DECIMAL(18, 4) <- 0.0000
+        VARIAVEL spread_total: DECIMAL(18, 4) <- 0.0000
 
         # Alocação contígua em Arena (Descarte O(1) em memória efêmera)
         USAR_BLOCO_MEMORIA ArenaTransacoesSIMD FACA
             VETORIZAR_PARA tx EM lote PASSO_SIMD 8
-                VARIAVEL taxa_item : DECIMAL(18, 4) <- tx.valor_bruto * tx.taxa_spread
+                VARIAVEL taxa_item: DECIMAL(18, 4) <- tx.valor_bruto * tx.taxa_spread
                 tx.valor_liquidado <- tx.valor_bruto - taxa_item
                 tx.processado <- VERDADEIRO
 
@@ -64,7 +64,7 @@ REGRA_NEGOCIO MotorLiquidacaoVetorizada
             FIM_PARA
         FIM_BLOCO_MEMORIA
 
-        VARIAVEL rel : RelatorioLiquidacao <- CRIAR RelatorioLiquidacao(
+        VARIAVEL rel: RelatorioLiquidacao <- CRIAR RelatorioLiquidacao(
             total_processado: qtd_itens,
             volume_financeiro: vol_total,
             total_taxas: spread_total

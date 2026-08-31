@@ -40,7 +40,8 @@ Declaracao        ::= Importacao
                     | DeclaracaoEnum
                     | RegraNegocio
                     | DeclaracaoPipelineBloco
-                    | Procedimento ;
+                    | Procedimento
+                    | Funcao ;
 
 Importacao        ::= "IMPORTAR" IdentificadorLista "DE" STRING_LITERAL ;
 IdentificadorLista::= IDENTIFICADOR ("," IDENTIFICADOR)* ;
@@ -87,6 +88,7 @@ PropriedadeItem     ::= IDENTIFICADOR ":" (STRING_LITERAL | NUMERO | IDENTIFICAD
 
 ```ebnf
 Procedimento       ::= "PROCEDIMENTO" IDENTIFICADOR "(" Parametros? ")" (":" TipoDado)? BlocoCodigo "FIM" ;
+Funcao             ::= "FUNCAO" IDENTIFICADOR "(" Parametros? ")" ":" TipoDado ("=" Expressao | Comando* "FIM_FUNCAO") ;
 Parametros         ::= Parametro ("," Parametro)* ;
 Parametro          ::= IDENTIFICADOR ":" TipoDado ;
 
@@ -117,10 +119,10 @@ BlocoMemoria       ::= "USAR_BLOCO_MEMORIA" STRING_LITERAL ("," Expressao)? "FAC
 RetornoResultado   ::= "RETORNAR" ("RESULTADO" "(" Expressao ")" | Expressao)? ;
 FalhaResultado     ::= "FALHAR_COM" "(" Expressao ")" ;
 
-CasoResultadoComando ::= "CASO_RESULTADO" Expressao
-                         "SUCESSO" IDENTIFICADOR "=>" Comando*
-                         "ERRO" IDENTIFICADOR "=>" Comando*
-                       "FIM_CASO" ;
+CasoResultadoComando ::= ("ESCOLHA" | "CASO_RESULTADO") Expressao
+                         ("CASO")? "SUCESSO" "(" IDENTIFICADOR ")" "->" Comando*
+                         ("CASO")? ("FALHA" | "ERRO") "(" IDENTIFICADOR ")" "->" Comando*
+                       ("FIM_ESCOLHA" | "FIM_CASO") ;
 ```
 
 ---

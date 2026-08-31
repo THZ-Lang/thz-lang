@@ -17,11 +17,11 @@ REGRA_NEGOCIO EstimarLtvFuturo
 
     OPERACAO Executar() : LOGICO
     INICIO
-        VARIAVEL metricas : TEXTO <- "[24.0, 350.00, 9.0]"
-        VARIAVEL coeficientes : TEXTO <- "[120.0, 3.5, 45.0]"
-        VARIAVEL intercepto : DECIMAL <- 500.00
+        VARIAVEL metricas: TEXTO <- "[24.0, 350.00, 9.0]"
+        VARIAVEL coeficientes: TEXTO <- "[120.0, 3.5, 45.0]"
+        VARIAVEL intercepto: DECIMAL <- 500.00
 
-        VARIAVEL ltvEstimado : DECIMAL <- ML.predizer(metricas, coeficientes, intercepto)
+        VARIAVEL ltvEstimado: DECIMAL <- ML.predizer(metricas, coeficientes, intercepto)
 
         EXIBA "=== PREVISAO DE LIFETIME VALUE (LTV) ==="
         EXIBA "LTV Estimado para o cliente: R$ " + TEXTO.deDecimal(ltvEstimado)

@@ -276,6 +276,24 @@ public final class ThzCompilerFacade {
             }
         }
 
+        // Funções reutilizáveis
+        if (ast.funcoes() != null) {
+            for (var funcao : ast.funcoes()) {
+                int[] pf = primeiraPos.apply(funcao.nome());
+                String assinatura = funcao.parametros() != null
+                        ? funcao.parametros().stream().map(p -> p.nome() + ": " + p.tipo()).collect(Collectors.joining(", "))
+                        : "";
+                assinatura += " : " + funcao.tipoRetorno();
+                simbolos.add(new Simbolo(funcao.nome(), "funcao", assinatura, pf[0], pf[1], null));
+                if (funcao.parametros() != null) {
+                    for (var param : funcao.parametros()) {
+                        int[] pp = primeiraPos.apply(param.nome());
+                        simbolos.add(new Simbolo(param.nome(), "parametro", param.tipo(), pp[0], pp[1], funcao.nome()));
+                    }
+                }
+            }
+        }
+
         return simbolos;
     }
 
@@ -326,6 +344,7 @@ public final class ThzCompilerFacade {
             case "membro-enum" -> "**membro** `" + palavra + "` : `" + (s.container() != null ? s.container() : "ENUMERACAO") + "`";
             case "regra" -> "**REGRA_NEGOCIO** `" + palavra + "`";
             case "operacao" -> "**OPERACAO** `" + palavra + "(" + (s.detalhe() != null ? s.detalhe() : "") + ")` — em `" + (s.container() != null ? s.container() : "") + "`";
+            case "funcao" -> "**FUNCAO** `" + palavra + "(" + (s.detalhe() != null ? s.detalhe() : "") + ")`";
             case "parametro" -> "**parametro** `" + palavra + "` : `" + (s.detalhe() != null ? s.detalhe() : "?") + "`";
             case "variavel" -> "**variavel** `" + palavra + "` : `" + (s.detalhe() != null ? s.detalhe() : "?") + "`";
             case "programa" -> "**PROGRAMA** `" + palavra + "`";

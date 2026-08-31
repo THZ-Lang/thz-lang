@@ -53,29 +53,29 @@ REGRA_NEGOCIO AutenticacaoCriptografica
         LOG.info("Iniciando processo de autenticacao para usuario: " + credencial.nome_usuario)
 
         # 1. Validação de senha via hash seguro
-        VARIAVEL senha_valida : LOGICO <- SEGURANCA.verificarSenha(senha_digitada, credencial.hash_senha)
+        VARIAVEL senha_valida: LOGICO <- SEGURANCA.verificarSenha(senha_digitada, credencial.hash_senha)
         SE NAO senha_valida
             LOG.erro("Tentativa de acesso invalida para: " + credencial.nome_usuario)
             FALHAR_COM "Falha de autenticacao: credenciais incorretas."
         FIM_SE
 
         # 2. Geração de identificadores criptográficos
-        VARIAVEL novo_token : TEXTO <- SEGURANCA.gerarToken(32)
-        VARIAVEL id_sessao  : TEXTO <- SEGURANCA.uuid()
+        VARIAVEL novo_token: TEXTO <- SEGURANCA.gerarToken(32)
+        VARIAVEL id_sessao: TEXTO <- SEGURANCA.uuid()
 
         # 3. Assinatura e integridade com HMAC-SHA256 e SHA-256
-        VARIAVEL assinatura_hmac : TEXTO <- SEGURANCA.hmacSha256(novo_token, credencial.chave_secreta)
-        VARIAVEL hash_integridade : TEXTO <- SEGURANCA.sha256(credencial.nome_usuario + "|" + id_sessao)
+        VARIAVEL assinatura_hmac: TEXTO <- SEGURANCA.hmacSha256(novo_token, credencial.chave_secreta)
+        VARIAVEL hash_integridade: TEXTO <- SEGURANCA.sha256(credencial.nome_usuario + "|" + id_sessao)
 
         # 4. Criptografia simétrica AES-256 para dados sensíveis
-        VARIAVEL dados_sensiveis : TEXTO <- "PERMISSAO=" + credencial.nivel + ";ORIGEM=COCKPIT_CENTRAL;HORA=2026-08-24"
-        VARIAVEL payload_encriptado : TEXTO <- SEGURANCA.criptografarAes(dados_sensiveis, chave_aes_256)
-        VARIAVEL payload_conferido  : TEXTO <- SEGURANCA.descriptografarAes(payload_encriptado, chave_aes_256)
+        VARIAVEL dados_sensiveis: TEXTO <- "PERMISSAO=" + credencial.nivel + ";ORIGEM=COCKPIT_CENTRAL;HORA=2026-08-24"
+        VARIAVEL payload_encriptado: TEXTO <- SEGURANCA.criptografarAes(dados_sensiveis, chave_aes_256)
+        VARIAVEL payload_conferido: TEXTO <- SEGURANCA.descriptografarAes(payload_encriptado, chave_aes_256)
 
         # 5. Registro formal de auditoria
         LOG.auditoria("AUTENTICACAO_SUCESSO", credencial.nome_usuario, "Sessao: " + id_sessao + " | Nivel: " + credencial.nivel)
 
-        VARIAVEL sessao : SessaoAutenticada <- CRIAR SessaoAutenticada(
+        VARIAVEL sessao: SessaoAutenticada <- CRIAR SessaoAutenticada(
             id_sessao: id_sessao,
             usuario_id: credencial.usuario_id,
             token_jwt_hmac: assinatura_hmac,

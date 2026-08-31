@@ -14,7 +14,8 @@ public record ProgramaAst(
         List<RegraNegocioAst> regras,
         List<ProcedimentoAst> procedimentos,
         DialetoLinguagem dialeto,
-        List<String> blocosRust) {
+        List<String> blocosRust,
+        List<FuncaoAst> funcoes) {
 
     public ProgramaAst(
             TipoModulo tipoModulo,
@@ -27,7 +28,7 @@ public record ProgramaAst(
             List<RegraNegocioAst> regras,
             List<ProcedimentoAst> procedimentos,
             DialetoLinguagem dialeto) {
-        this(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos, dialeto, List.of());
+        this(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos, dialeto, List.of(), List.of());
     }
 
     public ProgramaAst(
@@ -40,7 +41,15 @@ public record ProgramaAst(
             List<EnumeracaoAst> enumeracoes,
             List<RegraNegocioAst> regras,
             List<ProcedimentoAst> procedimentos) {
-        this(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos, DialetoLinguagem.PT_BR, List.of());
+        this(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos, DialetoLinguagem.PT_BR, List.of(), List.of());
+    }
+
+    public ProgramaAst(TipoModulo tipoModulo, String nome, String versaoLinguagem, List<ImportacaoAst> importacoes,
+            MetadadosArquiteturaAst metadados, List<EstruturaAst> estruturas, List<EnumeracaoAst> enumeracoes,
+            List<RegraNegocioAst> regras, List<ProcedimentoAst> procedimentos, DialetoLinguagem dialeto,
+            List<String> blocosRust) {
+        this(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras,
+                procedimentos, dialeto, blocosRust, List.of());
     }
 
     public ProgramaAst(

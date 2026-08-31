@@ -39,6 +39,22 @@ public class AnalisadorSemanticoEstritoTest {
     }
 
     @Test
+    @DisplayName("Modo reduzido deve aceitar ferramenta sem metadados arquiteturais")
+    void testModoReduzidoSemMetadados() {
+        String src = """
+                FERRAMENTA Utilitario
+                PROCEDIMENTO Principal()
+                INICIO
+                    EXIBA "ok"
+                FIM
+                FIM_FERRAMENTA
+                """;
+
+        List<ErroSemantico> erros = new AnalisadorSemantico(parse(src)).analisar(new OpcoesAnalise(false));
+        assertTrue(erros.isEmpty(), "Ferramentas em modo reduzido não devem exigir metadados: " + erros);
+    }
+
+    @Test
     @DisplayName("AnalisadorSemantico deve validar tipagem de expresses aritmticas e atribuies")
     void testTipagemExpressoes() {
         String srcValido = """

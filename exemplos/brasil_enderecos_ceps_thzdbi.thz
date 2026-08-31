@@ -23,7 +23,7 @@ REGRA_NEGOCIO ProcessarEnderecosCeps
 
         # 1. Consulta Offline no Banco Interno Protegido (.thzdbi)
         EXIBA "1. Consultando CEPs no Banco Interno .thzdbi (Zero Conexao Externa)..."
-        VARIAVEL endPaulista : REGISTRO <- BRASIL.consultarCep("01310-100")
+        VARIAVEL endPaulista: REGISTRO <- BRASIL.consultarCep("01310-100")
         EXIBA "-> CEP: " + endPaulista.cep
         EXIBA "-> Logradouro: " + endPaulista.logradouro
         EXIBA "-> Bairro: " + endPaulista.bairro
@@ -32,7 +32,7 @@ REGRA_NEGOCIO ProcessarEnderecosCeps
 
         # 2. Cadastro Offline de Novos CEPs no .thzdbi
         EXIBA "2. Registrando Novo CEP no Banco Interno .thzdbi..."
-        VARIAVEL cadastrado : LOGICO <- BRASIL.cadastrarCep(
+        VARIAVEL cadastrado: LOGICO <- BRASIL.cadastrarCep(
             "13010-002",
             "Rua General Osorio",
             "Centro",
@@ -43,12 +43,12 @@ REGRA_NEGOCIO ProcessarEnderecosCeps
         )
         EXIBA "-> CEP Cadastrado no .thzdbi com Sucesso? " + TEXTO.deLogico(cadastrado)
 
-        VARIAVEL endCampinas : REGISTRO <- BRASIL.consultarCep("13010-002")
+        VARIAVEL endCampinas: REGISTRO <- BRASIL.consultarCep("13010-002")
         EXIBA "-> Consulta de Confirmacao: " + endCampinas.logradouro + ", " + endCampinas.cidade + "/" + endCampinas.uf
 
         # 3. Formatação Canônica de Endereço Padrão Correios / ABNT
         EXIBA "3. Formatacao Canonica de Endereco Completo..."
-        VARIAVEL enderecoCompleto : TEXTO <- BRASIL.formatarEndereco(
+        VARIAVEL enderecoCompleto: TEXTO <- BRASIL.formatarEndereco(
             "Avenida Paulista",
             "1000",
             "Conjunto 142",
