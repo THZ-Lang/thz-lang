@@ -22,8 +22,8 @@ Não faz parte desta etapa alterar a semântica da linguagem, remover compatibil
 
 ### Fase A — Infraestrutura
 
-- [ ] Definir estruturas `Token`, `DiagnosticoSintatico`, `CursorTokens` e nós-base da AST em `ast.thz`.
-- [ ] Implementar `atual`, `avancar`, `aceitar`, `exigir`, `estaEm`, `erro` e `sincronizar`.
+- [x] Definir estruturas `Token`, `DiagnosticoSintatico`, `CursorTokens` e nós-base da AST em `ast.thz`.
+- [x] Implementar `aceitar`, `exigir` e `estaEm` sobre o token atual; `avancar`, limite/EOF, registro de erro e sincronização já possuem primitivas iniciais. `DefinirTokenAtual` cria a ponte para o lexer/driver alimentar `tipo_atual`/`lexema_atual`; a leitura da lista ainda será integrada.
 - [ ] Garantir que avanço após EOF seja seguro e idempotente.
 
 ### Fase B — Declarações de módulo
