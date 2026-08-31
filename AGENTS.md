@@ -30,7 +30,8 @@ Este documento define o contexto técnico, restrições arquiteturais e diretriz
    * Estruturas com modificador `LAYOUT_COLUNAR` operam sob modelo *Structure of Arrays* (SoA) para viabilizar vetorização SIMD (AVX2/AVX-512).
 
 3. **Arquitetura Viva e Contratos Formais (ISO/IEC/IEEE 42010 & ISO/IEC TR 24772):**
-   * O bloco `METADADOS_ARQUITETURA` é obrigatório em programas corporativos.
+   * O bloco `METADADOS_ARQUITETURA` é obrigatório em programas corporativos, módulos de domínio e componentes sujeitos a rastreabilidade ou auditoria. Bibliotecas utilitárias, ferramentas internas e scripts pequenos podem usar uma forma reduzida da linguagem.
+   * `REGRA_NEGOCIO` deve ser exigido quando houver comportamento corporativo, contratos formais ou rastreabilidade de requisitos; não deve ser imposto a código utilitário sem regras de negócio.
    * Cláusulas `EXIGE` (pré-condições) e `GARANTE` (pós-condições) devem ser validadas em tempo de execução/compilação, gerando falhas explícitas em caso de violação.
 
 ---
@@ -72,4 +73,4 @@ Este documento define o contexto técnico, restrições arquiteturais e diretriz
 
 ## 6. Diretrizes de Testes e Documentação
 * Todos os arquivos de documentação DEVEM estar em português do Brasil (PT-BR).
-* Todos os arquivos de código-fonte e testes DEVEM seguir as diretrizes do AGENTS.md.
+* Todos os arquivos de código-fonte e testes DEVEM seguir as diretrizes do AGENTS.md.

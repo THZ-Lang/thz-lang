@@ -31,6 +31,12 @@ Linguagem de programação corporativa orientada a domínio (DDD), contratos for
 4. **Arquitetura Viva & Big Data:** Extração direta de metadados arquiteturais (ISO/IEC/IEEE 42010), diagramas C4 e suporte a pipelines de dados em lote e tempo real (`PIPELINE_DADOS`).
 5. **Autonomia AOT & Self-Hosting:** Compilador self-hosted em THZ (`compilador/*.thz`), backend LLVM IR/Clang 22, runtime nativo C Dual-OS (`src/runtime/thz_runtime.c`) e geração de binários nativos sem dependência de JVM.
 
+### 1.1 Escopo da Governança Corporativa
+
+Para evitar burocracia desnecessária, `METADADOS_ARQUITETURA` e `REGRA_NEGOCIO` não precisam ser obrigatórios em todos os arquivos THZ-LANG. Eles são obrigatórios em programas corporativos, módulos de domínio e componentes sujeitos a rastreabilidade, auditoria ou contratos formais.
+
+Bibliotecas utilitárias, ferramentas internas e scripts pequenos podem usar uma forma reduzida da linguagem, mantendo a tipagem, a segurança financeira e os contratos quando aplicáveis. Essa distinção preserva a essência corporativa da THZ-LANG sem impor cerimônia arquitetural a código simples.
+
 ---
 
 ## 2. Código Canônico de Referência (`exemplos/faturamento.thz`)
