@@ -1,5 +1,7 @@
 # TODO — THZ-LANG Roadmap & Backlog
 
+> Estado revisado em 02/09/2026: o caminho oficial é JVM para compilação/interpretação e Rust para runtime/AOT/performance; `compilador/` é apenas experimento hospedado.
+
 Este documento mantém o estado atualizado dos marcos alcançados e das metas futuras do ecossistema **THZ-LANG**.
 
 ---
@@ -18,8 +20,8 @@ Este documento mantém o estado atualizado dos marcos alcançados e das metas fu
 - [x] **Arquétipo de Big Data Pipelines** — `PIPELINE_DADOS` para ingestão/transformação em lote (*Batch*) e tempo real (*Streaming*) com conectores heterogêneos
 - [x] **Servidor de Desenvolvimento Live Reload** — Comando `thz dev` para desenvolvimento com hot reload automático
 - [x] **Integração de Governança com Git** — Comando `thz audit --git` para verificação de conformidade em diffs e commits
-- [x] **Self-Hosting em `.thz` (Compilador na Própria Linguagem)** — `compilador/*.thz` (`tokens.thz`, `ast.thz`, `lexer.thz`, `parser.thz`, `codegen.thz`, `driver.thz`)
-- [x] **Pipeline AOT Nativo Dual-OS via LLVM Clang** — `scripts/build-llvm.ps1` + `src/runtime/thz_runtime.c` para geração direta de executáveis nativos (.exe PE no Windows e .elf no Linux) sem dependência de JVM
+- [ ] **Experimento self-hosted hospedado** — `compilador/*.thz`; ainda contém stubs e não tem paridade com o parser JVM
+- [ ] **Pipeline AOT experimental via LLVM Clang + runtime Rust** — gera artefatos nativos a partir do host JVM; bootstrap/self-hosting ainda não validado
 - [x] **CI/CD Modernizado** — GitHub Actions workflow para Java 25, Gradle multi-módulo e compilação LLVM Clang AOT
 
 ---

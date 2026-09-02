@@ -13,7 +13,7 @@ $Raiz = Resolve-Path "$PSScriptRoot\.."
 Set-Location $Raiz
 
 Write-Host "==========================================================================" -ForegroundColor Cyan
-Write-Host " THZ-LANG Engine - BOOTSTRAP DO COMPILADOR NATIVO SELF-HOSTED (thzc.exe)" -ForegroundColor Cyan
+Write-Host " THZ-LANG Engine - EXPERIMENTO SELF-HOSTED HOSPEDADO" -ForegroundColor Cyan
 Write-Host "==========================================================================" -ForegroundColor Cyan
 
 $DistBin = "$Raiz\dist\bin"
@@ -43,13 +43,13 @@ if (Test-Path $DriverExe) {
     Write-Error "Falha ao gerar o executavel nativo do compilador."
 }
 
-# PASSO 2: Testar execucao direta do thzc.exe nativo (Zero JVM)
-Write-Host "`n[PASSO 2/3] Executando thzc.exe nativo de forma 100% autonoma (Zero JVM)..." -ForegroundColor Yellow
+# PASSO 2: Testar o artefato AOT experimental
+Write-Host "`n[PASSO 2/3] Executando o artefato AOT experimental..." -ForegroundColor Yellow
 & $ThzcExe
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Erro ao executar thzc.exe de forma autonoma."
 }
-Write-Host "[OK] thzc.exe executou nativamente sem qualquer dependencia de JVM!" -ForegroundColor Green
+Write-Host "[OK] Artefato AOT executado; isso não comprova self-hosting nem bootstrap." -ForegroundColor Green
 
 # PASSO 3: Compilacao e execucao de teste de programa de negocio
 Write-Host "`n[PASSO 3/3] Compilando e testando programa de exemplo canonico (faturamento.thz)..." -ForegroundColor Yellow
@@ -62,6 +62,6 @@ if (Test-Path $FaturamentoExe) {
 }
 
 Write-Host "`n==========================================================================" -ForegroundColor Green
-Write-Host " BOOTSTRAP CONCLUIDO COM SUCESSO! AUTONOMIA TOTAL VALIDADA." -ForegroundColor Green
-Write-Host " Compilador Nativo Autonomo: $ThzcExe" -ForegroundColor White
+Write-Host " EXPERIMENTO AOT CONCLUIDO; AUTONOMIA TOTAL NÃO VALIDADA." -ForegroundColor Green
+Write-Host " Artefato experimental: $ThzcExe" -ForegroundColor White
 Write-Host "==========================================================================" -ForegroundColor Green

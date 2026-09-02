@@ -1,6 +1,6 @@
 # Self-Hosting — O Compilador THZ-LANG Escrito em THZ-LANG
 
-> **Autonomia total.** O THZ-LANG compila a si mesmo: `compilador/*.thz` (tokens, AST, lexer, parser, codegen, driver) descreve o pipeline `Fonte → Tokens → AST → LLVM IR` na própria linguagem, hospedado hoje pela JVM (`ThzLexer.java`, `ThzParser.java`, `ThzCompilerDriver.java`) e convergindo para binário nativo Zero-JVM via `scripts/build-llvm.ps1` + `src/runtime/thz_runtime.c`.
+> **Status atual.** `compilador/*.thz` descreve um experimento self-hosted hospedado pela JVM. Ele ainda contém stubs, não produz AST geral nem tem paridade com o parser JVM; portanto não é compilador autônomo.
 
 Leitura complementar: [`ARQUITETURA_COMPILACAO_NATIVA.md`](ARQUITETURA_COMPILACAO_NATIVA.md) (IR/LLVM/GraalVM), [`GRAMATICA.md`](GRAMATICA.md) (EBNF), [`apresentacao_tecnica.md`](apresentacao_tecnica.md) §4.
 
@@ -14,7 +14,7 @@ Self-hosting (autohospedagem) = linguagem cujo compilador é escrito na própria
 - Elimina **vendor lock-in**: não depende para sempre de Java/Clang para existir — pode se reproduzir.
 - Fecha o ciclo **bootstrap**: `gcc` compila `gcc`, `rustc` compila `rustc`, `thzc` compilará `thzc`.
 
-No THZ-LANG, o marco foi atingido no Roadmap (`TODO.md:21`): `compilador/*.thz` + pipeline AOT Dual-OS + CI validando `CompiladorSelfHostTest.java`.
+No THZ-LANG, o núcleo oficial continua sendo o compilador/interpretador JVM. O experimento em `compilador/` é mantido para pesquisa; `CompiladorSelfHostTest.java` valida apenas a integração hospedada.
 
 ---
 
@@ -32,7 +32,7 @@ graph TD
 | Estágio | Quem compila quem | Evidência | Status |
 | :--- | :--- | :--- | :--- |
 | **Stage 0 — Host JVM** | Java compila `.thz` | `JVM/thz-core-jvm/src/main/java/thz/lang/driver/ThzCompilerDriver.java:44` (`compilarOuExecutar`) | ✅ Produção |
-| **Stage 1 — Hospedado** | `.thz` descreve compilador e roda sob Host | `compilador/driver.thz:30` orquestra Lexer→Parser→Codegen; `CompiladorSelfHostTest.java:29-85` 7 testes `AUDITORIA`/`EXECUCAO_JVM`/`LLVM` | ✅ Validado em CI |
+| **Stage 1 — Experimento hospedado** | `.thz` descreve parcialmente o pipeline sob o Host JVM | `CompiladorSelfHostTest.java` e arquivos em `compilador/` | ⚠️ Parcial; sem paridade |
 | **Stage 2 — Nativo** | `.thz` gera `.exe`/`.elf` que compila `.thz` | `compilador/codegen.thz:35` emite `target triple` + `define @main`; `build-llvm.ps1:60` já gera `driver.ll` → `driver.elf` | 🚧 Stub → real |
 
 O pipeline canônico, idêntico nos dois mundos:
@@ -193,4 +193,3 @@ CI já faz tudo isso em `.github/workflows/ci.yml:30-95` (`engine-jvm` + `native
 ---
 
 > **Leitura sugerida após este doc:** [`RUNTIME_NATIVO.md`](RUNTIME_NATIVO.md) (o que `codegen.thz` linka), [`ARQUITETURA_COMPILACAO_NATIVA.md`](ARQUITETURA_COMPILACAO_NATIVA.md) §7 (pipeline end-to-end).
-

@@ -60,7 +60,8 @@ jobs:
           mkdir -p dist/bin
           ./gradlew :thz-cli-jvm:run --args="ir compilador/driver.thz --llvm --saida dist/bin/thz-driver.ll"
           clang -target x86_64-unknown-linux-gnu -c dist/bin/thz-driver.ll -o dist/bin/thz-driver.o
-          gcc -O3 dist/bin/thz-driver.o src/runtime/thz_runtime.c -o dist/bin/thz-driver.elf -lm -lpthread
+          cargo build --release --manifest-path src/runtime_rs/Cargo.toml
+          gcc -O3 dist/bin/thz-driver.o -L src/runtime_rs/target/release -lthz_runtime -o dist/bin/thz-driver.elf -lm -lpthread
           chmod +x dist/bin/thz-driver.elf
           ./dist/bin/thz-driver.elf
 

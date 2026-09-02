@@ -1,5 +1,5 @@
 # ==============================================================================
-# DEPRECIADO Fase 3: Win32 thz_runtime.c gerava .exe feio/truncado (ver screenshot).
+# AOT experimental: gera LLVM via o host JVM e linka o runtime Rust.
 # NAO USE para GUI. Padrao agora: thz.exe WebView + jpackage.
 #   thz gui          -> IDE WebView (thz_webview2.c host, sem thz_runtime Win32)
 #   thz run *.thz    -> TELA.* via ThzWebViewLauncher
@@ -50,7 +50,6 @@ $DistBin = "$Raiz\dist\bin"
 if (-not (Test-Path $DistBin)) { New-Item -ItemType Directory -Path $DistBin | Out-Null }
 
 $LlvmFile = "$DistBin\$NomeBase.ll"
-$RuntimeC = "$Raiz\src\runtime\thz_runtime.c"
 $Clang    = "$env:USERPROFILE\scoop\apps\llvm\current\bin\clang.exe"
 if (-not (Test-Path $Clang)) { $Clang = "clang" }
 $Gcc      = "$env:USERPROFILE\scoop\apps\mingw\current\bin\gcc.exe"
@@ -84,10 +83,10 @@ if ($Alvo -eq "ambos" -or $Alvo -eq "windows") {
         } catch {}
     }
 
-    $GccLinkFlags = @("-O3", $ObjWin, "-o", $ExeWin, "-lgdi32", "-luser32", "-lkernel32", "-ldwmapi", "-lole32", "-lshlwapi")
-    if (Test-Path "$RustLibDir\thz_runtime.lib") {
-        $GccLinkFlags += @("-L", $RustLibDir, "-lthz_runtime")
+    if (-not (Test-Path "$RustLibDir\thz_runtime.lib") -and -not (Test-Path "$RustLibDir\libthz_runtime.a")) {
+        Write-Error "Runtime Rust não encontrado em $RustLibDir. Compile o runtime antes do link."
     }
+    $GccLinkFlags = @("-O3", $ObjWin, "-o", $ExeWin, "-L", $RustLibDir, "-lthz_runtime", "-lgdi32", "-luser32", "-lkernel32", "-ldwmapi", "-lole32", "-lshlwapi")
     
     & $Gcc @GccLinkFlags
     if ($LASTEXITCODE -ne 0) { Write-Error "Falha ao linkar executavel Windows." }

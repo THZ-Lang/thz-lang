@@ -9,7 +9,7 @@
 [![LLVM](https://img.shields.io/badge/LLVM-Clang%20AOT-red.svg)](https://llvm.org/)
 [![Docker & Podman](https://img.shields.io/badge/Containers-Docker%20%7C%20Podman-2496ED.svg)](docs/DOCKER_PODMAN_DEVCONTAINER.md)
 [![Dev Containers](https://img.shields.io/badge/Dev%20Containers-Ready-blueviolet.svg)](.devcontainer/devcontainer.json)
-[![Status](https://img.shields.io/badge/Testes-100%25%20PASSED-brightgreen.svg)](#-suíte-de-testes)
+[![Status](https://img.shields.io/badge/Status-em%20revis%C3%A3o-yellow.svg)](#-vis%C3%A3o-geral)
 
 **Linguagem Corporativa de Sistemas, Governança de Negócio, Arquitetura Viva e Processamento de Dados de Alta Performance.**
 
@@ -30,7 +30,7 @@
 
 **THZ-LANG** (`.thz`, `.thzui`) é uma linguagem de programação orientada a domínio (DDD) com sintaxe estruturada em língua portuguesa, tipagem estática forte, contratos formais de governança integrados e compilação nativa de alta performance. Ela foi projetada para unir a legibilidade executiva com a eficiência de processamento de dados contíguos e vetorização SIMD.
 
-O repositório unifica os motores de execução em Java 25 (JVM Multi-módulo), o compilador self-hosted em THZ, o backend de compilação nativa AOT via LLVM Clang, ferramentas CLI (`thz`), Desktop IDE Swing FlatLaf (`thz gui`), serviços de linguagem (LSP) e extensão para VS Code.
+O repositório mantém o núcleo oficial em Java 25 (JVM multi-módulo), o runtime Rust para performance/AOT, ferramentas CLI (`thz`), IDE Swing/FlatLaf, LSP e extensão VS Code. O conteúdo em `compilador/` é um experimento hospedado, ainda sem paridade.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -210,7 +210,7 @@ Explore os guias detalhados da documentação:
 - 🗺️ [**Roadmap Estratégico (v2.6 ~ v3.0)**](docs/ROADMAP.md) — Os 5 pilares: IA Nativa On-Device, LINQ Tipado, Streaming EDA, WebAssembly e Debugger DAP.
 - 📘 [**Manual Completo da Linguagem**](docs/MANUAL_LINGUAGEM.md) — Guia do iniciante ao avançado sobre sintaxe, tipos, contratos, UI e SIMD.
 - ⚙️ [**Arquitetura de Compilação Nativa — GraalVM, LLVM, IR/IL e Código de Máquina**](docs/ARQUITETURA_COMPILACAO_NATIVA.md) — Tratado completo sobre IR/IL, LLVM, GraalVM Native Image, geração AOT, velocidade (SIMD/SoA/Arenas) e execução segura.
-- 🔁 [**Self-Hosting**](docs/SELF_HOSTING.md) — Compilador em THZ, bootstrap `THZ→THZ-IR→LLVM`, paridade Java↔THZ.
+- 🔁 [**Experimento self-hosted**](docs/SELF_HOSTING.md) — pipeline em THZ hospedado pela JVM; sem alegação de bootstrap ou paridade.
 - 🧱 [**Runtime Nativo**](docs/RUNTIME_NATIVO.md) — ABI Dual-OS, Arenas, `thz_runtime.c`/`thz_webview2.c`, linking `clang→gcc`.
 - 🌊 [**PIPELINE_DADOS**](docs/PIPELINE_DADOS.md) — Guia Big Data (FONTE/TRANSFORMACAO/DESTINO, conectores, streaming).
 - 🖼️ [**TELA / .thzui**](docs/TELA_THZUI.md) — DSL declarativa, `TELA.*`/`WEBVIEW.*`, Swing vs WebView.
