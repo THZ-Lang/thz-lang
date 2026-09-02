@@ -2,11 +2,20 @@
   "Função tipada": {
     "prefix": "funcao",
     "body": [
-      "FUNCAO ${1:nome}(${2:parametro}: ${3:TIPO}): ${4:TIPO_RETORNO}",
-      "    RETORNE ${5:expressao}",
-      "FIM_FUNCAO"
+      "funcao ${1:nome}(${2:parametro}: ${3:TIPO}) -> ${4:TIPO_RETORNO}:",
+      "    retorne ${5:expressao}"
     ],
-    "description": "Função reutilizável com retorno tipado"
+    "description": "Função enxuta reutilizável com retorno tipado"
+  },
+  "Programa Enxuto": {
+    "prefix": "thz-enxuto",
+    "body": [
+      "programa ${1:Nome}:",
+      "    procedimento Principal():",
+      "        ${2:resultado} := ${3:expressao}",
+      "        exiba ${2:resultado}"
+    ],
+    "description": "Programa THZ-LANG na sintaxe canônica enxuta"
   },
   "Programa Canônico": {
     "prefix": "thz-programa",

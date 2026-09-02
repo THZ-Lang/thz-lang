@@ -1,0 +1,8 @@
+# Forma canônica enxuta da THZ-LANG.
+programa SintaxeEnxuta:
+    funcao somar(a: INTEIRO32, b: INTEIRO32) -> INTEIRO32:
+        retorne a + b
+
+    procedimento Principal():
+        resultado: INTEIRO32 := somar(20, 22)
+        exiba resultado

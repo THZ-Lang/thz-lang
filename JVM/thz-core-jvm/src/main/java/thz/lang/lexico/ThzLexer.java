@@ -11,12 +11,12 @@ public class ThzLexer {
     private DialetoLinguagem dialeto = DialetoLinguagem.PT_BR;
 
     public ThzLexer(String input) {
-        this.input = input;
+        this.input = SintaxeEnxuta.normalizar(input);
         this.dialeto = detectarDialetoCabecalho(input);
     }
 
     public ThzLexer(String input, DialetoLinguagem dialeto) {
-        this.input = input;
+        this.input = SintaxeEnxuta.normalizar(input);
         this.dialeto = dialeto != null ? dialeto : detectarDialetoCabecalho(input);
     }
 

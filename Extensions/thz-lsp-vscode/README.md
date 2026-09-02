@@ -13,8 +13,14 @@ Extensão oficial para **VS Code**, **Antigravity IDE** e IDEs compatíveis com 
 | **Hover & Assinaturas** | Tipos e parâmetros de estruturas, campos, enums, contratos `EXIGE`/`GARANTE` e stdlib |
 | **Autocompletion Contextual** | Palavras-chave, conectores de pipeline, tipos nativos e templates |
 | **Navegação de Símbolos** | Outline hierárquico com `DocumentSymbol` e `Go-to-Definition` |
-| **Formatação Canônica** | Formatação idempotente ao salvar ou via comando `Format Document` (`Shift+Alt+F`) |
+| **Indentação Assistida** | Quatro espaços, avanço automático após `:`, retorno correto em `senao`/`capture` e diagnóstico de tabs ou recuos que alterariam a árvore |
+| **Formatação Canônica** | Formatação idempotente habilitada por padrão ao salvar, ao colar ou via `Format Document` (`Shift+Alt+F`) |
 | **Governança & IR** | Comandos `THZ: Mostrar Auditoria de Governança`, `THZ: Mostrar IR` e `THZ: Mostrar LLVM IR` |
+
+Quando houver indentação ambígua, o LSP destaca a linha e suspende a formatação
+automática para não transformar um recuo acidental em uma árvore sintática
+diferente. Depois de corrigido o diagnóstico, salvar o arquivo aplica novamente
+a formatação canônica.
 
 ---
 

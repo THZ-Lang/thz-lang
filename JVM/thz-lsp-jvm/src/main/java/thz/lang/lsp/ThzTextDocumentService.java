@@ -6,6 +6,7 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 
 import thz.lang.governanca.AuditorGovernanca;
 import thz.lang.governanca.RelatorioAuditoria;
+import thz.lang.lexico.SintaxeEnxuta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,18 @@ public class ThzTextDocumentService implements TextDocumentService {
         ThzLanguageServerImpl.ResultadoAnalise r = server.analisar(fonte);
         List<Diagnostic> diags = server.paraLspDiagnostics(r.diagnosticos(), fonte);
 
+        for (SintaxeEnxuta.DiagnosticoIndentacao erro : SintaxeEnxuta.validarIndentacao(fonte)) {
+            Diagnostic diag = new Diagnostic();
+            diag.setSeverity(DiagnosticSeverity.Error);
+            diag.setRange(new Range(
+                    new Position(erro.linha() - 1, Math.max(0, erro.coluna() - 1)),
+                    new Position(erro.linha() - 1, Math.max(1, erro.coluna()))
+            ));
+            diag.setMessage(erro.mensagem());
+            diag.setSource("thz-indentacao");
+            diags.add(diag);
+        }
+
         // G4 — pendências de governança como warnings
         if (r.ast() != null) {
             try {
@@ -116,6 +129,21 @@ public class ThzTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
         List<CompletionItem> items = new ArrayList<>();
+
+        String[] sintaxeEnxuta = {
+                "programa Nome:", "biblioteca Nome:", "estrutura Nome:",
+                "regra Nome:", "funcao nome() -> Tipo:", "operacao nome() -> Tipo:",
+                "procedimento nome():", "se condicao:", "senao:", "enquanto condicao:",
+                "para item de inicio ate fim:", "nome := valor", "retorne valor",
+                "exige condicao", "garante condicao"
+        };
+        for (String forma : sintaxeEnxuta) {
+            CompletionItem item = new CompletionItem();
+            item.setLabel(forma);
+            item.setKind(CompletionItemKind.Snippet);
+            item.setDetail("sintaxe canônica enxuta THZ-LANG");
+            items.add(item);
+        }
 
         String[] keywords = {
                 "PROGRAMA", "VISUAL", "NEGOCIO", "ARQUITETURA", "BIBLIOTECA", "EXTENSAO", "FERRAMENTA", "TESTE", "TELA",
@@ -252,6 +280,9 @@ public class ThzTextDocumentService implements TextDocumentService {
         String uri = params.getTextDocument().getUri();
         String fonte = server.obterDocumento(uri);
         if (fonte == null) return CompletableFuture.completedFuture(List.of());
+        if (!SintaxeEnxuta.validarIndentacao(fonte).isEmpty()) {
+            return CompletableFuture.completedFuture(List.of());
+        }
 
         String formatado = server.formatar(fonte);
         if (formatado == null || formatado.equals(fonte)) return CompletableFuture.completedFuture(List.of());

@@ -38,7 +38,7 @@ public class ComandoFmt implements ComandoCli {
         int idx = argumentos.indexOf("--saida");
         if (idx >= 0 && idx + 1 < argumentos.size())
             idxSaida = argumentos.get(idx + 1);
-        String formatado = Formatador.formatar(ast);
+        String formatado = argumentos.contains("--legado") ? Formatador.formatar(ast) : Formatador.formatarEnxuto(ast);
         if (check) {
             if (!fonte.equals(formatado)) {
                 CliErros.statusFmtNaoFormatado();

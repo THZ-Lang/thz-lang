@@ -39,6 +39,17 @@
         "configuration": "./language-configuration.json"
       }
     ],
+    "configurationDefaults": {
+      "[thz]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+        "editor.autoIndent": "full",
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.defaultFormatter": "thz-lang.thz-lang"
+      }
+    },
     "grammars": [
       {
         "language": "thz",

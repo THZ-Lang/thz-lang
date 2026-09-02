@@ -334,6 +334,10 @@ public class ThzParser {
                     clausulasSaida.add(parseClausulaContrato(TokenType.GARANTE));
                 }
                 consume(TokenType.FIM_CONTRATO_SAIDA, "Esperado 'FIM_CONTRATO_SAIDA' encerrando o bloco de pós-condições.");
+            } else if (check(TokenType.EXIGE)) {
+                clausulasEntrada.add(parseClausulaContrato(TokenType.EXIGE));
+            } else if (check(TokenType.GARANTE)) {
+                clausulasSaida.add(parseClausulaContrato(TokenType.GARANTE));
             } else if (match(TokenType.OPERACAO)) {
                 operacoes.add(parseOperacao());
             } else {

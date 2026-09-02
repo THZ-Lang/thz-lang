@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,13 +16,15 @@ public class ThzLspTest {
 
     private ThzLanguageServerImpl server;
     private ThzTextDocumentService docService;
+    private List<PublishDiagnosticsParams> diagnosticosPublicados;
 
     @BeforeEach
     void setUp() {
         server = new ThzLanguageServerImpl();
+        diagnosticosPublicados = new ArrayList<>();
         server.connect(new LanguageClient() {
             @Override public void telemetryEvent(Object object) {}
-            @Override public void publishDiagnostics(PublishDiagnosticsParams diagnostics) {}
+            @Override public void publishDiagnostics(PublishDiagnosticsParams diagnostics) { diagnosticosPublicados.add(diagnostics); }
             @Override public void showMessage(MessageParams messageParams) {}
             @Override public CompletableFuture<MessageActionItem> showMessageRequest(ShowMessageRequestParams requestParams) { return CompletableFuture.completedFuture(null); }
             @Override public void logMessage(MessageParams message) {}
@@ -65,6 +68,7 @@ public class ThzLspTest {
         assertTrue(labels.contains("IMPORTAR"));
         assertTrue(labels.contains("CASO_RESULTADO"));
         assertTrue(labels.contains("FUNCAO"));
+        assertTrue(labels.contains("funcao nome() -> Tipo:"));
         assertTrue(labels.contains("ESCOLHA"));
         assertTrue(labels.contains("TENTE"));
     }
@@ -124,6 +128,25 @@ public class ThzLspTest {
 
         var edits = docService.formatting(fmtParams).get();
         assertNotNull(edits);
+    }
+
+    @Test
+    @DisplayName("LSP deve diagnosticar indentação ambígua da sintaxe enxuta")
+    void testDiagnosticoIndentacaoEnxuta() throws Exception {
+        String uri = "file:///indentacao.thz";
+        String fonte = "programa Demo:\n      procedimento Principal():\n          exiba \"ok\"\n";
+        docService.didOpen(new DidOpenTextDocumentParams(
+                new TextDocumentItem(uri, "thz", 1, fonte)));
+
+        assertFalse(diagnosticosPublicados.isEmpty());
+        assertTrue(diagnosticosPublicados.getLast().getDiagnostics().stream()
+                .anyMatch(d -> "thz-indentacao".equals(d.getSource())
+                        && d.getMessage().contains("múltiplos de 4 espaços")));
+
+        DocumentFormattingParams formatacao = new DocumentFormattingParams();
+        formatacao.setTextDocument(new TextDocumentIdentifier(uri));
+        assertTrue(docService.formatting(formatacao).get().isEmpty(),
+                "O formatador não deve consolidar uma AST enquanto o recuo for ambíguo");
     }
 
     @Test

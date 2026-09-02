@@ -1,0 +1,12 @@
+# Blocos são definidos somente pela indentação.
+programa ControleDeFluxo:
+    procedimento Principal():
+        acumulado: INTEIRO32 := 0
+
+        para numero de 1 ate 5:
+            acumulado = acumulado + numero
+
+        se acumulado == 15:
+            exiba "soma correta"
+        senao:
+            exiba "soma inesperada"

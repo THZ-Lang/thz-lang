@@ -1,6 +1,6 @@
 # Testes e Benchmarks — JUnit 5, Golden Snapshots, Paridade e JMH
 
-> **Qualidade por construção.** Este guia cobre a estratégia de testes do THZ-LANG: JUnit 5 (112 testes, 100% PASSED), golden snapshots de AST, paridade TypeScript ↔ JVM, `CompiladorSelfHostTest`, e JMH (`DecimalBench`/`LayoutBench`/`BlocoMemoriaBench`), e como usar a skill `write-tests` para escrever testes novos.
+> **Qualidade por construção.** Este guia cobre a estratégia de testes do THZ-LANG: JUnit 5, testes de equivalência da sintaxe enxuta, golden snapshots de AST, `CompiladorSelfHostTest` e JMH (`DecimalBench`/`LayoutBench`/`BlocoMemoriaBench`). A contagem é obtida pela execução atual da suíte, não mantida manualmente neste documento.
 
 Referências: `.agents/skills/write-tests/SKILL.md`, `JVM/*/src/test/java/thz/lang/**`, `.github/workflows/ci.yml:29`, `TODO.md:21`.
 
@@ -45,7 +45,7 @@ Config: `JVM/thz-*-jvm/build.gradle.kts:40` `test { useJUnitPlatform(); testLogg
 CompiladorSelfHostTest > testTokensSelfHost()  PASSED
 CompiladorSelfHostTest > testDriverLlvmIr()    PASSED
 ...
-BUILD SUCCESSFUL in 10s — 112 tests, 0 failures (100% PASSED)
+O gate é `./gradlew test` com `BUILD SUCCESSFUL`; não use uma contagem histórica fixa como evidência.
 ```
 
 ---
@@ -179,4 +179,3 @@ Adicione localmente antes de push:
 ---
 
 > **Próximo:** [`GUIA_PERFORMANCE.md`](GUIA_PERFORMANCE.md) (como medir), [`DEPLOYMENT.md`](DEPLOYMENT.md) (como distribuir sem quebrar testes).
-

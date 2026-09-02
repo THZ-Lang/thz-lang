@@ -134,6 +134,128 @@ public final class Formatador {
         return out;
     }
 
+    private static List<String> formatarComandosEnxutos(List<ComandoAst> comandos, int nivel) {
+        List<String> out = new ArrayList<>();
+        for (ComandoAst c : comandos) {
+            switch (c) {
+                case ComandoAst.DeclVariavel d -> {
+                    String tipo = d.tipoDado() == null ? "" : ": " + tipoCanonico(d.tipoDado(), DialetoLinguagem.PT_BR);
+                    out.add(linha(d.nome() + tipo + " := " + formatarExpr(d.inicializacao()), nivel));
+                }
+                case ComandoAst.Atribuicao a -> out.add(linha(String.join(".", a.alvo()) + " = " + formatarExpr(a.expressao()), nivel));
+                case ComandoAst.Se s -> {
+                    out.add(linha("se " + formatarExpr(s.condicao()) + ":", nivel));
+                    out.addAll(formatarComandosEnxutos(s.entao(), nivel + 1));
+                    if (!s.senao().isEmpty()) {
+                        out.add(linha("senao:", nivel));
+                        out.addAll(formatarComandosEnxutos(s.senao(), nivel + 1));
+                    }
+                }
+                case ComandoAst.Enquanto e -> {
+                    out.add(linha("enquanto " + formatarExpr(e.condicao()) + ":", nivel));
+                    out.addAll(formatarComandosEnxutos(e.corpo(), nivel + 1));
+                }
+                case ComandoAst.Para p -> {
+                    String passo = p.passo() == null ? "" : " passo " + formatarExpr(p.passo());
+                    out.add(linha("para " + p.variavel() + " de " + formatarExpr(p.inicio()) + " ate " + formatarExpr(p.fim()) + passo + ":", nivel));
+                    out.addAll(formatarComandosEnxutos(p.corpo(), nivel + 1));
+                }
+                case ComandoAst.VetorizarPara v -> {
+                    String passo = v.passoSimd() == null ? "" : " PASSO_SIMD " + v.passoSimd();
+                    out.add(linha("VETORIZAR_PARA " + v.variavel() + " EM " + String.join(".", v.fonte()) + passo + ":", nivel));
+                    out.addAll(formatarComandosEnxutos(v.corpo(), nivel + 1));
+                }
+                case ComandoAst.BlocoMemoria b -> {
+                    out.add(linha("USAR_BLOCO_MEMORIA " + b.nome() + ":", nivel));
+                    out.addAll(formatarComandosEnxutos(b.corpo(), nivel + 1));
+                }
+                case ComandoAst.Exiba e -> out.add(linha("exiba " + formatarExpr(e.expressao()), nivel));
+                case ComandoAst.Ler l -> out.add(linha("LER " + String.join(".", l.alvo()), nivel));
+                case ComandoAst.Chamada ch -> out.add(linha(formatarExpr(ch.expressao()), nivel));
+                case ComandoAst.Retorne r -> out.add(linha(r.expressao() == null ? "retorne" : "retorne " + formatarExpr(r.expressao()), nivel));
+                case ComandoAst.FalharCom f -> out.add(linha("FALHAR_COM " + formatarExpr(f.expressao()), nivel));
+                case ComandoAst.Tente t -> {
+                    out.add(linha("TENTE:", nivel));
+                    out.addAll(formatarComandosEnxutos(t.corpoTente(), nivel + 1));
+                    out.add(linha("CAPTURE " + t.tipoCaptura() + ":", nivel));
+                    out.addAll(formatarComandosEnxutos(t.corpoCapture(), nivel + 1));
+                }
+                case ComandoAst.CasoResultado cr -> {
+                    out.add(linha("ESCOLHA " + formatarExpr(cr.alvo()) + ":", nivel));
+                    if (cr.varSucesso() != null) {
+                        out.add(linha("CASO SUCESSO(" + cr.varSucesso() + "):", nivel + 1));
+                        out.addAll(formatarComandosEnxutos(cr.corpoSucesso(), nivel + 2));
+                    }
+                    if (cr.varErro() != null) {
+                        out.add(linha("CASO FALHA(" + cr.varErro() + "):", nivel + 1));
+                        out.addAll(formatarComandosEnxutos(cr.corpoErro(), nivel + 2));
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Formatação canônica compacta da THZ-LANG 4. */
+    public static String formatarEnxuto(ProgramaAst ast) {
+        List<String> out = new ArrayList<>();
+        TipoModulo tipo = ast.tipoModulo() != null ? ast.tipoModulo() : TipoModulo.PROGRAMA;
+        out.add(tipo.descricao().toLowerCase() + " " + ast.nome() + ":");
+        int raiz = 1;
+
+        for (ImportacaoAst imp : ast.importacoes() != null ? ast.importacoes() : List.<ImportacaoAst>of()) {
+            String de = imp.caminho() == null ? "" : " DE \"" + imp.caminho() + "\"";
+            out.add(linha("IMPORTAR " + imp.modulo() + de, raiz));
+        }
+
+        if (ast.metadados() != null) {
+            out.add(linha("metadados:", raiz));
+            var m = ast.metadados();
+            if (m.dominio() != null) out.add(linha("DOMINIO: \"" + m.dominio() + "\"", raiz + 1));
+            if (m.subdominio() != null) out.add(linha("SUBDOMINIO: \"" + m.subdominio() + "\"", raiz + 1));
+            if (m.camada() != null) out.add(linha("CAMADA: \"" + m.camada() + "\"", raiz + 1));
+            if (m.versao() != null) out.add(linha("VERSAO: \"" + m.versao() + "\"", raiz + 1));
+            if (m.autor() != null) out.add(linha("AUTOR: \"" + m.autor() + "\"", raiz + 1));
+            if (m.sloLatencia() != null) out.add(linha("SLO_LATENCIA_MAXIMA: \"" + m.sloLatencia() + "\"", raiz + 1));
+            if (m.conformidade() != null && !m.conformidade().isEmpty()) {
+                String lista = m.conformidade().stream().map(c -> "\"" + c + "\"").reduce((a,b) -> a + ", " + b).orElse("");
+                out.add(linha("CONFORMIDADE: " + lista, raiz + 1));
+            }
+        }
+        for (EstruturaAst est : ast.estruturas()) {
+            String layout = est.layoutColunar() ? " LAYOUT_COLUNAR" : "";
+            out.add(linha("estrutura " + est.nome() + layout + ":", raiz));
+            for (CampoEstruturaAst campo : est.campos()) out.add(linha(campo.nome() + ": " + tipoCanonico(campo.tipo(), DialetoLinguagem.PT_BR), raiz + 1));
+            for (InvarianteAst inv : est.invariantes()) out.add(linha("invariante " + inv.textoCanonico(), raiz + 1));
+        }
+        for (EnumeracaoAst enumeracao : ast.enumeracoes()) {
+            out.add(linha("enumeracao " + enumeracao.nome() + ":", raiz));
+            for (String membro : enumeracao.membros()) out.add(linha(membro, raiz + 1));
+        }
+        for (RegraNegocioAst regra : ast.regras()) {
+            out.add(linha("regra " + regra.nome() + ":", raiz));
+            if (regra.rastreioRequisito() != null) out.add(linha("RASTREIO_REQUISITO: \"" + regra.rastreioRequisito() + "\"", raiz + 1));
+            for (ClausulaContratoAst c : regra.clausulasEntrada()) out.add(linha("exige " + c.textoCanonico(), raiz + 1));
+            for (ClausulaContratoAst c : regra.clausulasSaida()) out.add(linha("garante " + c.textoCanonico(), raiz + 1));
+            for (OperacaoAst op : regra.operacoes()) {
+                String params = op.parametros().stream().map(p -> p.nome() + ": " + tipoCanonico(p.tipo(), DialetoLinguagem.PT_BR)).reduce((a,b) -> a + ", " + b).orElse("");
+                out.add(linha("operacao " + op.nome() + "(" + params + ") -> " + tipoCanonico(op.tipoRetorno(), DialetoLinguagem.PT_BR) + ":", raiz + 1));
+                out.addAll(formatarComandosEnxutos(op.corpo(), raiz + 2));
+            }
+        }
+        for (ProcedimentoAst proc : ast.procedimentos() != null ? ast.procedimentos() : List.<ProcedimentoAst>of()) {
+            String params = proc.parametros().stream().map(p -> p.nome() + ": " + tipoCanonico(p.tipo(), DialetoLinguagem.PT_BR)).reduce((a,b) -> a + ", " + b).orElse("");
+            out.add(linha("procedimento " + proc.nome() + "(" + params + "):", raiz));
+            out.addAll(formatarComandosEnxutos(proc.corpo(), raiz + 1));
+        }
+        for (FuncaoAst funcao : ast.funcoes() != null ? ast.funcoes() : List.<FuncaoAst>of()) {
+            String params = funcao.parametros().stream().map(p -> p.nome() + ": " + tipoCanonico(p.tipo(), DialetoLinguagem.PT_BR)).reduce((a,b) -> a + ", " + b).orElse("");
+            out.add(linha("funcao " + funcao.nome() + "(" + params + ") -> " + tipoCanonico(funcao.tipoRetorno(), DialetoLinguagem.PT_BR) + ":", raiz));
+            out.addAll(formatarComandosEnxutos(funcao.corpo(), raiz + 1));
+        }
+        return String.join("\n", out) + "\n";
+    }
+
     public static String formatar(ProgramaAst ast) {
         DialetoLinguagem d = ast.dialeto() != null ? ast.dialeto() : DialetoLinguagem.PT_BR;
         return formatar(ast, d);

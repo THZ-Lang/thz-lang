@@ -68,21 +68,21 @@
     "named-declarations": {
       "patterns": [
         {
-          "match": "\\b(PROGRAMA\\s+(?:NEGOCIO|VISUAL|ARQUITETURA)?|PROGRAMA|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE|TELA|PIPELINE_DADOS)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "match": "\\b(PROGRAMA\\s+(?:NEGOCIO|VISUAL|ARQUITETURA)?|PROGRAMA|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE|TELA|PIPELINE_DADOS|programa\\s+(?:NEGOCIO|VISUAL|ARQUITETURA)?|biblioteca|ferramenta|teste|tela)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
             "1": { "name": "keyword.control.declaration.thz" },
             "2": { "name": "entity.name.type.module.thz" }
           }
         },
         {
-          "match": "\\b(ESTRUTURA|ENUMERACAO)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "match": "\\b(ESTRUTURA|ENUMERACAO|estrutura|enumeracao)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
             "1": { "name": "keyword.control.declaration.thz" },
             "2": { "name": "entity.name.type.class.thz" }
           }
         },
         {
-          "match": "\\b(REGRA_NEGOCIO|PROCEDIMENTO|FUNCAO|OPERACAO|TRANSFORMACAO)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "match": "\\b(REGRA_NEGOCIO|PROCEDIMENTO|FUNCAO|OPERACAO|TRANSFORMACAO|regra|procedimento|funcao|operacao)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
             "1": { "name": "keyword.control.declaration.thz" },
             "2": { "name": "entity.name.function.thz" }
@@ -135,7 +135,7 @@
       "patterns": [
         {
           "name": "keyword.control.declaration.thz",
-          "match": "\\b(PROGRAMA|VISUAL|NEGOCIO|ARQUITETURA|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE|TELA|FIM_PROGRAMA|FIM_BIBLIOTECA|FIM_EXTENSAO|FIM_FERRAMENTA|FIM_TESTE|FIM_TELA|METADADOS_ARQUITETURA|FIM_METADADOS|ESTRUTURA|FIM_ESTRUTURA|ENUMERACAO|FIM_ENUMERACAO|REGRA_NEGOCIO|FIM_REGRA_NEGOCIO|PROCEDIMENTO|FUNCAO|FIM_FUNCAO|OPERACAO|FIM_OPERACAO|VARIAVEL|IMPORTAR|VERSAO_LINGUAGEM|CRIAR|IDEMPOTENTE)\\b"
+          "match": "\\b(PROGRAMA|VISUAL|NEGOCIO|ARQUITETURA|BIBLIOTECA|EXTENSAO|FERRAMENTA|TESTE|TELA|FIM_PROGRAMA|FIM_BIBLIOTECA|FIM_EXTENSAO|FIM_FERRAMENTA|FIM_TESTE|FIM_TELA|METADADOS_ARQUITETURA|FIM_METADADOS|ESTRUTURA|FIM_ESTRUTURA|ENUMERACAO|FIM_ENUMERACAO|REGRA_NEGOCIO|FIM_REGRA_NEGOCIO|PROCEDIMENTO|FUNCAO|FIM_FUNCAO|OPERACAO|FIM_OPERACAO|VARIAVEL|IMPORTAR|VERSAO_LINGUAGEM|CRIAR|IDEMPOTENTE|programa|biblioteca|ferramenta|teste|tela|metadados|estrutura|enumeracao|regra|procedimento|funcao|operacao)\\b"
         }
       ]
     },
@@ -143,7 +143,7 @@
       "patterns": [
         {
           "name": "keyword.control.thz",
-          "match": "\\b(INICIO|FIM|SE|ENTAO|SENAO|FIM_SE|ENQUANTO|FACA|FIM_ENQUANTO|PARA|DE|ATE|PASSO|FIM_PARA|RETORNE|RETORNAR|FALHAR_COM|EXIBA|LER|CASO_RESULTADO|ESCOLHA|CASO|FIM_CASO|FIM_ESCOLHA|SUCESSO|ERRO|FALHA|TENTE|CAPTURE|FIM_TENTE)\\b"
+          "match": "\\b(INICIO|FIM|SE|ENTAO|SENAO|FIM_SE|ENQUANTO|FACA|FIM_ENQUANTO|PARA|DE|ATE|PASSO|FIM_PARA|RETORNE|RETORNAR|FALHAR_COM|EXIBA|LER|CASO_RESULTADO|ESCOLHA|CASO|FIM_CASO|FIM_ESCOLHA|SUCESSO|ERRO|FALHA|TENTE|CAPTURE|FIM_TENTE|se|senao|enquanto|para|de|ate|passo|retorne|exiba|exige|garante|invariante)\\b"
         }
       ]
     },

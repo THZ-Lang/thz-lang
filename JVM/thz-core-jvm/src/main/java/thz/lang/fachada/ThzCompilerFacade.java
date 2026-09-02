@@ -133,7 +133,7 @@ public final class ThzCompilerFacade {
     public static ResultadoFormatacao formatar(String fonte) {
         ProgramaAst ast = parseAst(fonte);
         if (ast == null) return new ResultadoFormatacao(fonte, false);
-        String fmt = Formatador.formatar(ast);
+        String fmt = Formatador.formatarEnxuto(ast);
         return new ResultadoFormatacao(fmt, !fmt.equals(fonte));
     }
 

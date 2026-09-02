@@ -4,6 +4,42 @@
 **Status:** Em andamento
 **Direção:** Sintaxe moderna inspirada em TypeScript, segurança semântica inspirada em Rust e controle explícito de recursos inspirado em Zig.
 
+## 0. Reorientação — sintaxe enxuta (02/09/2026)
+
+A sintaxe moderna passa a priorizar densidade de informação e leitura direta,
+aproximando-se de Python, Go e Kotlin sem abandonar o vocabulário de domínio da
+THZ-LANG. A forma canônica será:
+
+```thz
+estrutura Item:
+    quantidade: inteiro
+    valor: monetario
+
+funcao subtotal(item: Item) -> monetario:
+    retorne item.quantidade * item.valor
+
+regra EmissaoFatura:
+    exige cliente.ativo
+    garante resultado.total >= 0
+```
+
+Decisões de redução:
+
+- `VARIAVEL` deixa de ser obrigatório; `:=` declara com inferência e `=` atribui.
+- `ENTAO` e `FACA` deixam de existir na forma canônica; `:` abre o bloco.
+- A indentação delimita blocos. `FIM_*` permanece apenas no modo legado.
+- `RETORNE` é a única forma canônica de retorno; `RETORNAR` vira alias legado.
+- `FUNCAO`, `ESTRUTURA` e `REGRA_NEGOCIO` continuam porque carregam semântica
+  própria; `OPERACAO` permanece para efeitos corporativos controlados.
+- `METADADOS_ARQUITETURA`, `LAYOUT_COLUNAR`, `USAR_BLOCO_MEMORIA` e
+  `VETORIZAR_PARA` continuam explícitos, pois documentam governança e custo.
+- A sintaxe antiga será lida durante a migração, mas o formatador emitirá apenas
+  a forma enxuta.
+
+O parser JVM é a fonte de implementação. Novas formas devem produzir os mesmos
+ nós da AST das formas legadas equivalentes; o self-hosted permanece fora do
+ gate até possuir parser geral.
+
 ## 1. Objetivo
 
 Evoluir a sintaxe da THZ-LANG para torná-la mais compacta, coerente e familiar, sem transformar a linguagem em um dialeto de outra linguagem e sem perder seus diferenciais corporativos:
@@ -98,6 +134,12 @@ FIM_BLOCO_MEMORIA
 ```
 
 ## 4. Etapas de implementação
+
+**Marco enxuto de 02/09/2026:** frontend de dessugarização JVM, declarações
+`:=`, atribuição `=`, funções/operações com `->`, blocos por indentação,
+contratos diretos, formatador enxuto, CLI, fachada, LSP e testes de equivalência
+implementados. A forma legada permanece disponível para leitura e por
+`thz fmt --legado`.
 
 ### Fase 0 — Decisão e baseline
 

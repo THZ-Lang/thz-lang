@@ -1,0 +1,5 @@
+# O arquétipo também pode ser escrito sem terminador explícito.
+pipeline_dados ImportacaoClientes:
+    procedimento Principal():
+        registros_processados: INTEIRO32 := 0
+        exiba registros_processados

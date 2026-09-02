@@ -6,6 +6,35 @@ Este documento define a gramática formal em sintaxe EBNF (*Extended Backus-Naur
 
 ## 1. Estrutura Global do Programa e Módulos
 
+### 1.1 Sintaxe canônica enxuta (THZ-LANG 4)
+
+A forma canônica usa palavras-chave em português minúsculas, `:` para abrir
+blocos e indentação significativa. O frontend produz a mesma AST da forma
+estrutural legada.
+
+```ebnf
+ProgramaEnxuto     ::= ModuloEnxuto ":" NOVA_LINHA BlocoIndentado ;
+ModuloEnxuto       ::= ("programa" ("NEGOCIO" | "VISUAL" | "ARQUITETURA")?
+                     | "biblioteca" | "ferramenta" | "teste" | "tela") IDENTIFICADOR ;
+EstruturaEnxuta    ::= "estrutura" IDENTIFICADOR LayoutModificador? ":" NOVA_LINHA BlocoIndentado ;
+RegraEnxuta        ::= "regra" IDENTIFICADOR ":" NOVA_LINHA BlocoIndentado ;
+FuncaoEnxuta       ::= "funcao" IDENTIFICADOR "(" Parametros? ")" "->" TipoDado ":" NOVA_LINHA BlocoIndentado ;
+OperacaoEnxuta     ::= "operacao" IDENTIFICADOR "(" Parametros? ")" "->" TipoDado ":" NOVA_LINHA BlocoIndentado ;
+ProcedimentoEnxuto ::= "procedimento" IDENTIFICADOR "(" Parametros? ")" ":" NOVA_LINHA BlocoIndentado ;
+DeclaracaoEnxuta   ::= IDENTIFICADOR (":" TipoDado)? ":=" Expressao ;
+AtribuicaoEnxuta   ::= AcessoMembro "=" Expressao ;
+CondicionalEnxuta  ::= "se" Expressao ":" NOVA_LINHA BlocoIndentado
+                      ("senao" ":" NOVA_LINHA BlocoIndentado)? ;
+ContratoEnxuto     ::= ("exige" | "garante" | "invariante") Expressao ;
+BlocoIndentado     ::= INDENTACAO Declaracao* DESINDENTACAO ;
+```
+
+`FIM_*`, `VARIAVEL`, `<-`, `ENTAO`, `FACA`, `INICIO` e blocos formais de
+contrato continuam aceitos durante a migração. `thz fmt` emite a forma enxuta;
+`thz fmt --legado` emite a representação estrutural.
+
+### 1.2 Gramática estrutural legada compatível
+
 ```ebnf
 Programa          ::= ModuloHeader MetadadosHeader? Importacao* Declaracao* TerminadorModulo ;
 ModuloHeader      ::= ArquetipoModulo IDENTIFICADOR ;
@@ -14,9 +43,9 @@ MetadadosHeader   ::= "METADADOS_ARQUITETURA" MetadadoItem* "FIM_METADADOS" ;
 MetadadoItem      ::= IDENTIFICADOR ":" (STRING_LITERAL | NUMERO | IDENTIFICADOR) ;
 
 ArquetipoModulo   ::= "PROGRAMA" ("NEGOCIO" | "VISUAL" | "ARQUITETURA")?
-                    | "PIPELINE_DADOS"
+                    | "PIPELINE_DADOS" | "pipeline_dados"
                     | "BIBLIOTECA"
-                    | "EXTENSAO"
+                    | "EXTENSAO" | "extensao"
                     | "FERRAMENTA"
                     | "TESTE"
                     | "TELA" ;

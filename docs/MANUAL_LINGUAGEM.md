@@ -1,5 +1,26 @@
 # Manual Oficial da Linguagem THZ-LANG (v2.4.0)
 
+> A sintaxe canônica atual é enxuta e baseada em indentação. Fontes históricas
+> com `VARIAVEL`, `<-` e `FIM_*` continuam válidas durante a migração.
+
+```thz
+programa NEGOCIO Faturamento:
+    estrutura Item:
+        quantidade: INTEIRO
+        valor: MONETARIO
+
+    funcao subtotal(item: Item) -> MONETARIO:
+        total := item.quantidade * item.valor
+        retorne total
+
+    regra EmitirFatura:
+        exige cliente.ativo
+        garante resultado.total >= 0
+```
+
+Use `thz fmt arquivo.thz -w` para migrar para a forma enxuta. Use
+`thz fmt arquivo.thz --legado` quando precisar da representação antiga.
+
 Bem-vindo ao **Manual Oficial do THZ-LANG**, a linguagem de programação de sistemas corporativa e orientada a domínio (DDD) estruturada inteiramente em Língua Portuguesa. O THZ-LANG foi projetado especificamente para unificar **Governança de Negócio**, **Design por Contrato (DbC)**, **Arquitetura Viva**, **Processamento Numérico e Financeiro de Alta Integridade** e **Engenharia de Dados de Alta Performance** (SIMD/SoA/Arenas).
 
 ---
