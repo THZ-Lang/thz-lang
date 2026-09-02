@@ -13,6 +13,26 @@ import static org.junit.jupiter.api.Assertions.*;
 class ConsultaTipadaTest {
 
     @Test
+    @DisplayName("Deve adicionar item a FATIA sem mutar a coleção original")
+    void testFatiaAdicionar() {
+        String codigo = """
+            PROGRAMA TesteFatia
+            REGRA_NEGOCIO R
+                OPERACAO Obter() : INTEIRO
+                INICIO
+                    VARIAVEL base : FATIA[INTEIRO] <- [10]
+                    VARIAVEL ampliada : FATIA[INTEIRO] <- FATIA.adicionar(base, 20)
+                    RETORNE FATIA.tamanho(ampliada)
+                FIM
+            FIM_REGRA_NEGOCIO
+            FIM_PROGRAMA
+            """;
+        ProgramaAst ast = new ThzParser(new ThzLexer(codigo).tokenize()).parse();
+        var interp = new InterpretadorThz(ast);
+        assertEquals("2", interp.formatar(interp.executarOperacao("Obter", java.util.Map.of())));
+    }
+
+    @Test
     @DisplayName("Deve filtrar e ordenar coleção usando CONSULTAR (LINQ nativo)")
     void testConsultaTipadaFiltroEOrdenacao() {
         String codigo = """

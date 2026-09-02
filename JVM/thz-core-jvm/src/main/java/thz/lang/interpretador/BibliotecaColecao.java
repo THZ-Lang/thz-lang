@@ -4,6 +4,8 @@ package thz.lang.interpretador;
 
 import java.math.BigInteger;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Funções de coleções (FATIA) da stdlib THZ-LANG.
@@ -14,6 +16,15 @@ public final class BibliotecaColecao {
     private BibliotecaColecao() {}
 
     public static void registrar(Map<String, BibliotecaPadrao.FuncaoStdlib> m) {
+        BibliotecaPadrao.registrarPublico(m, "FATIA.adicionar", (args, ctx) -> {
+            StdlibHelper.exigirAridade("FATIA.adicionar", args, 2, ctx);
+            if (!(args.get(0) instanceof ValorThz.Fatia f)) {
+                throw new ErroExecucao("[Erro de Execução][Linha " + ctx.linha() + ":" + ctx.coluna() + "] FATIA.adicionar exige FATIA.");
+            }
+            var elementos = new ArrayList<>(f.elementos());
+            elementos.add(args.get(1));
+            return new ValorThz.Fatia(f.tipoInterno(), List.copyOf(elementos));
+        });
         BibliotecaPadrao.registrarPublico(m, "FATIA.tamanho", (args, ctx) -> {
             StdlibHelper.exigirAridade("FATIA.tamanho", args, 1, ctx);
             if (args.get(0) instanceof ValorThz.Fatia f) {
