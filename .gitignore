@@ -82,3 +82,4 @@ JVM/**/dados/
 scratch/
 tmp/
 temp/
+.worktrees/self-hosting-llvm
