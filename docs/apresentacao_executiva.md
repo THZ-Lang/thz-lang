@@ -4,7 +4,7 @@
 
 ---
 
-## Executive Summary
+## Resumo Executivo
 
 O **THZ-LANG** é uma plataforma de engenharia de software corporativo projetada para eliminar o abismo entre as **especificações de negócio (POs/C-Level)** e a **execução técnica em produção (Engenharia)**. 
 

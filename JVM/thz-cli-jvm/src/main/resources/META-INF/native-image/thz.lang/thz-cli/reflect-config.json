@@ -17,7 +17,7 @@
     "allPublicMethods": true
   },
   {
-    "name": "thz.lang.ui.RenderizadorFormularioWeb",
+    "name": "thz.lang.ui.ThzFormWebRenderer",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true,
     "allPublicMethods": true
@@ -51,19 +51,19 @@
     "allPublicMethods": true
   },
   {
-    "name": "thz.lang.webview.ThzWebviewBridge",
+    "name": "thz.lang.webview.ThzWebViewBridge",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true,
     "allPublicMethods": true
   },
   {
-    "name": "thz.lang.webview.LancadorWebviewNativo",
+    "name": "thz.lang.webview.ThzWebViewLauncher",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true,
     "allPublicMethods": true
   },
   {
-    "name": "thz.lang.webview.LancadorWebviewNativo$JanelaConfig",
+    "name": "thz.lang.webview.ThzWebViewLauncher$JanelaConfig",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true,
     "allPublicMethods": true

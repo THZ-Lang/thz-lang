@@ -3,7 +3,6 @@ package thz.lang.web;
 import thz.lang.interpretador.ValorThz;
 import thz.lang.net.ThzHttpServer;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**

@@ -95,5 +95,6 @@ jobs:
           mkdir -p dist/bin
           ./gradlew :thz-cli-jvm:run --args="ir compilador/driver.thz --llvm --saida dist/bin/driver.ll"
           clang -target x86_64-unknown-linux-gnu -c dist/bin/driver.ll -o dist/bin/driver.o
-          gcc -O3 dist/bin/driver.o src/runtime/thz_runtime.c -o dist/bin/driver.elf
+          cargo build --release --manifest-path src/runtime_rs/Cargo.toml
+          gcc -O3 dist/bin/driver.o -L src/runtime_rs/target/release -lthz_runtime -o dist/bin/driver.elf -lm -lpthread
           ./dist/bin/driver.elf

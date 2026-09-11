@@ -7,6 +7,14 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BlocoMemoriaTest {
 
     @Test
+    void deveRejeitarSomaQueTransbordariaSemCorromperUtilizacao() {
+        var bloco = new BlocoMemoria(1);
+        bloco.alocar(1);
+        assertThrows(RuntimeException.class, () -> bloco.alocar(Integer.MAX_VALUE));
+        assertEquals(1, bloco.getUtilizacaoBytes());
+    }
+
+    @Test
     public void testCriacaoEAlocacaoBasica() {
         BlocoMemoria bloco = new BlocoMemoria(1); // 1 MB
         assertEquals(1, bloco.getTamanhoMb());
@@ -56,5 +64,29 @@ public class BlocoMemoriaTest {
         String s = bloco.toString();
         assertNotNull(s);
         assertTrue(s.contains("BlocoMemoria"));
+    }
+
+    @Test
+    public void testAlocacaoZeroBytesEExataCapacidade() {
+        BlocoMemoria bloco = new BlocoMemoria(1); // 1048576 bytes
+        int pos0 = bloco.alocar(0);
+        assertEquals(0, pos0);
+        assertEquals(0, bloco.getUtilizacaoBytes());
+
+        int posExata = bloco.alocar(1048576);
+        assertEquals(0, posExata);
+        assertEquals(1048576, bloco.getUtilizacaoBytes());
+        assertEquals(0, bloco.getEspacoLivreBytes());
+        assertEquals(100.0, bloco.getPorcentagemUso());
+
+        assertThrows(RuntimeException.class, () -> bloco.alocar(1));
+    }
+
+    @Test
+    public void testOverflowIntegerMaxSemCorromperEstadoVazio() {
+        BlocoMemoria bloco = new BlocoMemoria(1);
+        assertThrows(RuntimeException.class, () -> bloco.alocar(Integer.MAX_VALUE));
+        assertEquals(0, bloco.getUtilizacaoBytes());
+        assertTrue(bloco.estaVazio());
     }
 }

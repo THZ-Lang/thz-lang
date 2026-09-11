@@ -108,8 +108,8 @@ if (-not $ApenasGui) {
     & $Gradlew @GradleArgs
     if ($LASTEXITCODE -ne 0) { Write-Error "Falha na compilacao shadowJar do CLI." }
 
-    $JarCli = "$Raiz\JVM\thz-cli-jvm\build\libs\thz-jvm-2.3.0.jar"
-    if (-not (Test-Path $JarCli)) { $JarCli = "$Raiz\target\thz-jvm-2.3.0.jar" }
+    $JarCli = (Get-ChildItem "$Raiz\target\thz-jvm*.jar", "$Raiz\JVM\thz-cli-jvm\build\libs\thz-jvm*.jar" | Where-Object { $_.Name -notmatch "-sources" } | Select-Object -First 1).FullName
+    if (-not $JarCli -or -not (Test-Path $JarCli)) { Write-Error "JAR da CLI não encontrado para compilação nativa." }
 
     & native-image.cmd --no-fallback -jar $JarCli -o "$DistBin\thz"
     if ($LASTEXITCODE -ne 0) { Write-Error "Falha na compilacao nativa de thz.exe." }

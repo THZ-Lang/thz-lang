@@ -36,7 +36,7 @@ public final class BlocoMemoria {
             throw new IllegalArgumentException("O tamanho em Megabytes (MB) do bloco de memória deve ser maior ou igual a zero.");
         }
         this.tamanhoMb = tamanhoMb;
-        this.capacidadeBytes = tamanhoMb * 1024 * 1024;
+        this.capacidadeBytes = Math.multiplyExact(tamanhoMb, 1024 * 1024);
         this.buffer = ByteBuffer.allocate(capacidadeBytes);
     }
 
@@ -52,14 +52,13 @@ public final class BlocoMemoria {
             throw new IllegalArgumentException("A quantidade de bytes a alocar deve ser não negativa.");
         }
         int enderecoInicial = this.offset;
-        int novoOffset = this.offset + bytes;
-        if (novoOffset > this.capacidadeBytes) {
+        if (bytes > this.capacidadeBytes - this.offset) {
             throw new RuntimeException(String.format(
                     "[Runtime THZ] Limite do bloco de memória temporária excedido: solicitado %d bytes, utilizado %d/%d bytes.",
                     bytes, this.offset, this.capacidadeBytes
             ));
         }
-        this.offset = novoOffset;
+        this.offset += bytes;
         return enderecoInicial;
     }
 

@@ -11,8 +11,15 @@ java {
     }
 }
 
+val repoRoot = rootProject.projectDir.resolve("../../")
+val versionFile = if (file("version.txt").exists()) file("version.txt") else repoRoot.resolve("version.txt")
+val thzVersion = if (versionFile.exists()) versionFile.readText().trim() else "2.4.0"
+
+group = "thz.lang"
+version = thzVersion
+
 dependencies {
-    jmhImplementation("thz.lang:thz-core:2.3.3")
+    jmhImplementation("thz.lang:thz-core:$thzVersion")
     jmhImplementation("org.openjdk.jmh:jmh-core:1.37")
     jmhAnnotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")
 }

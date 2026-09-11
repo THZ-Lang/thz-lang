@@ -3,8 +3,6 @@ package thz.lang.js;
 import thz.lang.ast.*;
 import thz.lang.sintatico.ThzParser;
 
-import java.util.List;
-
 /**
  * ThzJsEmitter — Emissor/Transpilador de programas THZ para JavaScript moderno ES2023.
  */
@@ -117,6 +115,19 @@ public final class ThzJsEmitter {
             }
         }
 
+        if (ast.funcoes() != null) {
+            for (FuncaoAst funcao : ast.funcoes()) {
+                sb.append("function ").append(funcao.nome()).append("(");
+                for (int i = 0; i < funcao.parametros().size(); i++) {
+                    sb.append(funcao.parametros().get(i).nome());
+                    if (i + 1 < funcao.parametros().size()) sb.append(", ");
+                }
+                sb.append(") {\n");
+                for (ComandoAst c : funcao.corpo()) sb.append(emitirComando(c, 2));
+                sb.append("}\n\n");
+            }
+        }
+
         return sb.toString();
     }
 
@@ -187,6 +198,15 @@ public final class ThzJsEmitter {
                 }
                 yield sb.toString();
             }
+            case ComandoAst.Tente t -> {
+                StringBuilder sb = new StringBuilder();
+                sb.append(pad).append("try {\n");
+                for (ComandoAst c : t.corpoTente()) sb.append(emitirComando(c, indent + 2));
+                sb.append(pad).append("} catch (_erro) {\n");
+                for (ComandoAst c : t.corpoCapture()) sb.append(emitirComando(c, indent + 2));
+                sb.append(pad).append("}\n");
+                yield sb.toString();
+            }
             case ComandoAst.Chamada ch -> pad + emitirExpr(ch.expressao()) + ";\n";
             case ComandoAst.Ler ler -> pad + String.join(".", ler.alvo()) + " = prompt();\n";
         };
@@ -240,6 +260,24 @@ public final class ThzJsEmitter {
                     default -> ob.operador();
                 };
                 yield "(" + emitirExpr(ob.esquerda()) + " " + op + " " + emitirExpr(ob.direita()) + ")";
+            }
+            case ExprAst.ConsultaTipada ct -> {
+                StringBuilder sb = new StringBuilder("(");
+                sb.append(emitirExpr(ct.fonte()));
+                if (ct.onde() != null) {
+                    sb.append(").filter(item => { with(item) { return ").append(emitirExpr(ct.onde())).append("; } })");
+                } else {
+                    sb.append(")");
+                }
+                if (ct.campoOrdenacao() != null) {
+                    sb.append(".slice().sort((a, b) => ").append(ct.asc() ? "a." + ct.campoOrdenacao() + " > b." + ct.campoOrdenacao() + " ? 1 : -1" : "a." + ct.campoOrdenacao() + " < b." + ct.campoOrdenacao() + " ? 1 : -1").append(")");
+                }
+                if (ct.pular() != null || ct.limite() != null) {
+                    String start = ct.pular() != null ? emitirExpr(ct.pular()) : "0";
+                    String end = ct.limite() != null ? start + " + " + emitirExpr(ct.limite()) : "undefined";
+                    sb.append(".slice(").append(start).append(", ").append(end).append(")");
+                }
+                yield sb.toString();
             }
         };
     }

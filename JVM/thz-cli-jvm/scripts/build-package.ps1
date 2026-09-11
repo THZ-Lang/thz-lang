@@ -1,14 +1,15 @@
 # Script de Empacotamento THZ-LANG Engine JVM (jpackage / Java 25)
 
+$Raiz = Resolve-Path "$PSScriptRoot\..\..\.."
+$VersaoPadrao = if (Test-Path "$Raiz\version.txt") { (Get-Content "$Raiz\version.txt" -Raw).Trim() } else { "2.4.0" }
+
 [CmdletBinding()]
 param (
-    [string]$Versao = "2.3.0",
+    [string]$Versao = $VersaoPadrao,
     [switch]$PularTestes
 )
 
 $ErrorActionPreference = "Stop"
-
-$Raiz = Resolve-Path "$PSScriptRoot\..\..\.."
 Set-Location $Raiz
 
 Write-Host "=================================================" -ForegroundColor Cyan

@@ -52,6 +52,12 @@ REGRA_NEGOCIO CodegenSelfHost
 
         RETORNE estado
     FIM
+FIM_REGRA_NEGOCIO
+
+REGRA_NEGOCIO MapeamentoTipos
+    IDENTIFICADOR_REGRA: "BR-COMP-005B"
+    RASTREIO_REQUISITO: "REQ-COMP-005"
+    DESCRICAO: "Mapeia tipos primitivos do THZ-LANG para representacao nativa LLVM."
 
     OPERACAO MapearTipoPrimitivo(tipo_thz: TEXTO) : TEXTO
     INICIO

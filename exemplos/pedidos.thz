@@ -39,7 +39,7 @@ REGRA_NEGOCIO ClassificacaoPedidos
 
     OPERACAO Classificar(pedido: FATIA[Pedido]) : RESULTADO[StatusPedido, TEXTO]
     INICIO
-        VARIAVEL primeiro : DECIMAL(14, 2) <- 0.00
+        VARIAVEL primeiro: DECIMAL(14, 2) <- 0.00
         VETORIZAR_PARA p EM pedido PASSO_SIMD 8
             primeiro <- p.valor_total
             SE primeiro > 100.00

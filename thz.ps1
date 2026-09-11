@@ -8,7 +8,21 @@
 
 param([Parameter(ValueFromRemainingArguments=$true)][string[]]$ArgsRest)
 
+# Garante UTF-8 no console Windows (corrige Verificação/Código/Governança)
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding  = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+try { chcp 65001 | Out-Null } catch {}
+# Encoding JVM já configurado em gradle.properties + build.gradle.kts (stdout.encoding=UTF-8)
+
 $Raiz = $PSScriptRoot
+
+# Auto-detecção de Rust Portátil (.tools\rust)
+$RustLocalBin = "$Raiz\.tools\rust\cargo\bin"
+if (Test-Path "$RustLocalBin\cargo.exe") {
+    $env:PATH = "$RustLocalBin;$env:PATH"
+}
+
 if (-not $ArgsRest -or $ArgsRest.Count -eq 0) { $ArgsRest = @("gui") }
 # Normaliza --gui -> gui, --help -> --ajuda etc. (ThzCli espera sem -- para comandos)
 if ($ArgsRest.Count -ge 1) {
@@ -20,7 +34,16 @@ if ($ArgsRest.Count -ge 1) {
 }
 $joined = $ArgsRest -join " "
 if ($ArgsRest.Count -ge 1 -and $ArgsRest[0] -eq "gui") {
-    & "$Raiz\gradlew.bat" :thz-gui-jvm:gui
+    if ($ArgsRest.Count -ge 2) {
+        $fileArgs = ($ArgsRest[1..($ArgsRest.Count - 1)] -join " ")
+        & "$Raiz\gradlew.bat" :thz-gui-jvm:run --args="$fileArgs"
+    } else {
+        & "$Raiz\gradlew.bat" :thz-gui-jvm:gui
+    }
+} elseif ($ArgsRest.Count -ge 1 -and ($ArgsRest[0] -eq "agent" -or $ArgsRest[0] -eq "agente")) {
+    # Agent roda direto via java -jar (sem Gradle no console)
+    $agentArgs = if ($ArgsRest.Count -ge 2) { $ArgsRest[1..($ArgsRest.Count - 1)] } else { @() }
+    & "$Raiz\thz-agent.ps1" @agentArgs
 } else {
     & "$Raiz\gradlew.bat" :thz-cli-jvm:run --args="$joined"
 }

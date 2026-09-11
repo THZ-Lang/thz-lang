@@ -9,3 +9,4 @@ rootProject.name = "thz-cli"
 // Em CI/consumidores externos, publique o core (`publishToMavenLocal`) e a
 // dependência declarada será baixada como artefato.
 includeBuild("../thz-core-jvm")
+includeBuild("../thz-gui-jvm")

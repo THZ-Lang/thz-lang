@@ -4,11 +4,9 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
-import thz.lang.formato.Formatador;
 import thz.lang.governanca.AuditorGovernanca;
 import thz.lang.governanca.RelatorioAuditoria;
-import thz.lang.ir.GeradorIr;
-import thz.lang.ir.IrPrograma;
+import thz.lang.lexico.SintaxeEnxuta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +64,18 @@ public class ThzTextDocumentService implements TextDocumentService {
         ThzLanguageServerImpl.ResultadoAnalise r = server.analisar(fonte);
         List<Diagnostic> diags = server.paraLspDiagnostics(r.diagnosticos(), fonte);
 
+        for (SintaxeEnxuta.DiagnosticoIndentacao erro : SintaxeEnxuta.validarIndentacao(fonte)) {
+            Diagnostic diag = new Diagnostic();
+            diag.setSeverity(DiagnosticSeverity.Error);
+            diag.setRange(new Range(
+                    new Position(erro.linha() - 1, Math.max(0, erro.coluna() - 1)),
+                    new Position(erro.linha() - 1, Math.max(1, erro.coluna()))
+            ));
+            diag.setMessage(erro.mensagem());
+            diag.setSource("thz-indentacao");
+            diags.add(diag);
+        }
+
         // G4 — pendências de governança como warnings
         if (r.ast() != null) {
             try {
@@ -120,24 +130,43 @@ public class ThzTextDocumentService implements TextDocumentService {
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
         List<CompletionItem> items = new ArrayList<>();
 
+        String[] sintaxeEnxuta = {
+                "programa Nome:", "biblioteca Nome:", "estrutura Nome:",
+                "regra Nome:", "funcao nome() -> Tipo:", "operacao nome() -> Tipo:",
+                "procedimento nome():", "se condicao:", "senao:", "enquanto condicao:",
+                "para item de inicio ate fim:", "nome := valor", "retorne valor",
+                "exige condicao", "garante condicao"
+        };
+        for (String forma : sintaxeEnxuta) {
+            CompletionItem item = new CompletionItem();
+            item.setLabel(forma);
+            item.setKind(CompletionItemKind.Snippet);
+            item.setDetail("sintaxe canônica enxuta THZ-LANG");
+            items.add(item);
+        }
+
         String[] keywords = {
-                "PROGRAMA", "VISUAL", "NEGOCIO", "ARQUITETURA", "BIBLIOTECA", "EXTENSAO", "FERRAMENTA", "TESTE",
-                "FIM_PROGRAMA", "FIM_BIBLIOTECA", "FIM_EXTENSAO", "FIM_FERRAMENTA", "FIM_TESTE",
+                "PROGRAMA", "VISUAL", "NEGOCIO", "ARQUITETURA", "BIBLIOTECA", "EXTENSAO", "FERRAMENTA", "TESTE", "TELA",
+                "PIPELINE_DADOS", "FONTE_ENTRADA", "DESTINO_SAIDA", "TRANSFORMACAO",
+                "FIM_PROGRAMA", "FIM_BIBLIOTECA", "FIM_EXTENSAO", "FIM_FERRAMENTA", "FIM_TESTE", "FIM_TELA",
+                "FIM_PIPELINE", "FIM_FONTE", "FIM_DESTINO", "FIM_TRANSFORMACAO", "FIM_VETORIZAR",
                 "METADADOS_ARQUITETURA", "FIM_METADADOS",
                 "ESTRUTURA", "FIM_ESTRUTURA", "ENUMERACAO", "FIM_ENUMERACAO",
-                "REGRA_NEGOCIO", "FIM_REGRA_NEGOCIO", "PROCEDIMENTO", "INICIO", "FIM",
+                "REGRA_NEGOCIO", "FIM_REGRA_NEGOCIO", "PROCEDIMENTO", "FUNCAO", "FIM_FUNCAO", "FIM_OPERACAO", "INICIO", "FIM",
                 "EXIGE", "GARANTE", "INVARIANTE", "FALHAR_COM",
                 "CONTRATO_ENTRADA", "FIM_CONTRATO_ENTRADA", "CONTRATO_SAIDA", "FIM_CONTRATO_SAIDA",
-                "VARIAVEL", "RETORNE", "EXIBA", "OPERACAO",
-                "SE", "SENAO", "ENQUANTO", "FIM_SE", "FIM_ENQUANTO",
-                "VERDADEIRO", "FALSO", "NULO",
+                "VARIAVEL", "RETORNE", "RETORNAR", "EXIBA", "OPERACAO",
+                "SE", "ENTAO", "SENAO", "ENQUANTO", "FACA", "FIM_SE", "FIM_ENQUANTO",
+                "VERDADEIRO", "FALSO", "NULO", "E", "OU", "NAO",
                 "VETORIZAR_PARA", "EM", "PASSO_SIMD", "PARA", "PASSO", "DE", "ATE",
                 "CRIAR", "LER", "FIM_PARA",
                 "USAR_BLOCO_MEMORIA", "FIM_BLOCO_MEMORIA", "LAYOUT_COLUNAR",
-                "IMPORTAR", "CASO_RESULTADO", "FIM_CASO", "SUCESSO", "ERRO",
+                "STREAMING", "LOTE", "CONECTOR", "FORMATO",
+                "IMPORTAR", "CASO_RESULTADO", "ESCOLHA", "CASO", "FIM_CASO", "FIM_ESCOLHA", "SUCESSO", "ERRO", "FALHA",
+                "TENTE", "CAPTURE", "FIM_TENTE",
                 "VERSAO_LINGUAGEM", "IDEMPOTENTE", "CHAVE_IDEMPOTENCIA",
-                "DOMINIO", "SUBDOMINIO", "CAMADA", "VERSAO", "AUTOR",
-                "SLO_LATENCIA_MAXIMA", "CONFORMIDADE",
+                "SISTEMA", "MODULO", "DOMINIO", "SUBDOMINIO", "CAMADA", "VERSAO", "AUTOR", "RESPONSAVEL",
+                "SLO_LATENCIA_MS", "SLO_LATENCIA_MAXIMA", "CONFORMIDADE", "CRITICIDADE",
                 "IDENTIFICADOR_REGRA", "RASTREIO_REQUISITO", "DESCRICAO"
         };
 
@@ -150,9 +179,9 @@ public class ThzTextDocumentService implements TextDocumentService {
         }
 
         String[] tipos = {
-                "TEXTO", "LOGICO", "UUID", "NATURAL32", "INTEIRO64",
-                "DECIMAL(12, 4)", "MONETARIO(\"BRL\")", "FATIA[Item]", "RESULTADO[T, E]",
-                "DATA", "DATA_HORA"
+                "INTEIRO", "INTEIRO32", "INTEIRO64", "NATURAL8", "NATURAL16", "NATURAL32", "NATURAL64",
+                "DECIMAL(12, 2)", "DECIMAL(12, 4)", "MONETARIO(BRL)", "MONETARIO(USD)", "MONETARIO(EUR)",
+                "TEXTO", "LOGICO", "UUID", "DATA", "DATA_HORA", "FATIA[Item]", "RESULTADO[T, E]", "LISTA"
         };
         for (String tipo : tipos) {
             CompletionItem item = new CompletionItem();
@@ -251,6 +280,9 @@ public class ThzTextDocumentService implements TextDocumentService {
         String uri = params.getTextDocument().getUri();
         String fonte = server.obterDocumento(uri);
         if (fonte == null) return CompletableFuture.completedFuture(List.of());
+        if (!SintaxeEnxuta.validarIndentacao(fonte).isEmpty()) {
+            return CompletableFuture.completedFuture(List.of());
+        }
 
         String formatado = server.formatar(fonte);
         if (formatado == null || formatado.equals(fonte)) return CompletableFuture.completedFuture(List.of());

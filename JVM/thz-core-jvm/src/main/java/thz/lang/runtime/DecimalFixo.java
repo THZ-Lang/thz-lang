@@ -20,6 +20,8 @@ public final class DecimalFixo {
     /** Escala canônica do motor quando nenhuma é declarada. */
     public static final int ESCALA_PADRAO = 4;
 
+    public static final DecimalFixo ZERO = deInteiro(0);
+
     private static final Pattern LITERAL_DECIMAL = Pattern.compile("^-?\\d*(\\.\\d*)?$");
 
     /** Construtor interno por escalado; prefira as fábricas deTexto/deInteiro. */
@@ -121,8 +123,7 @@ public final class DecimalFixo {
 
         BigInteger arredondado = quociente;
         if (modo != ModoArredondamento.TRUNCAR && !resto.equals(BigInteger.ZERO)) {
-            BigInteger metade = fator.divide(BigInteger.TWO);
-            int cmp = resto.compareTo(metade);
+            int cmp = resto.multiply(BigInteger.TWO).compareTo(fator);
             if (cmp > 0) {
                 arredondado = quociente.add(BigInteger.ONE);
             } else if (cmp == 0 && modo == ModoArredondamento.BANCARIO) {
@@ -194,8 +195,7 @@ public final class DecimalFixo {
 
         BigInteger escaladoFinal = quociente;
         if (modo != ModoArredondamento.TRUNCAR && !resto.equals(BigInteger.ZERO)) {
-            BigInteger metade = den.divide(BigInteger.TWO);
-            int cmp = resto.compareTo(metade);
+            int cmp = resto.multiply(BigInteger.TWO).compareTo(den);
             if (cmp > 0) escaladoFinal = escaladoFinal.add(BigInteger.ONE);
             else if (cmp == 0 && modo == ModoArredondamento.BANCARIO) escaladoFinal = quociente.mod(BigInteger.TWO).equals(BigInteger.ZERO) ? quociente : quociente.add(BigInteger.ONE);
             else if (cmp == 0 && modo == ModoArredondamento.MEIA_CIMA) escaladoFinal = escaladoFinal.add(BigInteger.ONE);
@@ -273,8 +273,20 @@ public final class DecimalFixo {
 
     @Override
     public int hashCode() {
-        // Normaliza para representação canônica sem zeros à direita? Usa valor/escala direto.
-        return valorEscalado.hashCode() * 31 + escala;
+        BigInteger canonico = valorEscalado;
+        int escalaCanonica = escala;
+        if (canonico.signum() == 0) {
+            return 0;
+        }
+        while (escalaCanonica > 0 && canonico.remainder(BigInteger.TEN).signum() == 0) {
+            canonico = canonico.divide(BigInteger.TEN);
+            escalaCanonica--;
+        }
+        return canonico.hashCode() * 31 + escalaCanonica;
+    }
+
+    public java.math.BigDecimal paraBigDecimal() {
+        return new java.math.BigDecimal(formatar());
     }
 
     @Override

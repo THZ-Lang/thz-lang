@@ -64,7 +64,7 @@ REGRA_NEGOCIO GestaoEstacao
 
     OPERACAO AplicarConfiguracoes(nomeEstacao: TEXTO, senhaSegredoMestre: TEXTO, corTemaHex: TEXTO, caminhoCertificadoTls: TEXTO, nivelPrioridadeSlider: INTEIRO32, numeroConexoesSpinner: INTEIRO32, ambienteRadio: AmbienteExecucao, protocoloCombo: ProtocoloSeguranca, habilitarModoEstritoSwitch: LOGICO, gravarAuditoriaDiscoCheck: LOGICO, modulosHabilitadosLista: FATIA[TEXTO], parametrosGrid: FATIA[ParametroServico], detalhesParecerNotas: TEXTO): TEXTO
     INICIO
-        VARIAVEL qtdParam : INTEIRO32 <- 2
+        VARIAVEL qtdParam: INTEIRO32 <- 2
         EXIBA "[PAINEL] Estação: " + nomeEstacao + " | Ambiente: " + ambienteRadio + " | Prioridade: " + nivelPrioridadeSlider + "% | Conexões: " + numeroConexoesSpinner
         RETORNE "Configurações aplicadas com sucesso para [" + nomeEstacao + "] no ambiente " + ambienteRadio + "! (Cor: " + corTemaHex + ", Protocolo: " + protocoloCombo + ")."
     FIM
@@ -81,13 +81,13 @@ REGRA_NEGOCIO Inicializacao
 
     OPERACAO MontarTela(): TEXTO
     INICIO
-        VARIAVEL p1 : ParametroServico <- CRIAR ParametroServico(chave: "JVM_HEAP_MAX", valor: "8192m", descricao: "Memória máxima para o processo JVM")
-        VARIAVEL p2 : ParametroServico <- CRIAR ParametroServico(chave: "SIMD_VECTOR_WIDTH", valor: "512", descricao: "Largura de registrador AVX-512")
-        VARIAVEL gradeParams : FATIA[ParametroServico] <- [p1, p2]
+        VARIAVEL p1: ParametroServico <- CRIAR ParametroServico(chave: "JVM_HEAP_MAX", valor: "8192m", descricao: "Memória máxima para o processo JVM")
+        VARIAVEL p2: ParametroServico <- CRIAR ParametroServico(chave: "SIMD_VECTOR_WIDTH", valor: "512", descricao: "Largura de registrador AVX-512")
+        VARIAVEL gradeParams: FATIA[ParametroServico] <- [p1, p2]
 
-        VARIAVEL listaMods : FATIA[TEXTO] <- ["Faturamento_SIMD", "Motor_Credito_SOX", "Auditoria_Bacen", "SPED_Fiscal"]
+        VARIAVEL listaMods: FATIA[TEXTO] <- ["Faturamento_SIMD", "Motor_Credito_SOX", "Auditoria_Bacen", "SPED_Fiscal"]
 
-        VARIAVEL form : PainelControleMaster <- CRIAR PainelControleMaster(
+        VARIAVEL form: PainelControleMaster <- CRIAR PainelControleMaster(
             titulo: "Showcase Completo de Controles de UI — THZ-LANG",
             nomeEstacao: "Cluster-Edge-Node-01",
             senhaSegredoMestre: "Thz#SuperSafe2026",
@@ -104,7 +104,7 @@ REGRA_NEGOCIO Inicializacao
             detalhesParecerNotas: "Estação provisionada com aceleração por hardware ativada. Registradores SIMD validados para processamento de ponto fixo contínuo."
         )
 
-        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "GestaoEstacao.AplicarConfiguracoes")
+        VARIAVEL status: TEXTO <- TELA.renderizarFormulario(form, "GestaoEstacao.AplicarConfiguracoes")
         EXIBA status
         RETORNE status
     FIM

@@ -1,5 +1,5 @@
 # ==============================================================================
-# THZ-LANG ��� Global .gitignore
+# THZ-LANG Global .gitignore
 # ==============================================================================
 
 # Node.js & TypeScript
@@ -11,6 +11,7 @@ out/
 # THZ-LANG build artifacts espurios
 JVM/**/target/
 JVM/**/dist/
+JVM/**/bin/
 **/*.ll
 
 # Agents / AI tooling
@@ -28,14 +29,14 @@ target/
 build/
 .gradle/
 *.class
-*.jar
-*.war
+# *.jar
+# *.war
 *.ear
 dependency-reduced-pom.xml
 surefire-reports/
 
 # VS Code Extension Packaging
-*.vsix
+# *.vsix
 Extensions/thz-lsp-vscode/dist/
 Extensions/thz-lsp-vscode/out/
 
@@ -66,8 +67,19 @@ ehthumbs_vista.db
 !.env.example
 *.local
 
-# Logs and Scratch
+# Database Files
+*.db
+*.db-shm
+*.db-wal
+dados/
+JVM/**/dados/
+
+# Logs, Snapshots and Scratch
 *.log
+*.thzsnap
+*.thzdbi
+.thz/internal/
 scratch/
 tmp/
 temp/
+.worktrees/self-hosting-llvm

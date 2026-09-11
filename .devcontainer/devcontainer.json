@@ -1,0 +1,66 @@
+{
+  "name": "THZ-LANG Dev Container (Java 25 + LLVM + TypeScript)",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "target": "dev"
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    "source=thz-gradle-cache,target=/home/vscode/.gradle,type=volume",
+    "source=thz-npm-cache,target=/home/vscode/.npm,type=volume"
+  ],
+  "forwardPorts": [8080, 5005, 5007],
+  "portsAttributes": {
+    "8080": {
+      "label": "THZ REST/WebSocket API",
+      "onAutoForward": "notify"
+    },
+    "5005": {
+      "label": "JVM Remote Debugger",
+      "onAutoForward": "silent"
+    },
+    "5007": {
+      "label": "LSP Daemon Debugger",
+      "onAutoForward": "silent"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-gradle",
+        "ms-vscode.cpptools",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens",
+        "editorconfig.editorconfig",
+        "streetsidesoftware.code-spell-checker",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "java.home": "/opt/java/openjdk",
+        "java.configuration.runtimes": [
+          {
+            "name": "JavaSE-25",
+            "path": "/opt/java/openjdk",
+            "default": true
+          }
+        ],
+        "java.import.gradle.enabled": true,
+        "java.import.gradle.wrapper.enabled": true,
+        "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m",
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "thz-lang.cliPath": "/opt/thz/bin/thz",
+        "thz-lang.lspJarPath": "/opt/thz/lib/thz-lsp.jar"
+      }
+    }
+  },
+  "postCreateCommand": "bash ./scripts/setup.sh --skip-tests && (cd Extensions/thz-lsp-vscode && npm install && npm run compile)",
+  "shutdownAction": "stopContainer"
+}

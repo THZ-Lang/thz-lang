@@ -15,7 +15,8 @@ public sealed interface ExprAst permits
         ExprAst.FatiaLiteral,
         ExprAst.CriarRegistro,
         ExprAst.OpBinaria,
-        ExprAst.OpUnaria {
+        ExprAst.OpUnaria,
+        ExprAst.ConsultaTipada {
 
     int linha();
     int coluna();
@@ -32,6 +33,7 @@ public sealed interface ExprAst permits
     record CriarRegistro(String nomeEstrutura, List<CampoValor> campos, int linha, int coluna) implements ExprAst {}
     record OpBinaria(String operador, ExprAst esquerda, ExprAst direita, int linha, int coluna) implements ExprAst {}
     record OpUnaria(String operador, ExprAst operando, int linha, int coluna) implements ExprAst {}
+    record ConsultaTipada(ExprAst fonte, ExprAst onde, String campoOrdenacao, boolean asc, ExprAst limite, ExprAst pular, int linha, int coluna) implements ExprAst {}
 
     record CampoValor(String nome, ExprAst valor) {}
 }

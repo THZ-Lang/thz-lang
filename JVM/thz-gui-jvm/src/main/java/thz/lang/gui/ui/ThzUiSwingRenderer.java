@@ -176,4 +176,47 @@ public final class ThzUiSwingRenderer {
             }
         }
     }
+
+    public static JFrame renderizarOuExibir(thz.lang.ast.ProgramaAst ast, thz.lang.interpretador.InterpretadorThz interp) {
+        if (GraphicsEnvironment.isHeadless()) return null;
+
+        if (ast.estruturas() != null && !ast.estruturas().isEmpty()) {
+            var primEst = ast.estruturas().get(0);
+            var primReg = thz.lang.interpretador.InjetorLoteDemo.registroDe(primEst, thz.lang.interpretador.InjetorLoteDemo.LOTE[0], null);
+            if (primReg instanceof thz.lang.interpretador.ValorThz.Registro r) {
+                var form = new thz.lang.gui.RenderizadorFormularioSwing(r, "Salvar", interp);
+                form.exibir();
+                return form.getFrame();
+            }
+        }
+
+        JFrame frame = new JFrame("Interface THZ — " + ast.nome());
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.getContentPane().setBackground(Color.decode("#0f172a"));
+
+        var maker = thz.lang.ui.ThzUiMaker.container("raiz", c -> {
+            c.adicionar(thz.lang.ui.ThzUiMaker.card("card_" + ast.nome(), ast.nome(), card -> {
+                card.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_modulo", "info", "Tela: " + ast.nome() + " [" + ast.tipoModulo() + "]"));
+                if (ast.procedimentos() != null) {
+                    for (var p : ast.procedimentos()) {
+                        card.adicionar(thz.lang.ui.ThzUiMaker.botao("btn_" + p.nome(), p.nome(), p.nome()));
+                    }
+                }
+            }));
+        });
+
+        JComponent comp = renderizar(maker.construir(), ThzUiTema.escuroGlass(), (acao, id) -> {
+            if (interp != null) {
+                try {
+                    interp.executarProcedimento(acao, java.util.Map.of());
+                } catch (Exception ignore) {}
+            }
+        });
+
+        frame.setContentPane(comp);
+        frame.setSize(800, 560);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+        return frame;
+    }
 }

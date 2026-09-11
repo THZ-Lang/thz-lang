@@ -33,7 +33,7 @@ import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
@@ -125,13 +125,7 @@ public class RenderizadorFormularioSwing {
     }
 
     private void configurarLookAndFeel() {
-        try {
-            Class.forName("com.formdev.flatlaf.FlatDarkLaf").getMethod("setup").invoke(null);
-        } catch (Exception e) {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ignored) {}
-        }
+        thz.lang.gui.util.LookAndFeelHelper.configurar();
     }
 
     private void construirInterface() {

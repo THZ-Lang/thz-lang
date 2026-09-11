@@ -1,8 +1,8 @@
 # ==============================================================================
-# DEPRECIADO Fase 3: Win32 thz_runtime.c gerava .exe feio/truncado (ver screenshot).
+# AOT experimental: gera LLVM via o host JVM e linka o runtime Rust.
 # NAO USE para GUI. Padrao agora: thz.exe WebView + jpackage.
 #   thz gui          -> IDE WebView (thz_webview2.c host, sem thz_runtime Win32)
-#   thz run *.thz    -> TELA.* via LancadorWebviewNativo
+#   thz run *.thz    -> TELA.* via ThzWebViewLauncher
 # Este script foi desativado para alvos GUI. Use .\scripts\package-all.ps1
 # ou .\thz.ps1 run <arquivo>. Para forcar legado: -ForceLegado
 # ==============================================================================
@@ -50,7 +50,6 @@ $DistBin = "$Raiz\dist\bin"
 if (-not (Test-Path $DistBin)) { New-Item -ItemType Directory -Path $DistBin | Out-Null }
 
 $LlvmFile = "$DistBin\$NomeBase.ll"
-$RuntimeC = "$Raiz\src\runtime\thz_runtime.c"
 $Clang    = "$env:USERPROFILE\scoop\apps\llvm\current\bin\clang.exe"
 if (-not (Test-Path $Clang)) { $Clang = "clang" }
 $Gcc      = "$env:USERPROFILE\scoop\apps\mingw\current\bin\gcc.exe"
@@ -71,18 +70,23 @@ if ($Alvo -eq "ambos" -or $Alvo -eq "windows") {
     & $Clang -target x86_64-w64-windows-gnu -c $LlvmFile -o $ObjWin
     if ($LASTEXITCODE -ne 0) { Write-Error "Falha ao compilar objeto Windows com LLVM Clang." }
     
-    # Detecta modulo GUI pelo nome do arquivo (contem _gui)
-    $IsGui = $NomeBase -match "_gui"
-    $WebViewC = "$Raiz\src\runtime\thz_webview2.c"
-    $HasWebView = Test-Path $WebViewC
-    $GccLinkFlags = @("-O3", $ObjWin, $RuntimeC, "-o", $ExeWin, "-lgdi32", "-luser32", "-lkernel32", "-ldwmapi", "-lole32", "-lshlwapi")
-    if ($HasWebView) { $GccLinkFlags = @("-O3", $ObjWin, $RuntimeC, $WebViewC, "-o", $ExeWin, "-lgdi32", "-luser32", "-lkernel32", "-ldwmapi", "-lole32", "-lshlwapi") }
-    if ($IsGui) {
-        # Subsistema Windows: nao abre janela de console ao dar duplo-clique
-        $GccLinkFlags += "-mwindows"
-        if ($HasWebView) { Write-Host "  [GUI] WebView2 host Fase 3 linkado (thz_webview2.c) + thz_runtime.c" -ForegroundColor DarkCyan }
-        else { Write-Host "  [GUI] Detectado modulo GUI - linkando com subsistema Windows (sem console)" -ForegroundColor DarkCyan }
+    # Linker com Runtime Nativo Rust (src/runtime_rs)
+    $RuntimeRs = "$Raiz\src\runtime_rs"
+    $CargoBin = "$Raiz\.tools\rust\cargo\bin\cargo.exe"
+    if (-not (Test-Path $CargoBin)) { $CargoBin = "cargo" }
+    
+    $RustLibDir = "$RuntimeRs\target\release"
+    if (Test-Path "$RuntimeRs\Cargo.toml") {
+        Write-Host "  [RUST] Verificando runtime nativo em Rust ($RuntimeRs)..." -ForegroundColor DarkCyan
+        try {
+            & $CargoBin build --release --manifest-path "$RuntimeRs\Cargo.toml" 2>$null
+        } catch {}
     }
+
+    if (-not (Test-Path "$RustLibDir\thz_runtime.lib") -and -not (Test-Path "$RustLibDir\libthz_runtime.a")) {
+        Write-Error "Runtime Rust não encontrado em $RustLibDir. Compile o runtime antes do link."
+    }
+    $GccLinkFlags = @("-O3", $ObjWin, "-o", $ExeWin, "-L", $RustLibDir, "-lthz_runtime", "-lgdi32", "-luser32", "-lkernel32", "-ldwmapi", "-lole32", "-lshlwapi")
     
     & $Gcc @GccLinkFlags
     if ($LASTEXITCODE -ne 0) { Write-Error "Falha ao linkar executavel Windows." }

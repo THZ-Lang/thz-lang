@@ -1,0 +1,9 @@
+# Funções mantêm tipagem explícita; variáveis locais podem inferir o tipo.
+programa FuncoesEInferencia:
+    funcao calcular_total(quantidade: INTEIRO32, valor_unitario: INTEIRO32) -> INTEIRO32:
+        total := quantidade * valor_unitario
+        retorne total
+
+    procedimento Principal():
+        total_pedido := calcular_total(3, 25)
+        exiba total_pedido

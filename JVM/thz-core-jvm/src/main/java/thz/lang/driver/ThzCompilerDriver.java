@@ -28,7 +28,8 @@ public final class ThzCompilerDriver {
         THZ_IR,
         LLVM,
         JAVASCRIPT,
-        AUDITORIA
+        AUDITORIA,
+        WEBASSEMBLY
     }
 
     public record ResultadoCompilacao(
@@ -43,8 +44,9 @@ public final class ThzCompilerDriver {
 
     public static ResultadoCompilacao compilarOuExecutar(String fonte, Alvo alvo, boolean modoEstrito, Map<String, ValorThz> argumentos) {
         // 1. Léxico & Sintático
-        List<Token> tokens = new ThzLexer(fonte).tokenize();
-        ProgramaAst ast = new ThzParser(tokens).parse();
+        ThzLexer lexer = new ThzLexer(fonte);
+        List<Token> tokens = lexer.tokenize();
+        ProgramaAst ast = new ThzParser(tokens, lexer.getDialeto()).parse();
 
         // 2. Semântico
         AnalisadorSemantico semantico = new AnalisadorSemantico(ast);
@@ -72,7 +74,16 @@ public final class ThzCompilerDriver {
                 yield new ResultadoCompilacao(true, ast, List.of(), GeradorIr.serializarIrJson(ir), null);
             }
             case LLVM -> {
-                String llvm = GeradorIr.emitirLlvm(ast);
+                if (modoEstrito) {
+                    List<String> limitacoes = GeradorIr.validarCapacidadeLlvm(ast);
+                    if (!limitacoes.isEmpty()) {
+                        List<ErroSemantico> errosBackend = limitacoes.stream()
+                                .map(msg -> new ErroSemantico(1, 1, "[Backend LLVM] " + msg))
+                                .toList();
+                        yield new ResultadoCompilacao(false, ast, errosBackend, null, null);
+                    }
+                }
+                String llvm = GeradorIr.emitirLlvm(ast, modoEstrito);
                 yield new ResultadoCompilacao(true, ast, List.of(), llvm, null);
             }
             case JAVASCRIPT -> {
@@ -83,6 +94,13 @@ public final class ThzCompilerDriver {
                 RelatorioAuditoria relatorio = AuditorGovernanca.auditar(ast);
                 String md = AuditorGovernanca.gerarMarkdownGovernanca(relatorio);
                 yield new ResultadoCompilacao(true, ast, List.of(), md, null);
+            }
+            case WEBASSEMBLY -> {
+                ErroSemantico erroWasm = new ErroSemantico(
+                        1, 1,
+                        "[Backend WebAssembly] O compilador JVM não gera bytecode binário WebAssembly (.wasm) diretamente. " +
+                        "A compilação WASM requer o pipeline nativo Rust/AOT ou o emissor JavaScript (Alvo.JAVASCRIPT).");
+                yield new ResultadoCompilacao(false, ast, List.of(erroWasm), null, null);
             }
         };
     }

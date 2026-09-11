@@ -41,11 +41,11 @@ REGRA_NEGOCIO CalculoTributarioLote
 
     OPERACAO ProcessarVetorizado(itens: FATIA[ItemFatura]) : DECIMAL(18, 4)
     INICIO
-        VARIAVEL acumulador_tributos : DECIMAL(18, 4) <- 0.0000
+        VARIAVEL acumulador_tributos: DECIMAL(18, 4) <- 0.0000
         VETORIZAR_PARA item EM itens PASSO_SIMD 8
-            VARIAVEL bruto          : DECIMAL(18, 4) <- item.quantidade * item.valor_unitario
-            VARIAVEL fator_aliquota : DECIMAL(18, 4) <- item.aliquota_imposto / 100
-            VARIAVEL imposto_item   : DECIMAL(18, 4) <- bruto * fator_aliquota
+            VARIAVEL bruto: DECIMAL(18, 4) <- item.quantidade * item.valor_unitario
+            VARIAVEL fator_aliquota: DECIMAL(18, 4) <- item.aliquota_imposto / 100
+            VARIAVEL imposto_item: DECIMAL(18, 4) <- bruto * fator_aliquota
             item.valor_total_liquido <- bruto + imposto_item
             acumulador_tributos <- acumulador_tributos + imposto_item
             EXIBA "[ITEM " + item.codigo_produto + "] Qtd: " + item.quantidade + " | Unit: R$ " + item.valor_unitario + " | Total Liq: R$ " + item.valor_total_liquido

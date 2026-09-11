@@ -77,7 +77,7 @@ public final class GeradorPdf {
             pTitulo.setSpacingAfter(2);
             doc.add(pTitulo);
 
-            Paragraph pSub = new Paragraph("Relatório de Sistema e Governança • THZ-LANG v2.3", FONT_SUBTITULO);
+            Paragraph pSub = new Paragraph("Relatório de Sistema e Governança • THZ-LANG v" + thz.lang.version.ThzVersion.ATUAL, FONT_SUBTITULO);
             pSub.setSpacingAfter(12);
             doc.add(pSub);
 

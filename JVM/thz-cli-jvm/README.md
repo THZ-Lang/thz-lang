@@ -1,34 +1,41 @@
-# thz-cli — CLI e REPL do THZ-LANG (Java 25)
+# thz-cli — CLI, Dev Server e REPL do THZ-LANG (Java 25)
 
-Ponto de entrada de linha de comando e REPL interativo da linguagem THZ-LANG. Consome o núcleo [`thz-core`](../thz-core) e gera o UberJAR executável usado por empacotamento (`jpackage`) e compilação nativa (GraalVM).
+Ponto de entrada de linha de comando, servidor de desenvolvimento com live reload e REPL interativo da linguagem THZ-LANG. Consome o núcleo [`thz-core`](../thz-core-jvm) e gera o UberJAR executável usado por empacotamento (`jpackage`) e compilação nativa (GraalVM).
 
-## Comandos
+## Comandos Suportados
 
-```
-thz check <arquivo.thz> [--estrito]   # léxico + sintaxe + semântica
+```bash
+thz check <arquivo.thz> [--estrito]   # léxico + sintaxe + semântica + lint
 thz run <arquivo.thz>                 # executa OPERACAO/PROCEDIMENTO Principal
-thz ast <arquivo.thz>                 # dump da AST
-thz fmt <arquivo.thz> --check         # formatação canônica idempotente
-thz audit <arquivo.thz>               # matriz RASTREIO → Regra → Contrato
+thz dev <arquivo.thz>                 # servidor dev com Live Reload automático
+thz audit <arquivo.thz> [--git]       # auditoria de requisitos (suporte a Git diff)
+thz fmt <arquivo.thz> --escrever      # formatação canônica idempotente
 thz doc <arquivo.thz>                 # documentação viva (Markdown + Mermaid)
+thz ui <arquivo.thzui> --html         # renderização de interface gráfica em HTML5
 thz ir <arquivo.thz> [--llvm]         # THZ-IR/1 (+ LLVM IR)
+thz ast <arquivo.thz>                 # dump da AST em JSON
 thz repl                              # REPL multi-linha (.ajuda, .codigo, .limpar, .sair)
-thz gui                               # lança a IDE Desktop se thz-gui estiver no classpath
+thz gui                               # lança a Desktop IDE Swing FlatLaf
 ```
 
-Funções `TELA.*` em modo console: `alerta`, `confirmar` e `pedirTexto` operam via stdin/stdout; `renderizarFormulario` exige a IDE Desktop (módulo `thz-gui`). Com `-Dthz.nao_interativo=true` as interações assumem padrões não bloqueantes.
+Funções `TELA.*` em modo console: `alerta`, `confirmar` e `pedirTexto` operam via stdin/stdout; `renderizarFormulario` aciona a Desktop IDE (módulo `thz-gui`). Com `-Dthz.nao_interativo=true` as interações assumem padrões não bloqueantes.
 
 ## Build
 
 ```bash
 ./gradlew test          # suíte JUnit 5
-./gradlew shadowJar     # build/libs/thz-jvm-2.3.0.jar + target/thz-jvm-2.3.0.jar
+./gradlew shadowJar     # gera UberJAR executável
 ./gradlew run --args="check exemplos/faturamento.thz"
-./gradlew cli           # atalho para run
 ```
 
-> Os exemplos canônicos `.thz` vivem no módulo `thz-core` (`exemplos/`).
+## Compilação Nativa (GraalVM)
 
-## Dependência do core
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File scripts/build-native.ps1 -PularTestes
+```
 
-`implementation("thz.lang:thz-core:2.3.3")` — resolvido via Composite Build a partir de `../thz-core-jvm` (mesma pasta `JVM/`), ou como artefato publicado fora do workspace.
+Gera o executável nativo autônomo `dist/bin/thz.exe`.
+
+## Dependência do Core
+
+`implementation("thz.lang:thz-core:2.3.3")` — resolvido via Composite Build a partir de `../thz-core-jvm` (mesma pasta `JVM/`), ou como artefato publicado via Maven local.

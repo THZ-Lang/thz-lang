@@ -88,6 +88,17 @@ public final class GeradorIr {
             }
         }
 
+        if (ast.funcoes() != null) {
+            for (FuncaoAst funcao : ast.funcoes()) {
+                List<IrPrograma.IrParametro> params = new ArrayList<>();
+                for (ParametroOperacaoAst p : funcao.parametros()) {
+                    params.add(new IrPrograma.IrParametro(p.nome(), mapearTipoIr(p.tipo())));
+                }
+                funcoes.add(new IrPrograma.IrFuncao(funcao.nome(), mapearTipoIr(funcao.tipoRetorno()),
+                        List.copyOf(params), List.copyOf(baixarComandosParaIr(funcao.corpo())), false, null));
+            }
+        }
+
         // Loops SIMD
         List<IrPrograma.IrSimdLoop> loopsSimd = new ArrayList<>();
         List<ResultadoValidacaoSimd> simdVal = ValidadorSimd.analisarTudo(ast);
@@ -104,7 +115,7 @@ public final class GeradorIr {
         return new IrPrograma(
                 VERSAO_IR,
                 ast.nome(),
-                ast.versaoLinguagem() != null ? ast.versaoLinguagem() : "2.3.0",
+                ast.versaoLinguagem() != null ? ast.versaoLinguagem() : thz.lang.version.ThzVersion.ATUAL.toString(),
                 Map.copyOf(meta),
                 List.copyOf(estruturas),
                 List.copyOf(funcoes),
@@ -130,6 +141,13 @@ public final class GeradorIr {
                 case ComandoAst.Retorne r -> out.add("ret " + (r.expressao() != null ? ThzParser.textoCanonicoDe(r.expressao()) : "void"));
                 case ComandoAst.FalharCom fc -> out.add("fail " + ThzParser.textoCanonicoDe(fc.expressao()));
                 case ComandoAst.CasoResultado cr -> out.add("match_result " + ThzParser.textoCanonicoDe(cr.alvo()));
+                case ComandoAst.Tente t -> {
+                    out.add("try_begin capture " + t.tipoCaptura());
+                    out.addAll(baixarComandosParaIr(t.corpoTente()));
+                    out.add("catch_begin " + t.tipoCaptura());
+                    out.addAll(baixarComandosParaIr(t.corpoCapture()));
+                    out.add("try_end");
+                }
             }
         }
         return out;
@@ -216,9 +234,81 @@ public final class GeradorIr {
     }
 
     /**
-     * Emite representação textual LLVM IR completa e funcional para o backend AOT Dual-OS.
+     * Valida se a AST contém nós ou comandos sem suporte implementado pelo backend LLVM AOT.
+     * Retorna uma lista de limitações encontradas (vazia se o programa for 100% suportado).
+     */
+    public static List<String> validarCapacidadeLlvm(ProgramaAst ast) {
+        if (ast == null) return List.of();
+        List<String> limitacoes = new ArrayList<>();
+
+        if (ast.regras() != null) {
+            for (RegraNegocioAst r : ast.regras()) {
+                if (r.operacoes() != null) {
+                    for (OperacaoAst op : r.operacoes()) {
+                        verificarComandosNaoSuportados(op.corpo(), "regra '" + r.nome() + "', operação '" + op.nome() + "'", limitacoes);
+                    }
+                }
+            }
+        }
+
+        if (ast.procedimentos() != null) {
+            for (ProcedimentoAst p : ast.procedimentos()) {
+                verificarComandosNaoSuportados(p.corpo(), "procedimento '" + p.nome() + "'", limitacoes);
+            }
+        }
+
+        if (ast.funcoes() != null) {
+            for (FuncaoAst f : ast.funcoes()) {
+                verificarComandosNaoSuportados(f.corpo(), "função '" + f.nome() + "'", limitacoes);
+            }
+        }
+
+        return List.copyOf(limitacoes);
+    }
+
+    private static void verificarComandosNaoSuportados(List<ComandoAst> comandos, String contexto, List<String> limitacoes) {
+        if (comandos == null) return;
+        for (ComandoAst c : comandos) {
+            switch (c) {
+                case ComandoAst.Exiba _ -> {}
+                case ComandoAst.Chamada _ -> {}
+                case ComandoAst.Retorne _ -> {}
+                case ComandoAst.Tente _ -> limitacoes.add("Tratamento de exceções (TENTE/CAPTURE) em " + contexto + " não suportado pelo emissor AOT.");
+                case ComandoAst.FalharCom _ -> limitacoes.add("Interrupção com falha explícita (FALHAR_COM) em " + contexto + " não suportado pelo emissor AOT.");
+                case ComandoAst.CasoResultado _ -> limitacoes.add("Pattern matching (CASO_RESULTADO) em " + contexto + " não suportado pelo emissor AOT.");
+                case ComandoAst.Ler _ -> limitacoes.add("Comando interativo de entrada (LER) em " + contexto + " não suportado pelo emissor AOT.");
+                case ComandoAst.BlocoMemoria _ -> limitacoes.add("Alocação dinâmica aninhada de arena local em " + contexto + " não suportada diretamente no AOT.");
+                case ComandoAst.VetorizarPara vp -> limitacoes.add("Lowering de laço vetorizado SIMD (VETORIZAR_PARA " + vp.variavel() + ") em " + contexto + " aguarda suporte a intrinsics no emissor LLVM.");
+                case ComandoAst.Para p -> limitacoes.add("Laço PARA (" + p.variavel() + ") em " + contexto + " não possui lowering de controle de fluxo no emissor LLVM.");
+                case ComandoAst.Enquanto _ -> limitacoes.add("Laço ENQUANTO em " + contexto + " não possui lowering de controle de fluxo no emissor LLVM.");
+                case ComandoAst.Se _ -> limitacoes.add("Estrutura condicional SE em " + contexto + " não possui lowering no emissor LLVM.");
+                case ComandoAst.Atribuicao a -> limitacoes.add("Atribuição de estado a '" + String.join(".", a.alvo()) + "' em " + contexto + " não possui lowering no emissor LLVM.");
+                case ComandoAst.DeclVariavel d -> limitacoes.add("Declaração de variável local '" + d.nome() + "' em " + contexto + " não possui lowering no emissor LLVM.");
+            }
+        }
+    }
+
+    /**
+     * Emite representação textual LLVM IR para o backend AOT Dual-OS em modo padrão (não-estrito).
      */
     public static String emitirLlvm(ProgramaAst ast) {
+        return emitirLlvm(ast, false);
+    }
+
+    /**
+     * Emite representação textual LLVM IR para o backend AOT Dual-OS.
+     * Em modo estrito, rejeita a emissão lançando {@link ErroEmissaoBackendException} se houver
+     * comandos ou construções sem lowering AOT suportado.
+     */
+    public static String emitirLlvm(ProgramaAst ast, boolean estrito) {
+        if (estrito) {
+            List<String> limitacoes = validarCapacidadeLlvm(ast);
+            if (!limitacoes.isEmpty()) {
+                throw new ErroEmissaoBackendException("Backend LLVM", "Construções sem lowering",
+                        "Compilação para LLVM rejeitada em modo estrito devido a construções não suportadas pelo emissor AOT:\n - "
+                                + String.join("\n - ", limitacoes));
+            }
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("; ModuleID = 'thz.").append(ast.nome()).append("'\n");
         sb.append("source_filename = \"").append(ast.nome()).append(".thz\"\n");
@@ -347,6 +437,24 @@ public final class GeradorIr {
                 sb.append(" }\n");
             }
             sb.append("\n");
+        }
+
+        // Funções puras declaradas no módulo (inclui a forma compacta `= expressão`).
+        // A assinatura é preservada no LLVM para permitir chamadas tipadas pelo AOT.
+        if (ast.funcoes() != null) {
+            for (FuncaoAst funcao : ast.funcoes()) {
+                sb.append("define ").append(mapearTipoLlvm(funcao.tipoRetorno())).append(" @")
+                  .append(funcao.nome()).append("(");
+                for (int i = 0; i < funcao.parametros().size(); i++) {
+                    ParametroOperacaoAst p = funcao.parametros().get(i);
+                    if (i > 0) sb.append(", ");
+                    sb.append(mapearTipoLlvm(p.tipo())).append(" %").append(p.nome());
+                }
+                sb.append(") {\nentry:\n");
+                emitirCorpoProcedimento(sb, funcao.corpo(), mapaStringGlobal);
+                emitirRetornoLlvm(sb, funcao);
+                sb.append("}\n\n");
+            }
         }
 
         // Emite Funções para as Operações das Regras de Negócio
@@ -497,7 +605,14 @@ public final class GeradorIr {
                         sb.append("  call void @thz_exiba_str(ptr ").append(gVar).append(")\n");
                     }
                 }
-                default -> {}
+                case ComandoAst.Chamada ch -> {
+                    String fn = ThzParser.textoCanonicoDe(ch.expressao());
+                    sb.append("  call void @").append(fn).append("()\n");
+                }
+                default -> {
+                    sb.append("  ; AVISO AOT: comando ").append(c.getClass().getSimpleName())
+                            .append(" ignorado pelo emissor AOT (lowering de semântica não implementado no backend LLVM)\n");
+                }
             }
         }
     }
@@ -512,5 +627,79 @@ public final class GeradorIr {
         if (t.contains("LOGICO")) return "i1";
         if (t.contains("FATIA")) return "ptr";
         return "ptr";
+    }
+
+    private static String valorRetornoLlvm(FuncaoAst funcao) {
+        if (funcao.corpo() != null) {
+            for (ComandoAst c : funcao.corpo()) {
+                if (c instanceof ComandoAst.Retorne r) {
+                    String valor = valorExpressaoLlvm(r.expressao(), funcao);
+                    if (valor != null) return valor;
+                }
+            }
+        }
+        return "0";
+    }
+
+    private static void emitirRetornoLlvm(StringBuilder sb, FuncaoAst funcao) {
+        String tipo = mapearTipoLlvm(funcao.tipoRetorno());
+        ExprAst expr = null;
+        if (funcao.corpo() != null) {
+            for (ComandoAst c : funcao.corpo()) if (c instanceof ComandoAst.Retorne r) { expr = r.expressao(); break; }
+        }
+        if (expr instanceof ExprAst.OpBinaria b && (tipo.equals("i32") || tipo.equals("i64") || tipo.equals("i128"))) {
+            String esq = operandoLlvm(b.esquerda(), funcao), dir = operandoLlvm(b.direita(), funcao);
+            String op = switch (b.operador()) { case "+" -> "add"; case "-" -> "sub"; case "*" -> "mul"; case "/" -> "sdiv"; default -> null; };
+            if (esq != null && dir != null && op != null) {
+                sb.append("  %ret = ").append(op).append(" ").append(tipo).append(" ").append(esq).append(", ").append(dir).append("\n");
+                sb.append("  ret ").append(tipo).append(" %ret\n");
+                return;
+            }
+        }
+        sb.append("  ret ").append(tipo).append(" ").append(valorExpressaoLlvm(expr, funcao)).append("\n");
+    }
+
+    private static String operandoLlvm(ExprAst expr, FuncaoAst funcao) {
+        if (expr instanceof ExprAst.LiteralInteiro i) return i.valor().toString();
+        if (expr instanceof ExprAst.LiteralDecimal d) return d.escalado().toString();
+        if (expr instanceof ExprAst.AcessoCampo a && a.caminho().size() == 1
+                && funcao.parametros().stream().anyMatch(p -> p.nome().equals(a.caminho().getFirst()))) return "%" + a.caminho().getFirst();
+        return null;
+    }
+
+    /** Avalia somente a sublinguagem constante, evitando emitir LLVM incorreto para efeitos/chamadas. */
+    private static String avaliarConstanteLlvm(ExprAst expr) {
+        if (expr instanceof ExprAst.LiteralInteiro i) return i.valor().toString();
+        if (expr instanceof ExprAst.LiteralDecimal d) return d.escalado().toString();
+        if (expr instanceof ExprAst.LiteralLogico b) return b.valor() ? "1" : "0";
+        if (expr instanceof ExprAst.OpUnaria u) {
+            String v = avaliarConstanteLlvm(u.operando());
+            if (v != null && u.operador().equals("-")) return v.startsWith("-") ? v.substring(1) : "-" + v;
+            return v;
+        }
+        if (expr instanceof ExprAst.OpBinaria b) {
+            String a = avaliarConstanteLlvm(b.esquerda());
+            String z = avaliarConstanteLlvm(b.direita());
+            if (a == null || z == null) return null;
+            try {
+                java.math.BigInteger x = new java.math.BigInteger(a), y = new java.math.BigInteger(z);
+                return switch (b.operador()) {
+                    case "+" -> x.add(y).toString();
+                    case "-" -> x.subtract(y).toString();
+                    case "*" -> x.multiply(y).toString();
+                    case "/" -> y.signum() == 0 ? null : x.divide(y).toString();
+                    default -> null;
+                };
+            } catch (NumberFormatException ignored) { return null; }
+        }
+        return null;
+    }
+
+    private static String valorExpressaoLlvm(ExprAst expr, FuncaoAst funcao) {
+        if (expr instanceof ExprAst.AcessoCampo a && a.caminho().size() == 1
+                && funcao.parametros().stream().anyMatch(p -> p.nome().equals(a.caminho().getFirst()))) {
+            return "%" + a.caminho().getFirst();
+        }
+        return avaliarConstanteLlvm(expr);
     }
 }

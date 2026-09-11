@@ -55,10 +55,10 @@ REGRA_NEGOCIO MotorCredito
 
     OPERACAO Simular(tomador: TEXTO, modalidade: ModalidadeCredito, score: ScoreRisco, valorSolicitado: DECIMAL(14, 2), prazoMeses: INTEIRO32, taxaJurosMensal: DECIMAL(5, 2), incluirSeguroPrestamista: LOGICO, garantiaRealOferecida: LOGICO, parecerMesaCredito: TEXTO): TEXTO
     INICIO
-        VARIAVEL divisor : DECIMAL(14, 2) <- 1.00 * prazoMeses
-        VARIAVEL amortizacaoBase : DECIMAL(14, 2) <- valorSolicitado / divisor
-        VARIAVEL jurosMes : DECIMAL(14, 2) <- valorSolicitado * (taxaJurosMensal / 100.00)
-        VARIAVEL parcelaEstimada : DECIMAL(14, 2) <- amortizacaoBase + jurosMes
+        VARIAVEL divisor: DECIMAL(14, 2) <- 1.00 * prazoMeses
+        VARIAVEL amortizacaoBase: DECIMAL(14, 2) <- valorSolicitado / divisor
+        VARIAVEL jurosMes: DECIMAL(14, 2) <- valorSolicitado * (taxaJurosMensal / 100.00)
+        VARIAVEL parcelaEstimada: DECIMAL(14, 2) <- amortizacaoBase + jurosMes
 
         SE incluirSeguroPrestamista
             parcelaEstimada <- parcelaEstimada + 45.00
@@ -80,7 +80,7 @@ REGRA_NEGOCIO Inicializacao
 
     OPERACAO MontarTela(): TEXTO
     INICIO
-        VARIAVEL form : FormularioSimulador <- CRIAR FormularioSimulador(
+        VARIAVEL form: FormularioSimulador <- CRIAR FormularioSimulador(
             titulo: "Simulador de Crédito & Risco Bancário — THZ GUI",
             tomador: "Alpha Logística & Transportes LTDA",
             modalidade: CAPITAL_GIRO_EMPRESARIAL,
@@ -93,7 +93,7 @@ REGRA_NEGOCIO Inicializacao
             parecerMesaCredito: "Cliente com histórico positivo no SCR Bacen. Limite pré-aprovado de R$ 200.000,00."
         )
 
-        VARIAVEL status : TEXTO <- TELA.renderizarFormulario(form, "MotorCredito.Simular")
+        VARIAVEL status: TEXTO <- TELA.renderizarFormulario(form, "MotorCredito.Simular")
         EXIBA status
         RETORNE status
     FIM

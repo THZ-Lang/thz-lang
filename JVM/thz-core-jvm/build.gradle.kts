@@ -11,8 +11,12 @@ plugins {
     `maven-publish`
 }
 
+val repoRoot = rootProject.projectDir.resolve("../../")
+val versionFile = if (file("version.txt").exists()) file("version.txt") else repoRoot.resolve("version.txt")
+val thzVersion = if (versionFile.exists()) versionFile.readText().trim() else "2.4.0"
+
 group = "thz.lang"
-version = "2.3.3"
+version = thzVersion
 
 repositories {
     mavenCentral()
@@ -32,6 +36,12 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api:2.23.1")
     implementation("org.apache.logging.log4j:log4j-core:2.23.1")
 
+    // Banco de Dados Local (SQLite JDBC)
+    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+
+    // Criptografia Avançada (Argon2id, AES-XTS, ChaCha20)
+    implementation("org.bouncycastle:bcprov-jdk18on:1.79")
+
     // Testes Automatizados
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -41,6 +51,21 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     options.compilerArgs.addAll(listOf("-Xlint:all", "-Xlint:-processing"))
 }
+
+val gerarVersaoTask = tasks.register("gerarVersaoPropriedades") {
+    val saidaDir = layout.buildDirectory.dir("generated/version-resources")
+    val v = thzVersion
+    inputs.property("thzVersion", v)
+    outputs.dir(saidaDir)
+
+    doLast {
+        val propFile = saidaDir.get().file("thz-version.properties").asFile
+        propFile.parentFile.mkdirs()
+        propFile.writeText("version=$v\n")
+    }
+}
+
+sourceSets["main"].resources.srcDir(gerarVersaoTask)
 
 tasks.test {
     useJUnitPlatform()

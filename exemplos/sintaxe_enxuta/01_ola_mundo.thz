@@ -1,0 +1,4 @@
+# O menor programa executável na sintaxe enxuta.
+programa OlaMundo:
+    procedimento Principal():
+        exiba "Olá, THZ-LANG!"

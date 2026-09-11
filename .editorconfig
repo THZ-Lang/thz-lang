@@ -1,0 +1,28 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{thz,thzui}]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+
+[*.{java,kts,gradle}]
+charset = utf-8
+
+[*.{ps1,cmd,bat}]
+charset = utf-8
+end_of_line = crlf
+
+[*.{sh}]
+charset = utf-8
+end_of_line = lf
+
+[*.{json,md,yml,yaml}]
+charset = utf-8

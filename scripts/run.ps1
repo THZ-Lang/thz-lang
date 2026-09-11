@@ -11,12 +11,16 @@ param(
     [Parameter(ValueFromRemainingArguments=$true)][string[]]$Rest
 )
 
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding  = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+try { chcp 65001 | Out-Null } catch {}
 $ErrorActionPreference = "Stop"
 $Raiz = Resolve-Path "$PSScriptRoot\.."
 Set-Location $Raiz
 
-# Se primeiro arg parece arquivo .thz, assume comando=run
-if ($Comando -like "*.thz" -and -not $Arquivo) { $Arquivo = $Comando; $Comando = "run" }
+# Se primeiro arg parece arquivo .thz ou .thzui, assume comando=run
+if (($Comando -like "*.thz" -or $Comando -like "*.thzui") -and -not $Arquivo) { $Arquivo = $Comando; $Comando = "run" }
 
 $argsStr = @($Comando)
 if ($Arquivo) { $argsStr += $Arquivo }

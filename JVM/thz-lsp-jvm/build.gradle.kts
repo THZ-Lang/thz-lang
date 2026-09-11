@@ -11,8 +11,12 @@ plugins {
     id("com.gradleup.shadow") version "9.6.1"
 }
 
+val repoRoot = rootProject.projectDir.resolve("../../")
+val versionFile = if (file("version.txt").exists()) file("version.txt") else repoRoot.resolve("version.txt")
+val thzVersion = if (versionFile.exists()) versionFile.readText().trim() else "2.4.0"
+
 group = "thz.lang"
-version = "2.3.3"
+version = thzVersion
 
 repositories {
     mavenCentral()
@@ -25,7 +29,7 @@ java {
 }
 
 dependencies {
-    implementation("thz.lang:thz-core:2.3.3")
+    implementation("thz.lang:thz-core:$thzVersion")
 
     // LSP4J — implementação Java do Language Server Protocol
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1")
@@ -54,8 +58,18 @@ tasks.test {
     }
 }
 
+tasks.register<Copy>("instalarLspJar") {
+    group = "build"
+    description = "Copia o JAR do LSP para target/ na raiz do workspace"
+    from(tasks.shadowJar.flatMap { it.archiveFile })
+    into(rootProject.projectDir.resolve("../../target"))
+    rename { "thz-lsp.jar" }
+}
+
 tasks.shadowJar {
     archiveBaseName.set("thz-lsp")
     archiveClassifier.set("")
-    archiveVersion.set("2.3.0")
+    archiveVersion.set(thzVersion)
+
+    finalizedBy("instalarLspJar")
 }

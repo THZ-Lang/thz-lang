@@ -71,7 +71,8 @@ public final class ThzDocGen {
                     sb.append("        <<LAYOUT_COLUNAR (SoA)>>\n");
                 }
                 for (CampoEstruturaAst campo : est.campos()) {
-                    sb.append("        +").append(campo.tipo()).append(" ").append(campo.nome()).append("\n");
+                    String tipoLimpo = campo.tipo().replaceAll("[\\[\\](),\\s]", "_");
+                    sb.append("        +").append(tipoLimpo).append(" ").append(campo.nome()).append("\n");
                 }
                 sb.append("    }\n");
             }
@@ -228,6 +229,17 @@ public final class ThzDocGen {
                 sb.append(proc.nome()).append("(").append(params).append(")`");
                 if (proc.idempotente()) sb.append(" 🛡️ *(Idempotente)*");
                 sb.append("\n");
+            }
+            sb.append("\n");
+        }
+
+        if (ast.funcoes() != null && !ast.funcoes().isEmpty()) {
+            sb.append("## 8. Funções\n\n");
+            for (FuncaoAst funcao : ast.funcoes()) {
+                String params = funcao.parametros().stream().map(p -> p.nome() + ": " + p.tipo())
+                        .collect(java.util.stream.Collectors.joining(", "));
+                sb.append("* `FUNCAO ").append(funcao.nome()).append("(").append(params).append("): ")
+                        .append(funcao.tipoRetorno()).append("`\n");
             }
             sb.append("\n");
         }

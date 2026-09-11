@@ -12,8 +12,12 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 }
 
+val repoRoot = rootProject.projectDir.resolve("../../")
+val versionFile = if (file("version.txt").exists()) file("version.txt") else repoRoot.resolve("version.txt")
+val thzVersion = if (versionFile.exists()) versionFile.readText().trim() else "2.4.0"
+
 group = "thz.lang"
-version = "2.3.3"
+version = thzVersion
 
 repositories {
     mavenCentral()
@@ -26,13 +30,14 @@ java {
 }
 
 dependencies {
-    implementation("thz.lang:thz-core:2.3.3")
+    implementation("thz.lang:thz-core:$thzVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
