@@ -300,7 +300,7 @@ public class ComandoRun implements ComandoCli {
     private thz.lang.ui.ThzUiMaker construirMakerVaadin(ProgramaAst ast) {
         return thz.lang.ui.ThzUiMaker.container("raiz", c -> {
             c.adicionar(thz.lang.ui.ThzUiMaker.alerta("alerta_header", "info",
-                    "Tela: " + ast.nome() + " [" + ast.tipoModulo() + "] · Vaadin Lumo Dark · Showcase Completo THZ-LANG v3.0.0"));
+                    "Tela: " + ast.nome() + " [" + ast.tipoModulo() + "] · Vaadin Lumo Dark · Showcase Completo THZ-LANG v" + thz.lang.version.ThzVersion.ATUAL));
             c.adicionar(thz.lang.ui.ThzUiMaker.grade("kpi_grade", 4, g -> {
                 g.adicionar(thz.lang.ui.ThzUiMaker.metrica("kpi_receita", "Receita Total", "R$ 2.847.500,00", "+12.5% vs mês anterior", "sucesso"));
                 g.adicionar(thz.lang.ui.ThzUiMaker.metrica("kpi_despesa", "Despesas", "R$ 1.230.800,00", "-3.2% otimizado", "aviso"));

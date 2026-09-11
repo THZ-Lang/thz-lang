@@ -8,7 +8,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RAIZ="$(cd "$DIR/../../.." && pwd)"
 cd "$RAIZ"
 
-VERSAO="2.4.0"
+VERSAO="0.4.0"
 if [ -f "$RAIZ/version.txt" ]; then
     VERSAO="$(cat "$RAIZ/version.txt" | tr -d '[:space:]')"
 fi

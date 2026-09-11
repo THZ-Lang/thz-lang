@@ -27,7 +27,7 @@ public record ThzVersion(int major, int minor, int patch, String preRelease, Str
             }
         } catch (Exception ignored) {
         }
-        return new ThzVersion(2, 4, 0, null, null);
+        return new ThzVersion(0, 4, 0, null, null);
     }
 
     public static ThzVersion parse(String versao) {

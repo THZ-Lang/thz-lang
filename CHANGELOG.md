@@ -4,7 +4,27 @@ Todas as mudanças notáveis deste projeto são documentadas aqui. Formato basea
 
 ---
 
-## [3.0.0] - 2026-08-25 (WebAssembly Target & Arquitetura Unificada)
+## [0.4.0] - 2026-09-11 (Paradigma Dual Moderno & Consolidação SemVer 2.0.0)
+
+> **Nota de Alinhamento e Governança SemVer 2.0.0:**
+> O versionamento do ecossistema THZ-LANG foi rationalizado e unificado formalmente sob a norma **SemVer 2.0.0** (Artigo 4: ciclo de desenvolvimento inicial pré-estável `0.y.z`).
+> Discrepâncias históricas de version skew (`0.3.0` no VS Code, `2.4.0` e `3.0.0` em módulos de build e documentações) foram eliminadas. O arquivo `version.txt` passa a ser a **Fonte Única da Verdade (Single Source of Truth)** para a JVM, compilador, runtime nativo Rust e ferramentas de IDE.
+
+### Adicionado
+- **Paradigma Dual Moderno ("Kotlin/Rust Corporativo"):**
+  - Palavras-chave universais ergonômicas (`var`, `val`, `let`, `fn`, `struct`, `ret`, `print`) suportadas nativamente preservando 100% de retrocompatibilidade com a sintaxe canônica corporativa (`PROGRAMA`, `ESTRUTURA`, `REGRA_NEGOCIO`, etc.).
+  - Delimitação moderna de blocos com chaves `{ ... }` e operadores de atribuição `=` e `:=`.
+  - Aliases de tipo universais (`Int`, `Int32`, `I64`, `I32`, `Decimal`, `Dec`, `Money`, `Bool`, `String`).
+  - Funções de expressão de linha única (`fn soma(a: Int, b: Int): Int = a + b`).
+- **Pipeline Nativo LLVM AOT & Runtime Rust:**
+  - Emissão de LLVM IR autônomo com compilação direta via Clang para binários ELF Linux nativos (`scripts/build-llvm.sh`).
+  - Linkagem com o runtime nativo de alta performance em Rust (`src/runtime_rs/`) via C ABI pura (`thz_exiba_*`, `thz_alocar_arena`, SIMD, ISO/IEC 10967).
+- **Consolidação de Fonte Única da Verdade:**
+  - `version.txt` estabelecido como autoridade única para todos os submódulos JVM (`thz-core-jvm`, `thz-cli-jvm`, `thz-gui-jvm`, `thz-lsp-jvm`, `thz-bench-jvm`, `thz-agent-jvm`, `thz-api-jvm`), extensão VS Code (`Extensions/thz-lsp-vscode`), manifesto `thz.config.json` e runtime Rust (`src/runtime_rs`).
+
+---
+
+## [0.3.0] - 2026-08-25 (WebAssembly Target, Conectores Universais & Arquitetura Integrada)
 
 ### Adicionado
 - **Manifesto de Configuração Centralizada (`thz.config.json` / `thz.json`):** Padronização de projeto, dialeto (`pt-BR`), drivers de banco e mensageria, IA e conformidade de governança, com comando `thz init` e auto-detecção no CLI.

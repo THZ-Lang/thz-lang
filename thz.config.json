@@ -1,7 +1,7 @@
 {
   "projeto": {
     "nome": "thz-lang",
-    "versao": "3.0.0",
+    "versao": "0.4.0",
     "autor": "Lucas Thomaz",
     "dialeto": "pt-BR",
     "descricao": "THZ-LANG — Linguagem Corporativa de Sistemas, Governança DDD e Alta Performance"

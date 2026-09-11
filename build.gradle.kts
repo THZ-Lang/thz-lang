@@ -11,10 +11,74 @@ fun aggregate(name: String, group: String) {
         }
 }
 
+val sincronizarVersaoTask = tasks.register("sincronizarVersao") {
+    group = "versioning"
+    description = "Sincroniza a versão de version.txt em todos os manifestos e arquivos do ecossistema"
+    val vFile = file("version.txt")
+    inputs.file(vFile)
+
+    doLast {
+        if (!vFile.exists()) return@doLast
+        val versao = vFile.readText().trim()
+        if (versao.isEmpty()) return@doLast
+
+        // 1. thz.config.json
+        val cfg = file("thz.config.json")
+        if (cfg.exists()) {
+            val t = cfg.readText().replace(Regex("\"versao\":\\s*\"[^\"]+\""), "\"versao\": \"$versao\"")
+            cfg.writeText(t)
+        }
+
+        // 2. Cargo.toml
+        val cargo = file("src/runtime_rs/Cargo.toml")
+        if (cargo.exists()) {
+            val t = cargo.readText().replace(Regex("(?m)^version\\s*=\\s*\"[^\"]+\""), "version = \"$versao\"")
+            cargo.writeText(t)
+        }
+
+        // 3. wasm.rs
+        val wasm = file("src/runtime_rs/src/wasm.rs")
+        if (wasm.exists()) {
+            val t = wasm.readText().replace(Regex("CString::new\\(\"[^\"]+-WASM\"\\)"), "CString::new(\"$versao-WASM\")")
+            wasm.writeText(t)
+        }
+
+        // 4. package.json
+        val pkg = file("Extensions/thz-lsp-vscode/package.json")
+        if (pkg.exists()) {
+            val t = pkg.readText().replace(Regex("\"version\":\\s*\"[^\"]+\""), "\"version\": \"$versao\"")
+            pkg.writeText(t)
+        }
+
+        // 5. extension.ts
+        val extTs = file("Extensions/thz-lsp-vscode/src/extension.ts")
+        if (extTs.exists()) {
+            val t = extTs.readText().replace(Regex("'THZ-LANG \\d+\\.\\d+\\.\\d+'"), "'THZ-LANG $versao'")
+            extTs.writeText(t)
+        }
+
+        // 6. README.md
+        val readme = file("README.md")
+        if (readme.exists()) {
+            val t = readme.readText().replace(Regex("badge/version-\\d+\\.\\d+\\.\\d+-blue\\.svg"), "badge/version-$versao-blue.svg")
+            readme.writeText(t)
+        }
+
+        logger.lifecycle(">> Sincronização automática global para v$versao concluída.")
+    }
+}
+
 aggregate("assemble", "build")
 aggregate("check", "verification")
 aggregate("test", "verification")
 aggregate("clean", "build")
+
+tasks.named("assemble") {
+    dependsOn(sincronizarVersaoTask)
+}
+tasks.named("check") {
+    dependsOn(sincronizarVersaoTask)
+}
 
 // Tarefa CLI
 tasks.register("cli") {

@@ -81,7 +81,7 @@ public class ComandoCompileAll implements ComandoCli {
                 String codigoLlvm = thz.lang.ir.GeradorIr.emitirLlvm(ast);
                 Files.writeString(dirLlvm.resolve(nomeBase + ".ll"), codigoLlvm, StandardCharsets.UTF_8);
 
-                String codigoWasm = "// THZ-LANG v3.0.0 — WebAssembly Module\n" + thz.lang.js.ThzJsEmitter.emitir(ast);
+                String codigoWasm = "// THZ-LANG v" + thz.lang.version.ThzVersion.ATUAL + " — WebAssembly Module\n" + thz.lang.js.ThzJsEmitter.emitir(ast);
                 Files.writeString(dirWasm.resolve(nomeBase + ".wasm.js"), codigoWasm, StandardCharsets.UTF_8);
 
                 var rel = thz.lang.governanca.AuditorGovernanca.auditar(ast);

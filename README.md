@@ -9,6 +9,7 @@
 [![LLVM](https://img.shields.io/badge/LLVM-Clang%20AOT-red.svg)](https://llvm.org/)
 [![Docker & Podman](https://img.shields.io/badge/Containers-Docker%20%7C%20Podman-2496ED.svg)](docs/DOCKER_PODMAN_DEVCONTAINER.md)
 [![Dev Containers](https://img.shields.io/badge/Dev%20Containers-Ready-blueviolet.svg)](.devcontainer/devcontainer.json)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](version.txt)
 [![Status](https://img.shields.io/badge/Status-em%20revis%C3%A3o-yellow.svg)](#-vis%C3%A3o-geral)
 
 **Linguagem Corporativa de Sistemas, Governança de Negócio, Arquitetura Viva e Processamento de Dados de Alta Performance.**

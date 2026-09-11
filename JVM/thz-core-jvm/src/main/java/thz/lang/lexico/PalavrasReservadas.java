@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public final class PalavrasReservadas {
 
-    public static final String VERSAO_LINGUAGEM_ATUAL = "2.4.0";
+    public static final String VERSAO_LINGUAGEM_ATUAL = thz.lang.version.ThzVersion.ATUAL.toString();
 
     public record EntradaPalavra(TokenType token, CategoriaPalavra categoria) {}
 

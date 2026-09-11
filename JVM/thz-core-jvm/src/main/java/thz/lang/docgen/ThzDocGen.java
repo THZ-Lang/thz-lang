@@ -26,7 +26,7 @@ public final class ThzDocGen {
         TipoModulo tipo = ast.tipoModulo() != null ? ast.tipoModulo() : TipoModulo.PROGRAMA;
         sb.append("# Documentação Arquitetural e de Domínio — ").append(ast.nome()).append("\n\n");
         sb.append("> **Tipo de Módulo:** `").append(tipo.descricao()).append("`  \n");
-        sb.append("> **Versão da Linguagem THZ-LANG:** `").append(ast.versaoLinguagem() != null ? ast.versaoLinguagem() : "2.4.0").append("`  \n");
+        sb.append("> **Versão da Linguagem THZ-LANG:** `").append(ast.versaoLinguagem() != null ? ast.versaoLinguagem() : thz.lang.version.ThzVersion.ATUAL.toString()).append("`  \n");
         sb.append("> **Gerado automaticamente pelo compilador THZ-LANG Engine.**\n\n");
 
         // 2. Metadados de Arquitetura

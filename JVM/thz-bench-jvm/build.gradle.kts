@@ -13,7 +13,7 @@ java {
 
 val repoRoot = rootProject.projectDir.resolve("../../")
 val versionFile = if (file("version.txt").exists()) file("version.txt") else repoRoot.resolve("version.txt")
-val thzVersion = if (versionFile.exists()) versionFile.readText().trim() else "2.4.0"
+val thzVersion = if (versionFile.exists()) versionFile.readText().trim() else "0.4.0"
 
 group = "thz.lang"
 version = thzVersion

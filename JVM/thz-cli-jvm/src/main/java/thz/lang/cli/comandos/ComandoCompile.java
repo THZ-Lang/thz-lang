@@ -97,7 +97,7 @@ public class ComandoCompile implements ComandoCli {
 
         if (compilarJs) {
             // Emite a ponte JavaScript (compatibilidade legada de arquivo wasm.js)
-            Files.writeString(dirWasm.resolve(nomeBase + ".wasm.js"), "// THZ-LANG v3.0.0 JS Bridge (WASM requer pipeline nativo Rust/AOT)\n" + thz.lang.js.ThzJsEmitter.emitir(ast), StandardCharsets.UTF_8);
+            Files.writeString(dirWasm.resolve(nomeBase + ".wasm.js"), "// THZ-LANG v" + thz.lang.version.ThzVersion.ATUAL + " JS Bridge (WASM requer pipeline nativo Rust/AOT)\n" + thz.lang.js.ThzJsEmitter.emitir(ast), StandardCharsets.UTF_8);
         }
 
         CliLogger.info("[THZ COMPILE] " + arquivo + " compilado com sucesso para os alvos solicitados em: " + raizSaida.toAbsolutePath());

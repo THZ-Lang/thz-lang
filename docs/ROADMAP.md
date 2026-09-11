@@ -1,6 +1,6 @@
-# ROADMAP ESTRATÉGICO — THZ-LANG (v2.6.0 ~ v3.0.0)
+# ROADMAP ESTRATÉGICO — THZ-LANG (v0.3.0 ~ v0.4.0 & Rumo à v1.0.0 Estável)
 
-Este documento define os 5 grandes pilares de inovação técnica e arquitetural do **THZ-LANG** para consolidar a linguagem como o padrão em sistemas corporativos de missão crítica, inteligência artificial soberana e alta performance.
+Este documento define os pilares de inovação técnica e arquitetural do **THZ-LANG** rumo à estabilização da linguagem para sistemas corporativos de missão crítica, governança viva e alta performance nativa.
 
 ---
 
@@ -118,4 +118,5 @@ Oferecer uma experiência de desenvolvimento e diagnóstico completa de nível i
 | **Fase 2** | **Consultas Tipadas Nativas (LINQ / Query DSL)** | v2.7.0 | ✅ **CONCLUÍDO** | `CONSULTAR`, `ONDE`, `ORDENAR_POR`, `FATIA.*` |
 | **Fase 3** | **Mensageria Reativa & Eventos (EDA Async)** | v2.8.0 | ✅ **CONCLUÍDO** | `ThzBarramentoEventos`, `MENSAGERIA.*`, Virtual Threads |
 | **Fase 4** | **Debugger Nativo (DAP - Debug Adapter Protocol)** | v2.9.0 | ✅ **CONCLUÍDO** | `ThzDapServer`, `ThzDebugListener`, Breakpoints, StepOver |
-| **Fase 5** | **Compilação WebAssembly (WASM Universal)** | v3.0.0 | ✅ **CONCLUÍDO** | `src/runtime_rs/wasm.rs`, `Alvo.WEBASSEMBLY` |
+| **Fase 5** | **Compilação WebAssembly (WASM Universal)** | v0.3.0 | ✅ **CONCLUÍDO** | `src/runtime_rs/wasm.rs`, `Alvo.WEBASSEMBLY` |
+| **Fase 6** | **Paradigma Dual & Autonomia LLVM AOT** | v0.4.0 | ✅ **CONCLUÍDO** | `GeradorIr`, `SintaxeDualModerna`, `PalavrasReservadas`, C ABI Rust |

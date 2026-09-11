@@ -1,7 +1,7 @@
 # Script de Empacotamento THZ-LANG Engine JVM (jpackage / Java 25)
 
 $Raiz = Resolve-Path "$PSScriptRoot\..\..\.."
-$VersaoPadrao = if (Test-Path "$Raiz\version.txt") { (Get-Content "$Raiz\version.txt" -Raw).Trim() } else { "2.4.0" }
+$VersaoPadrao = if (Test-Path "$Raiz\version.txt") { (Get-Content "$Raiz\version.txt" -Raw).Trim() } else { "0.4.0" }
 
 [CmdletBinding()]
 param (
