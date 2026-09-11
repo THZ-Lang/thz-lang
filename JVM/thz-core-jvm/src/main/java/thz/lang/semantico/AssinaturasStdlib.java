@@ -92,6 +92,15 @@ public final class AssinaturasStdlib {
         m.put("VERSAO.obter", new Assinatura(0, 0, TIPO_TEXTO));
         m.put("VERSAO.satisfaz", new Assinatura(2, 2, TIPO_LOGICO));
 
+        // ---- INVENTÁRIO AUDITÁVEL (retornos estruturados de integração) ----
+        TipoThz tipoRegistro = new TipoThz("REGISTRO", CategoriaTipo.REGISTRO);
+        m.put("INVENTARIO.importar", new Assinatura(3, 3, tipoRegistro));
+        m.put("INVENTARIO.validar", new Assinatura(3, 3, tipoRegistro));
+        m.put("INVENTARIO.atualizar", new Assinatura(6, 6, tipoRegistro));
+        m.put("INVENTARIO.consultar", new Assinatura(1, 1, tipoRegistro));
+        m.put("INVENTARIO.historico", new Assinatura(3, 3,
+                new TipoThz("FATIA[REGISTRO]", CategoriaTipo.FATIA, null, null, "REGISTRO", null)));
+
         // ---- ARQUIVO & DIRETORIO ----
         m.put("ARQUIVO.localizar", new Assinatura(1, 1, TIPO_TEXTO));
         m.put("ARQUIVO.lerTexto", new Assinatura(1, 1, TIPO_TEXTO));

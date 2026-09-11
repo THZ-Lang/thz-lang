@@ -74,6 +74,7 @@ public final class BibliotecaPadrao {
         BibliotecaBanco.registrar(m);
         BibliotecaBrasil.registrar(m);
         BibliotecaAnalytics.registrar(m);
+        BibliotecaInventario.registrar(m);
         BibliotecaMensageria.registrar(m);
         BibliotecaVetorIa.registrar(m);
         ThzWebViewStdlib.registrar(m);

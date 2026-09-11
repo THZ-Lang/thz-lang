@@ -7,6 +7,14 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BlocoMemoriaTest {
 
     @Test
+    void deveRejeitarSomaQueTransbordariaSemCorromperUtilizacao() {
+        var bloco = new BlocoMemoria(1);
+        bloco.alocar(1);
+        assertThrows(RuntimeException.class, () -> bloco.alocar(Integer.MAX_VALUE));
+        assertEquals(1, bloco.getUtilizacaoBytes());
+    }
+
+    @Test
     public void testCriacaoEAlocacaoBasica() {
         BlocoMemoria bloco = new BlocoMemoria(1); // 1 MB
         assertEquals(1, bloco.getTamanhoMb());

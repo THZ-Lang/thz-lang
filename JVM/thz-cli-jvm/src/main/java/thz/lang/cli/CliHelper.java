@@ -45,7 +45,7 @@ public final class CliHelper {
     }
 
     public static String resolverArquivo(List<String> args) {
-        Set<String> flags = new HashSet<>(Set.of("--saida", "--principal", "--arg"));
+        Set<String> flags = new HashSet<>(Set.of("--saida", "--principal", "--arg", "--inventario-banco"));
         for (int i = 0; i < args.size(); i++) {
             String a = args.get(i);
             if (flags.contains(a)) {

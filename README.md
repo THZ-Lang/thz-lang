@@ -163,6 +163,9 @@ cd thz-lang
 # Executar programa
 ./gradlew cli --args="run exemplos/faturamento.thz"
 
+# Executar o inventário auditável com identidade fornecida pelo host
+./gradlew cli --args="run exemplos/inventario_auditavel.thz --inventario-banco dados/inventario.db --arg arquivo=exemplos/dados/inventario_minimo.csv --arg referencia=2026-09-11 --arg justificativa=Carga_inicial"
+
 # Servidor de desenvolvimento com Live Reload
 ./gradlew cli --args="dev exemplos/faturamento.thz"
 

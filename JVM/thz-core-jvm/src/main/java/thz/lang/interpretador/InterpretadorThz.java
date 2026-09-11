@@ -40,6 +40,7 @@ public class InterpretadorThz {
     private final Supplier<String> lerEntrada;
     private final RegistroIdempotencia registroIdempotencia = new RegistroIdempotencia();
     private final ValidadorContratos validadorContratos;
+    private final thz.lang.inventario.InventarioServico inventario;
 
     private static final int LIMITE_PADRAO_ITERACOES = 10_000_000;
 
@@ -57,7 +58,13 @@ public class InterpretadorThz {
     // ---- Construtores ----
 
     public InterpretadorThz(ProgramaAst ast, OpcoesInterpretador opcoes) {
+        this(ast, opcoes, null);
+    }
+
+    /** O serviço autenticado é uma capacidade do host, nunca um argumento do programa THZ. */
+    public InterpretadorThz(ProgramaAst ast, OpcoesInterpretador opcoes, thz.lang.inventario.InventarioServico inventario) {
         this.ast = ast;
+        this.inventario = inventario;
         if (opcoes != null && opcoes.saida() != null) {
             this.emitir = opcoes.saida();
         } else {
@@ -90,6 +97,11 @@ public class InterpretadorThz {
 
     public ProgramaAst ast() {
         return ast;
+    }
+
+    public thz.lang.inventario.InventarioServico inventario() {
+        if (inventario == null) throw new ErroExecucao("Inventário exige um host autenticado; use o comando inventario.");
+        return inventario;
     }
 
     private thz.lang.dap.ThzDebugListener debugListener;

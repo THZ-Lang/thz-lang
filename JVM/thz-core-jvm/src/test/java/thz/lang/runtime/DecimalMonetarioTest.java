@@ -6,6 +6,19 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DecimalMonetarioTest {
 
     @Test
+    void divisaoComDenominadorImparNaoDeveConfundirAbaixoDaMetadeComEmpate() {
+        assertEquals("1", DecimalFixo.deTexto("4", 0).dividir(DecimalFixo.deTexto("3", 0)).formatar());
+    }
+
+    @Test
+    void hashDeveSerCompativelComIgualdadeEntreEscalas() {
+        var valores = new java.util.HashSet<DecimalFixo>();
+        valores.add(DecimalFixo.deTexto("1.0", 1));
+        valores.add(DecimalFixo.deTexto("1.00", 2));
+        assertEquals(1, valores.size());
+    }
+
+    @Test
     public void somaESubtracaoDecimais() {
         var a = DecimalFixo.deTexto("10.5000", 4);
         var b = DecimalFixo.deTexto("4.2500", 4);

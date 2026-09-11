@@ -4,6 +4,14 @@
 **Status:** Em andamento
 **Direção:** Sintaxe moderna inspirada em TypeScript, segurança semântica inspirada em Rust e controle explícito de recursos inspirado em Zig.
 
+> **Atualização de direção (10/09/2026):** a
+> [especificação de idiomas, governança e inventário](especificacao-idiomas-governanca-inventario-10092026.md)
+> consolida a preferência aprovada por chaves e declaração obrigatória `lang ptbr`
+> ou `lang enus`, além das garantias da aplicação de referência. Essa direção
+> sucede a preferência por indentação registrada abaixo; a migração e a
+> implementação ainda estão pendentes. Os marcos anteriores permanecem como
+> histórico e não comprovam a implementação da nova especificação.
+
 ## 0. Reorientação — sintaxe enxuta (02/09/2026)
 
 A sintaxe moderna passa a priorizar densidade de informação e leitura direta,

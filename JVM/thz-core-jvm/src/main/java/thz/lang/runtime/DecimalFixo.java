@@ -196,8 +196,7 @@ public final class DecimalFixo {
 
         BigInteger escaladoFinal = quociente;
         if (modo != ModoArredondamento.TRUNCAR && !resto.equals(BigInteger.ZERO)) {
-            BigInteger metade = den.divide(BigInteger.TWO);
-            int cmp = resto.compareTo(metade);
+            int cmp = resto.multiply(BigInteger.TWO).compareTo(den);
             if (cmp > 0) escaladoFinal = escaladoFinal.add(BigInteger.ONE);
             else if (cmp == 0 && modo == ModoArredondamento.BANCARIO) escaladoFinal = quociente.mod(BigInteger.TWO).equals(BigInteger.ZERO) ? quociente : quociente.add(BigInteger.ONE);
             else if (cmp == 0 && modo == ModoArredondamento.MEIA_CIMA) escaladoFinal = escaladoFinal.add(BigInteger.ONE);
@@ -275,8 +274,13 @@ public final class DecimalFixo {
 
     @Override
     public int hashCode() {
-        // Normaliza para representação canônica sem zeros à direita? Usa valor/escala direto.
-        return valorEscalado.hashCode() * 31 + escala;
+        BigInteger canonico = valorEscalado;
+        int escalaCanonica = escala;
+        while (escalaCanonica > 0 && canonico.remainder(BigInteger.TEN).signum() == 0) {
+            canonico = canonico.divide(BigInteger.TEN);
+            escalaCanonica--;
+        }
+        return canonico.hashCode() * 31 + escalaCanonica;
     }
 
     public java.math.BigDecimal paraBigDecimal() {

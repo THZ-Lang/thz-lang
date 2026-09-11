@@ -138,6 +138,7 @@ public class ThzCli {
         CliLogger.saida("  compile <arquivo> [--saida <dir>]            Compila um programa em THZ-IR, LLVM IR e WASM");
         CliLogger.saida("  check <arquivo> [--estrito]                  Verifica a integridade sintática e semântica");
         CliLogger.saida("  run <arquivo> [--principal <Nome>]           Executa o programa via interpretador com arena O(1)");
+        CliLogger.saida("      [--inventario-banco <arquivo.db>]       Injeta inventário SQLite com identidade do host");
         CliLogger.saida("  fmt <arquivo> [--check|--escrever|--saida]   Formata o código canonicamente");
         CliLogger.saida("  ast <arquivo>                               Exibe a AST (Abstract Syntax Tree) em JSON");
         CliLogger.saida("  audit <arquivo> [--json] [--estrito]        Gera relatório de auditoria e governança (G4)");

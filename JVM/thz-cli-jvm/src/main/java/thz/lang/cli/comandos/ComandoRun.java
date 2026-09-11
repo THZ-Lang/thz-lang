@@ -74,7 +74,7 @@ public class ComandoRun implements ComandoCli {
 
         boolean precisaEntrada = CliHelper.precisaEntrada(ast);
         java.util.function.Supplier<String> entrada = precisaEntrada ? CliHelper.criarLeitorEntrada() : null;
-        InterpretadorThz interp = new InterpretadorThz(ast, System.out::println, entrada);
+        InterpretadorThz interp = criarInterpretador(ast, argumentos, entrada);
 
         if (executarModoWeb) {
             CliLogger.info("================================================================================");
@@ -164,6 +164,23 @@ public class ComandoRun implements ComandoCli {
         }
     }
 
+    private InterpretadorThz criarInterpretador(ProgramaAst ast, List<String> argumentos,
+                                                 java.util.function.Supplier<String> entrada) {
+        int indiceBanco = argumentos.indexOf("--inventario-banco");
+        if (indiceBanco < 0) return new InterpretadorThz(ast, System.out::println, entrada);
+        if (indiceBanco + 1 >= argumentos.size()) {
+            throw new IllegalArgumentException("--inventario-banco exige o caminho do arquivo SQLite.");
+        }
+        String usuario = System.getProperty("user.name");
+        if (usuario == null || usuario.isBlank()) {
+            throw new IllegalStateException("O host não forneceu uma identidade autenticada para o inventário.");
+        }
+        var opcoes = new InterpretadorThz.OpcoesInterpretador(System.out::println, entrada, null);
+        var servico = new thz.lang.inventario.InventarioServico(
+                Path.of(argumentos.get(indiceBanco + 1)), () -> usuario);
+        return new InterpretadorThz(ast, opcoes, servico);
+    }
+
     private void executarCli(ProgramaAst ast, List<String> argumentos) throws Exception {
         CliLogger.info(
                 "================================================================================");
@@ -184,7 +201,7 @@ public class ComandoRun implements ComandoCli {
         Map<String, String> mapaArgs = CliHelper.parseArgsMapa(argumentos);
         boolean precisaEntrada = CliHelper.precisaEntrada(ast);
         java.util.function.Supplier<String> entrada = precisaEntrada ? CliHelper.criarLeitorEntrada() : null;
-        InterpretadorThz interp = new InterpretadorThz(ast, System.out::println, entrada);
+        InterpretadorThz interp = criarInterpretador(ast, argumentos, entrada);
         if (nomePrincipal != null) {
             ProcedimentoAst proc = ast.procedimentos() != null
                     ? ast.procedimentos().stream().filter(p -> p.nome().equals(nomePrincipal)).findFirst().orElse(null)
