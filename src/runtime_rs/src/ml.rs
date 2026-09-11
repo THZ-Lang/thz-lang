@@ -3,7 +3,6 @@
 //! Algoritmos determinísticos de alta velocidade para predição tabular,
 //! classificação e vetorização sem dependências externas pesadas.
 
-use std::collections::HashMap;
 
 /// Vetorizador de Texto e Geração de Embeddings Semânticos em Memória
 pub struct ThzEmbeddingEngine;

@@ -6,7 +6,6 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::path::Path;
-use std::sync::Mutex;
 
 // ---------------------------------------------------------------------------
 // Configuração do modelo
@@ -262,7 +261,7 @@ pub extern "C" fn thz_llm_carregar(
 #[no_mangle]
 pub extern "C" fn thz_llm_carregar_api(
     url: *const c_char,
-    api_key: *const c_char,
+    _api_key: *const c_char,
     modelo: *const c_char,
 ) -> *mut ThzLlmContext {
     if url.is_null() || modelo.is_null() {
@@ -364,7 +363,7 @@ pub extern "C" fn thz_llm_embedding(
     };
 
     let emb = match LocalBackend::novo(ctx_ref.config.clone()) {
-        Ok(mut backend) => backend.embedding(t),
+        Ok(mut backend) => backend.embedding(t).unwrap_or_else(|_| vec![0.0; dims]),
         Err(_) => vec![0.0; dims],
     };
 

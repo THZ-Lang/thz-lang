@@ -312,8 +312,14 @@ public final class GeradorIr {
         StringBuilder sb = new StringBuilder();
         sb.append("; ModuleID = 'thz.").append(ast.nome()).append("'\n");
         sb.append("source_filename = \"").append(ast.nome()).append(".thz\"\n");
-        sb.append("target datalayout = \"e-m:w-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128\"\n");
-        sb.append("target triple = \"x86_64-pc-windows-msvc\"\n\n");
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
+        if (isWindows) {
+            sb.append("target datalayout = \"e-m:w-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128\"\n");
+            sb.append("target triple = \"x86_64-pc-windows-msvc\"\n\n");
+        } else {
+            sb.append("target datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\n");
+            sb.append("target triple = \"x86_64-pc-linux-gnu\"\n\n");
+        }
 
         sb.append("; Declarações de runtime THZ-LANG O(1) Arena & IO\n");
         sb.append("declare ptr @thz_arena_alloc(i64 %bytes)\n");

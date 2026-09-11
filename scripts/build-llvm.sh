@@ -70,7 +70,13 @@ $CLANG_BIN -c "$LLVM_FILE" -o "$OBJ_LIN"
 # 3. Compilar e linkar com o Runtime Rust
 echo -e "\n\033[0;33m[3/3] Linkando binário nativo ELF Linux...\033[0m"
 cargo build --release --manifest-path "$RUNTIME_RS/Cargo.toml"
-$GCC_BIN -O3 "$OBJ_LIN" -L "$RUNTIME_RS/target/release" -lthz_runtime -o "$ELF_LIN" -lm -lpthread
+mkdir -p "$RAIZ/dist/native"
+cp "$RUNTIME_RS/target/release/libthz_runtime.so" "$RAIZ/dist/native/"
+cp "$RUNTIME_RS/target/release/libthz_runtime.so" "$DIST_BIN/"
+
+$GCC_BIN -O3 "$OBJ_LIN" -L "$RUNTIME_RS/target/release" -lthz_runtime \
+    -Wl,-rpath,'$ORIGIN' -Wl,-rpath,'$ORIGIN/../native' -Wl,-rpath,"$RUNTIME_RS/target/release" \
+    -o "$ELF_LIN" -lm -lpthread
 
 chmod +x "$ELF_LIN"
 

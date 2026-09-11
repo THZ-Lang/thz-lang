@@ -8,8 +8,6 @@ use aes_gcm::{
     aead::{Aead, KeyInit},
     Aes256Gcm, Nonce,
 };
-use chacha20poly1305::{ChaCha20Poly1305, Nonce as ChaNonce};
-use zeroize::Zeroize;
 
 pub fn hash_argon2id(senha: &str) -> Result<String, String> {
     let salt = SaltString::generate(&mut OsRng);
