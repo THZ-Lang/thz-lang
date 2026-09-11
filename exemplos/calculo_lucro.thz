@@ -1,0 +1,52 @@
+PROGRAMA CalculoLucroEmpresarial
+
+METADADOS_ARQUITETURA
+    DOMINIO: "FinancasCorporativas"
+    CAMADA: "Aplicacao"
+    VERSAO: "1.0.0"
+    AUTOR: "THZ-LANG Team"
+    SLO_LATENCIA_MAXIMA: "5ms"
+FIM_METADADOS
+
+PROCEDIMENTO Principal()
+INICIO
+    EXIBA "=============================================="
+    EXIBA "   RELATORIO DE APURACAO DE RESULTADOS (AOT)"
+    EXIBA "=============================================="
+
+    VARIAVEL receita : INTEIRO <- 2500
+    VARIAVEL custos : INTEIRO <- 1200
+    VARIAVEL impostos : INTEIRO <- 300
+
+    VARIAVEL despesas_totais : INTEIRO <- custos + impostos
+    VARIAVEL lucro_liquido : INTEIRO <- receita - despesas_totais
+
+    EXIBA "[RECEITA BRUTA]"
+    EXIBA receita
+
+    EXIBA "[DESPESAS TOTAIS]"
+    EXIBA despesas_totais
+
+    EXIBA "[LUCRO LIQUIDO APURADO]"
+    EXIBA lucro_liquido
+
+    SE lucro_liquido > 500
+        EXIBA "[STATUS] Meta de lucratividade ATINGIDA com sucesso!"
+    SENAO
+        EXIBA "[STATUS] Alerta: margem de lucro abaixo da meta."
+    FIM_SE
+
+    EXIBA "--- Detalhamento por Trimestre ---"
+    VARIAVEL trimestre : INTEIRO <- 1
+    ENQUANTO trimestre <= 3
+        EXIBA "[PROJECAO TRIMESTRE]"
+        EXIBA trimestre
+        trimestre <- trimestre + 1
+    FIM_ENQUANTO
+
+    EXIBA "=============================================="
+    EXIBA "   APURACAO CONCLUIDA COM EXITO!"
+    EXIBA "=============================================="
+FIM
+
+FIM_PROGRAMA

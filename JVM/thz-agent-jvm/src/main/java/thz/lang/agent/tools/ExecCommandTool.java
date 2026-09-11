@@ -63,6 +63,7 @@ public final class ExecCommandTool implements Tool {
                 output = sb.toString().strip();
             }
 
+            process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
             int exitCode = process.exitValue();
             return String.format("[exit %d]\n%s", exitCode, output.isEmpty() ? "(sem output)" : output);
 

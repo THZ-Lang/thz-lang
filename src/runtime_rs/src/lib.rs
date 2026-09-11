@@ -114,6 +114,45 @@ pub extern "C" fn thz_exiba_str(msg: *const c_char) {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn thz_exiba_i64(val: i64) {
+    println!("{}", val);
+}
+
+#[no_mangle]
+pub extern "C" fn thz_exiba_i32(val: i32) {
+    println!("{}", val);
+}
+
+#[no_mangle]
+pub extern "C" fn thz_exiba_bool(val: bool) {
+    if val {
+        println!("VERDADEIRO");
+    } else {
+        println!("FALSO");
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn thz_exiba_i128(val: i128, scale: i32) {
+    if scale <= 0 {
+        println!("{}", val);
+        return;
+    }
+    let sinal = if val < 0 { "-" } else { "" };
+    let abs_val = val.abs();
+    let mut fator: i128 = 1;
+    for _ in 0..scale {
+        fator *= 10;
+    }
+    let inteira = abs_val / fator;
+    let mut fracionaria = (abs_val % fator).to_string();
+    while fracionaria.len() < (scale as usize) {
+        fracionaria = format!("0{}", fracionaria);
+    }
+    println!("{}{}.{}", sinal, inteira, fracionaria);
+}
+
 // -----------------------------------------------------------------------------
 // FFI: Álgebra Vetorial & SIMD
 // -----------------------------------------------------------------------------

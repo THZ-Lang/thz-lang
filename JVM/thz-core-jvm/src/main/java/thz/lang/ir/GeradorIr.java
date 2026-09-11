@@ -273,17 +273,24 @@ public final class GeradorIr {
                 case ComandoAst.Exiba _ -> {}
                 case ComandoAst.Chamada _ -> {}
                 case ComandoAst.Retorne _ -> {}
+                case ComandoAst.DeclVariavel _ -> {}
+                case ComandoAst.Atribuicao _ -> {}
+                case ComandoAst.Se s -> {
+                    verificarComandosNaoSuportados(s.entao(), contexto, limitacoes);
+                    verificarComandosNaoSuportados(s.senao(), contexto, limitacoes);
+                }
+                case ComandoAst.Enquanto e -> {
+                    verificarComandosNaoSuportados(e.corpo(), contexto, limitacoes);
+                }
+                case ComandoAst.Para p -> {
+                    verificarComandosNaoSuportados(p.corpo(), contexto, limitacoes);
+                }
                 case ComandoAst.Tente _ -> limitacoes.add("Tratamento de exceções (TENTE/CAPTURE) em " + contexto + " não suportado pelo emissor AOT.");
                 case ComandoAst.FalharCom _ -> limitacoes.add("Interrupção com falha explícita (FALHAR_COM) em " + contexto + " não suportado pelo emissor AOT.");
                 case ComandoAst.CasoResultado _ -> limitacoes.add("Pattern matching (CASO_RESULTADO) em " + contexto + " não suportado pelo emissor AOT.");
                 case ComandoAst.Ler _ -> limitacoes.add("Comando interativo de entrada (LER) em " + contexto + " não suportado pelo emissor AOT.");
                 case ComandoAst.BlocoMemoria _ -> limitacoes.add("Alocação dinâmica aninhada de arena local em " + contexto + " não suportada diretamente no AOT.");
                 case ComandoAst.VetorizarPara vp -> limitacoes.add("Lowering de laço vetorizado SIMD (VETORIZAR_PARA " + vp.variavel() + ") em " + contexto + " aguarda suporte a intrinsics no emissor LLVM.");
-                case ComandoAst.Para p -> limitacoes.add("Laço PARA (" + p.variavel() + ") em " + contexto + " não possui lowering de controle de fluxo no emissor LLVM.");
-                case ComandoAst.Enquanto _ -> limitacoes.add("Laço ENQUANTO em " + contexto + " não possui lowering de controle de fluxo no emissor LLVM.");
-                case ComandoAst.Se _ -> limitacoes.add("Estrutura condicional SE em " + contexto + " não possui lowering no emissor LLVM.");
-                case ComandoAst.Atribuicao a -> limitacoes.add("Atribuição de estado a '" + String.join(".", a.alvo()) + "' em " + contexto + " não possui lowering no emissor LLVM.");
-                case ComandoAst.DeclVariavel d -> limitacoes.add("Declaração de variável local '" + d.nome() + "' em " + contexto + " não possui lowering no emissor LLVM.");
             }
         }
     }
@@ -325,6 +332,9 @@ public final class GeradorIr {
         sb.append("declare ptr @thz_arena_alloc(i64 %bytes)\n");
         sb.append("declare void @thz_arena_free_all(ptr %arena)\n");
         sb.append("declare void @thz_exiba_str(ptr %msg)\n");
+        sb.append("declare void @thz_exiba_i64(i64 %val)\n");
+        sb.append("declare void @thz_exiba_i32(i32 %val)\n");
+        sb.append("declare void @thz_exiba_bool(i1 %val)\n");
         sb.append("declare void @thz_exiba_i128(i128 %val, i32 %scale)\n");
         sb.append("declare void @thz_renderizar_tela(ptr %titulo, ptr %conteudo)\n\n");
 
@@ -447,9 +457,11 @@ public final class GeradorIr {
 
         // Funções puras declaradas no módulo (inclui a forma compacta `= expressão`).
         // A assinatura é preservada no LLVM para permitir chamadas tipadas pelo AOT.
+        // Funções puras declaradas no módulo (inclui a forma compacta `= expressão`).
         if (ast.funcoes() != null) {
             for (FuncaoAst funcao : ast.funcoes()) {
-                sb.append("define ").append(mapearTipoLlvm(funcao.tipoRetorno())).append(" @")
+                String tipoRet = mapearTipoLlvm(funcao.tipoRetorno());
+                sb.append("define ").append(tipoRet).append(" @")
                   .append(funcao.nome()).append("(");
                 for (int i = 0; i < funcao.parametros().size(); i++) {
                     ParametroOperacaoAst p = funcao.parametros().get(i);
@@ -457,8 +469,24 @@ public final class GeradorIr {
                     sb.append(mapearTipoLlvm(p.tipo())).append(" %").append(p.nome());
                 }
                 sb.append(") {\nentry:\n");
-                emitirCorpoProcedimento(sb, funcao.corpo(), mapaStringGlobal);
-                emitirRetornoLlvm(sb, funcao);
+                boolean ehRetornoPuro = funcao.corpo() != null && funcao.corpo().size() == 1
+                        && funcao.corpo().get(0) instanceof ComandoAst.Retorne;
+                if (ehRetornoPuro) {
+                    emitirRetornoLlvm(sb, funcao);
+                } else {
+                    EmissorAotContexto ctx = new EmissorAotContexto(sb, mapaStringGlobal);
+                    for (ParametroOperacaoAst p : funcao.parametros()) {
+                        String ptrParam = "%var." + p.nome();
+                        String tipoParam = mapearTipoLlvm(p.tipo());
+                        sb.append("  ").append(ptrParam).append(" = alloca ").append(tipoParam).append("\n");
+                        sb.append("  store ").append(tipoParam).append(" %").append(p.nome()).append(", ptr ").append(ptrParam).append("\n");
+                        ctx.variaveis.put(p.nome(), new EmissorAotContexto.VariavelLocal(ptrParam, tipoParam));
+                    }
+                    boolean terminou = emitirComandos(ctx, funcao.corpo());
+                    if (!terminou) {
+                        emitirRetornoLlvm(sb, funcao);
+                    }
+                }
                 sb.append("}\n\n");
             }
         }
@@ -469,10 +497,30 @@ public final class GeradorIr {
                 if (r.operacoes() != null) {
                     for (OperacaoAst op : r.operacoes()) {
                         String fnName = r.nome() + "_" + op.nome();
-                        sb.append("define void @").append(fnName).append("() {\n");
-                        sb.append("entry:\n");
-                        emitirCorpoProcedimento(sb, op.corpo(), mapaStringGlobal);
-                        sb.append("  ret void\n");
+                        String tipoRet = op.tipoRetorno() != null ? mapearTipoLlvm(op.tipoRetorno()) : "void";
+                        sb.append("define ").append(tipoRet).append(" @").append(fnName).append("(");
+                        for (int i = 0; i < op.parametros().size(); i++) {
+                            ParametroOperacaoAst p = op.parametros().get(i);
+                            if (i > 0) sb.append(", ");
+                            sb.append(mapearTipoLlvm(p.tipo())).append(" %").append(p.nome());
+                        }
+                        sb.append(") {\nentry:\n");
+                        EmissorAotContexto ctx = new EmissorAotContexto(sb, mapaStringGlobal);
+                        for (ParametroOperacaoAst p : op.parametros()) {
+                            String ptrParam = "%var." + p.nome();
+                            String tipoParam = mapearTipoLlvm(p.tipo());
+                            sb.append("  ").append(ptrParam).append(" = alloca ").append(tipoParam).append("\n");
+                            sb.append("  store ").append(tipoParam).append(" %").append(p.nome()).append(", ptr ").append(ptrParam).append("\n");
+                            ctx.variaveis.put(p.nome(), new EmissorAotContexto.VariavelLocal(ptrParam, tipoParam));
+                        }
+                        boolean terminou = emitirComandos(ctx, op.corpo());
+                        if (!terminou) {
+                            if (tipoRet.equals("void")) {
+                                sb.append("  ret void\n");
+                            } else {
+                                sb.append("  ret ").append(tipoRet).append(" 0\n");
+                            }
+                        }
                         sb.append("}\n\n");
                     }
                 }
@@ -484,7 +532,8 @@ public final class GeradorIr {
             for (ProcedimentoAst proc : ast.procedimentos()) {
                 sb.append("define void @").append(proc.nome()).append("() {\n");
                 sb.append("entry:\n");
-                emitirCorpoProcedimento(sb, proc.corpo(), mapaStringGlobal);
+                EmissorAotContexto ctx = new EmissorAotContexto(sb, mapaStringGlobal);
+                boolean terminou = emitirComandos(ctx, proc.corpo());
 
                 if (!isGuiModule && proc.nome().equalsIgnoreCase("Principal")) {
                     if (ast.regras() != null) {
@@ -498,7 +547,9 @@ public final class GeradorIr {
                     }
                 }
 
-                sb.append("  ret void\n");
+                if (!terminou) {
+                    sb.append("  ret void\n");
+                }
                 sb.append("}\n\n");
             }
         }
@@ -573,6 +624,24 @@ public final class GeradorIr {
         }
     }
 
+    private static void coletarStringsExpr(ExprAst expr, List<String> list, Map<String, String> map) {
+        if (expr == null) return;
+        switch (expr) {
+            case ExprAst.LiteralTexto lt -> adicionarStringConstante(lt.valor(), list, map);
+            case ExprAst.OpBinaria b -> {
+                coletarStringsExpr(b.esquerda(), list, map);
+                coletarStringsExpr(b.direita(), list, map);
+            }
+            case ExprAst.OpUnaria u -> coletarStringsExpr(u.operando(), list, map);
+            case ExprAst.Chamada ch -> {
+                if (ch.argumentos() != null) {
+                    for (ExprAst arg : ch.argumentos()) coletarStringsExpr(arg, list, map);
+                }
+            }
+            default -> {}
+        }
+    }
+
     private static void coletarStrings(List<ComandoAst> comandos, List<String> list, Map<String, String> map) {
         if (comandos == null) return;
         for (ComandoAst c : comandos) {
@@ -581,45 +650,389 @@ public final class GeradorIr {
                     String text = ThzParser.textoCanonicoDe(ex.expressao());
                     if (text.startsWith("\"") && text.endsWith("\"")) {
                         text = text.substring(1, text.length() - 1);
+                        adicionarStringConstante(text, list, map);
+                    } else {
+                        coletarStringsExpr(ex.expressao(), list, map);
                     }
-                    adicionarStringConstante(text, list, map);
                 }
                 case ComandoAst.Chamada ch -> {
                     String text = ThzParser.textoCanonicoDe(ch.expressao());
                     adicionarStringConstante(text, list, map);
                 }
+                case ComandoAst.DeclVariavel dv -> coletarStringsExpr(dv.inicializacao(), list, map);
+                case ComandoAst.Atribuicao at -> coletarStringsExpr(at.expressao(), list, map);
+                case ComandoAst.Retorne ret -> coletarStringsExpr(ret.expressao(), list, map);
                 case ComandoAst.Se s -> {
+                    coletarStringsExpr(s.condicao(), list, map);
                     coletarStrings(s.entao(), list, map);
                     coletarStrings(s.senao(), list, map);
+                }
+                case ComandoAst.Enquanto e -> {
+                    coletarStringsExpr(e.condicao(), list, map);
+                    coletarStrings(e.corpo(), list, map);
+                }
+                case ComandoAst.Para p -> {
+                    coletarStringsExpr(p.inicio(), list, map);
+                    coletarStringsExpr(p.fim(), list, map);
+                    coletarStringsExpr(p.passo(), list, map);
+                    coletarStrings(p.corpo(), list, map);
                 }
                 default -> {}
             }
         }
     }
 
-    private static void emitirCorpoProcedimento(StringBuilder sb, List<ComandoAst> comandos, Map<String, String> map) {
-        if (comandos == null) return;
+    private static final class EmissorAotContexto {
+        final StringBuilder sb;
+        final Map<String, String> mapaStringGlobal;
+        final Map<String, VariavelLocal> variaveis = new LinkedHashMap<>();
+        int regContador = 1;
+        int labelContador = 1;
+
+        record VariavelLocal(String ptrLlvm, String tipoLlvm) {}
+
+        EmissorAotContexto(StringBuilder sb, Map<String, String> mapaStringGlobal) {
+            this.sb = sb;
+            this.mapaStringGlobal = mapaStringGlobal;
+        }
+
+        String novoReg() {
+            return "%t." + (regContador++);
+        }
+
+        String novoLabel(String prefixo) {
+            return prefixo + "." + (labelContador++);
+        }
+    }
+
+    record ResultadoLlvm(String valor, String tipo) {}
+
+    private static ResultadoLlvm avaliarExpr(ExprAst expr, EmissorAotContexto ctx) {
+        if (expr == null) return new ResultadoLlvm("0", "i64");
+
+        switch (expr) {
+            case ExprAst.LiteralInteiro li -> {
+                return new ResultadoLlvm(li.valor().toString(), "i64");
+            }
+            case ExprAst.LiteralDecimal ld -> {
+                return new ResultadoLlvm(ld.escalado().toString(), "i128");
+            }
+            case ExprAst.LiteralLogico ll -> {
+                return new ResultadoLlvm(ll.valor() ? "1" : "0", "i1");
+            }
+            case ExprAst.LiteralTexto lt -> {
+                String gVar = ctx.mapaStringGlobal.get(lt.valor());
+                return new ResultadoLlvm(gVar != null ? gVar : "null", "ptr");
+            }
+            case ExprAst.AcessoCampo ac -> {
+                if (ac.caminho().size() == 1) {
+                    String nome = ac.caminho().getFirst();
+                    EmissorAotContexto.VariavelLocal var = ctx.variaveis.get(nome);
+                    if (var != null) {
+                        String reg = ctx.novoReg();
+                        ctx.sb.append("  ").append(reg).append(" = load ").append(var.tipoLlvm())
+                              .append(", ptr ").append(var.ptrLlvm()).append("\n");
+                        return new ResultadoLlvm(reg, var.tipoLlvm());
+                    }
+                    return new ResultadoLlvm("%" + nome, "i64");
+                }
+                return new ResultadoLlvm("0", "i64");
+            }
+            case ExprAst.OpUnaria ou -> {
+                ResultadoLlvm opVal = avaliarExpr(ou.operando(), ctx);
+                if (ou.operador().equals("-")) {
+                    String reg = ctx.novoReg();
+                    ctx.sb.append("  ").append(reg).append(" = sub ").append(opVal.tipo())
+                          .append(" 0, ").append(opVal.valor()).append("\n");
+                    return new ResultadoLlvm(reg, opVal.tipo());
+                } else if (ou.operador().equalsIgnoreCase("NAO") || ou.operador().equals("!")) {
+                    String reg = ctx.novoReg();
+                    ctx.sb.append("  ").append(reg).append(" = xor i1 ").append(opVal.valor()).append(", 1\n");
+                    return new ResultadoLlvm(reg, "i1");
+                }
+                return opVal;
+            }
+            case ExprAst.OpBinaria ob -> {
+                ResultadoLlvm esq = avaliarExpr(ob.esquerda(), ctx);
+                ResultadoLlvm dir = avaliarExpr(ob.direita(), ctx);
+                String op = ob.operador();
+
+                if (op.equalsIgnoreCase("E") || op.equalsIgnoreCase("and")) {
+                    String reg = ctx.novoReg();
+                    ctx.sb.append("  ").append(reg).append(" = and i1 ").append(esq.valor()).append(", ").append(dir.valor()).append("\n");
+                    return new ResultadoLlvm(reg, "i1");
+                }
+                if (op.equalsIgnoreCase("OU") || op.equalsIgnoreCase("or")) {
+                    String reg = ctx.novoReg();
+                    ctx.sb.append("  ").append(reg).append(" = or i1 ").append(esq.valor()).append(", ").append(dir.valor()).append("\n");
+                    return new ResultadoLlvm(reg, "i1");
+                }
+
+                String tipoComum = esq.tipo();
+                String valEsq = esq.valor();
+                String valDir = dir.valor();
+                if (esq.tipo().equals("i32") && dir.tipo().equals("i64")) {
+                    String r = ctx.novoReg();
+                    ctx.sb.append("  ").append(r).append(" = sext i32 ").append(valEsq).append(" to i64\n");
+                    valEsq = r;
+                    tipoComum = "i64";
+                } else if (esq.tipo().equals("i64") && dir.tipo().equals("i32")) {
+                    String r = ctx.novoReg();
+                    ctx.sb.append("  ").append(r).append(" = sext i32 ").append(valDir).append(" to i64\n");
+                    valDir = r;
+                    tipoComum = "i64";
+                }
+
+                String icmp = switch (op) {
+                    case ">" -> "icmp sgt";
+                    case "<" -> "icmp slt";
+                    case ">=" -> "icmp sge";
+                    case "<=" -> "icmp sle";
+                    case "==", "=" -> "icmp eq";
+                    case "!=", "<>" -> "icmp ne";
+                    default -> null;
+                };
+                if (icmp != null) {
+                    String reg = ctx.novoReg();
+                    ctx.sb.append("  ").append(reg).append(" = ").append(icmp).append(" ").append(tipoComum)
+                          .append(" ").append(valEsq).append(", ").append(valDir).append("\n");
+                    return new ResultadoLlvm(reg, "i1");
+                }
+
+                String arith = switch (op) {
+                    case "+" -> "add";
+                    case "-" -> "sub";
+                    case "*" -> "mul";
+                    case "/" -> "sdiv";
+                    default -> "add";
+                };
+                String reg = ctx.novoReg();
+                ctx.sb.append("  ").append(reg).append(" = ").append(arith).append(" ").append(tipoComum)
+                      .append(" ").append(valEsq).append(", ").append(valDir).append("\n");
+                return new ResultadoLlvm(reg, tipoComum);
+            }
+            default -> {
+                return new ResultadoLlvm("0", "i64");
+            }
+        }
+    }
+
+    private static boolean emitirComandos(EmissorAotContexto ctx, List<ComandoAst> comandos) {
+        if (comandos == null) return false;
+        boolean terminou = false;
         for (ComandoAst c : comandos) {
-            switch (c) {
-                case ComandoAst.Exiba ex -> {
-                    String text = ThzParser.textoCanonicoDe(ex.expressao());
-                    if (text.startsWith("\"") && text.endsWith("\"")) {
-                        text = text.substring(1, text.length() - 1);
+            if (terminou) break;
+            terminou = emitirComando(ctx, c);
+        }
+        return terminou;
+    }
+
+    private static boolean emitirComando(EmissorAotContexto ctx, ComandoAst c) {
+        switch (c) {
+            case ComandoAst.DeclVariavel dv -> {
+                String tipo = dv.tipoDado() != null ? mapearTipoLlvm(dv.tipoDado()) : null;
+                ResultadoLlvm init = null;
+                if (dv.inicializacao() != null) {
+                    init = avaliarExpr(dv.inicializacao(), ctx);
+                    if (tipo == null) {
+                        tipo = init.tipo();
                     }
-                    String gVar = map.get(text);
+                } else if (tipo == null) {
+                    tipo = "i64";
+                }
+                String ptrVar = "%var." + dv.nome() + "." + (ctx.regContador++);
+                ctx.sb.append("  ").append(ptrVar).append(" = alloca ").append(tipo).append("\n");
+                ctx.variaveis.put(dv.nome(), new EmissorAotContexto.VariavelLocal(ptrVar, tipo));
+                if (init != null) {
+                    String valInit = init.valor();
+                    if (!init.tipo().equals(tipo) && init.tipo().equals("i32") && tipo.equals("i64")) {
+                        String regConv = ctx.novoReg();
+                        ctx.sb.append("  ").append(regConv).append(" = sext i32 ").append(valInit).append(" to i64\n");
+                        valInit = regConv;
+                    }
+                    ctx.sb.append("  store ").append(tipo).append(" ").append(valInit).append(", ptr ").append(ptrVar).append("\n");
+                }
+                return false;
+            }
+            case ComandoAst.Atribuicao at -> {
+                if (at.alvo().size() == 1) {
+                    String nome = at.alvo().getFirst();
+                    EmissorAotContexto.VariavelLocal var = ctx.variaveis.get(nome);
+                    if (var != null) {
+                        ResultadoLlvm val = avaliarExpr(at.expressao(), ctx);
+                        String valFinal = val.valor();
+                        if (!val.tipo().equals(var.tipoLlvm()) && val.tipo().equals("i32") && var.tipoLlvm().equals("i64")) {
+                            String regConv = ctx.novoReg();
+                            ctx.sb.append("  ").append(regConv).append(" = sext i32 ").append(valFinal).append(" to i64\n");
+                            valFinal = regConv;
+                        }
+                        ctx.sb.append("  store ").append(var.tipoLlvm()).append(" ").append(valFinal).append(", ptr ").append(var.ptrLlvm()).append("\n");
+                    }
+                }
+                return false;
+            }
+            case ComandoAst.Exiba ex -> {
+                String text = ThzParser.textoCanonicoDe(ex.expressao());
+                if (text.startsWith("\"") && text.endsWith("\"")) {
+                    String raw = text.substring(1, text.length() - 1);
+                    String gVar = ctx.mapaStringGlobal.get(raw);
                     if (gVar != null) {
-                        sb.append("  call void @thz_exiba_str(ptr ").append(gVar).append(")\n");
+                        ctx.sb.append("  call void @thz_exiba_str(ptr ").append(gVar).append(")\n");
+                    }
+                    return false;
+                }
+                if (ex.expressao() instanceof ExprAst.OpBinaria ob && ob.operador().equals("+")) {
+                    emitirExibaConcatenado(ctx, ob);
+                    return false;
+                }
+                ResultadoLlvm res = avaliarExpr(ex.expressao(), ctx);
+                switch (res.tipo()) {
+                    case "i64" -> ctx.sb.append("  call void @thz_exiba_i64(i64 ").append(res.valor()).append(")\n");
+                    case "i32" -> ctx.sb.append("  call void @thz_exiba_i32(i32 ").append(res.valor()).append(")\n");
+                    case "i1" -> ctx.sb.append("  call void @thz_exiba_bool(i1 ").append(res.valor()).append(")\n");
+                    case "i128" -> ctx.sb.append("  call void @thz_exiba_i128(i128 ").append(res.valor()).append(", i32 2)\n");
+                    case "ptr" -> ctx.sb.append("  call void @thz_exiba_str(ptr ").append(res.valor()).append(")\n");
+                    default -> ctx.sb.append("  call void @thz_exiba_i64(i64 ").append(res.valor()).append(")\n");
+                }
+                return false;
+            }
+            case ComandoAst.Se s -> {
+                ResultadoLlvm cond = avaliarExpr(s.condicao(), ctx);
+                String lblThen = ctx.novoLabel("se.entao");
+                String lblElse = ctx.novoLabel("se.senao");
+                String lblMerge = ctx.novoLabel("se.fim");
+
+                boolean temElse = s.senao() != null && !s.senao().isEmpty();
+                ctx.sb.append("  br i1 ").append(cond.valor()).append(", label %").append(lblThen)
+                      .append(", label %").append(temElse ? lblElse : lblMerge).append("\n");
+
+                ctx.sb.append(lblThen).append(":\n");
+                boolean thenTerminou = emitirComandos(ctx, s.entao());
+                if (!thenTerminou) {
+                    ctx.sb.append("  br label %").append(lblMerge).append("\n");
+                }
+
+                boolean elseTerminou = false;
+                if (temElse) {
+                    ctx.sb.append(lblElse).append(":\n");
+                    elseTerminou = emitirComandos(ctx, s.senao());
+                    if (!elseTerminou) {
+                        ctx.sb.append("  br label %").append(lblMerge).append("\n");
                     }
                 }
-                case ComandoAst.Chamada ch -> {
-                    String fn = ThzParser.textoCanonicoDe(ch.expressao());
-                    sb.append("  call void @").append(fn).append("()\n");
+
+                if (!thenTerminou || (temElse && !elseTerminou) || !temElse) {
+                    ctx.sb.append(lblMerge).append(":\n");
+                    return false;
                 }
-                default -> {
-                    sb.append("  ; AVISO AOT: comando ").append(c.getClass().getSimpleName())
-                            .append(" ignorado pelo emissor AOT (lowering de semântica não implementado no backend LLVM)\n");
+                return true;
+            }
+            case ComandoAst.Enquanto e -> {
+                String lblCond = ctx.novoLabel("enq.cond");
+                String lblCorpo = ctx.novoLabel("enq.corpo");
+                String lblFim = ctx.novoLabel("enq.fim");
+
+                ctx.sb.append("  br label %").append(lblCond).append("\n");
+                ctx.sb.append(lblCond).append(":\n");
+                ResultadoLlvm cond = avaliarExpr(e.condicao(), ctx);
+                ctx.sb.append("  br i1 ").append(cond.valor()).append(", label %").append(lblCorpo).append(", label %").append(lblFim).append("\n");
+
+                ctx.sb.append(lblCorpo).append(":\n");
+                boolean corpoTerminou = emitirComandos(ctx, e.corpo());
+                if (!corpoTerminou) {
+                    ctx.sb.append("  br label %").append(lblCond).append("\n");
+                }
+
+                ctx.sb.append(lblFim).append(":\n");
+                return false;
+            }
+            case ComandoAst.Para p -> {
+                String ptrVar = "%var." + p.variavel() + "." + (ctx.regContador++);
+                ctx.sb.append("  ").append(ptrVar).append(" = alloca i64\n");
+                ResultadoLlvm ini = avaliarExpr(p.inicio(), ctx);
+                ctx.sb.append("  store i64 ").append(ini.valor()).append(", ptr ").append(ptrVar).append("\n");
+                ctx.variaveis.put(p.variavel(), new EmissorAotContexto.VariavelLocal(ptrVar, "i64"));
+
+                String lblCond = ctx.novoLabel("para.cond");
+                String lblCorpo = ctx.novoLabel("para.corpo");
+                String lblFim = ctx.novoLabel("para.fim");
+
+                ctx.sb.append("  br label %").append(lblCond).append("\n");
+                ctx.sb.append(lblCond).append(":\n");
+                String rAtual = ctx.novoReg();
+                ctx.sb.append("  ").append(rAtual).append(" = load i64, ptr ").append(ptrVar).append("\n");
+                ResultadoLlvm fim = avaliarExpr(p.fim(), ctx);
+                String rCmp = ctx.novoReg();
+                ctx.sb.append("  ").append(rCmp).append(" = icmp sle i64 ").append(rAtual).append(", ").append(fim.valor()).append("\n");
+                ctx.sb.append("  br i1 ").append(rCmp).append(", label %").append(lblCorpo).append(", label %").append(lblFim).append("\n");
+
+                ctx.sb.append(lblCorpo).append(":\n");
+                boolean corpoTerminou = emitirComandos(ctx, p.corpo());
+                if (!corpoTerminou) {
+                    ResultadoLlvm passo = p.passo() != null ? avaliarExpr(p.passo(), ctx) : new ResultadoLlvm("1", "i64");
+                    String rCarregado = ctx.novoReg();
+                    ctx.sb.append("  ").append(rCarregado).append(" = load i64, ptr ").append(ptrVar).append("\n");
+                    String rProx = ctx.novoReg();
+                    ctx.sb.append("  ").append(rProx).append(" = add i64 ").append(rCarregado).append(", ").append(passo.valor()).append("\n");
+                    ctx.sb.append("  store i64 ").append(rProx).append(", ptr ").append(ptrVar).append("\n");
+                    ctx.sb.append("  br label %").append(lblCond).append("\n");
+                }
+
+                ctx.sb.append(lblFim).append(":\n");
+                return false;
+            }
+            case ComandoAst.Retorne r -> {
+                ResultadoLlvm res = avaliarExpr(r.expressao(), ctx);
+                ctx.sb.append("  ret ").append(res.tipo()).append(" ").append(res.valor()).append("\n");
+                return true;
+            }
+            case ComandoAst.Chamada ch -> {
+                String fn = ThzParser.textoCanonicoDe(ch.expressao());
+                if (fn.contains("(")) {
+                    fn = fn.substring(0, fn.indexOf('('));
+                }
+                ctx.sb.append("  call void @").append(fn).append("()\n");
+                return false;
+            }
+            default -> {
+                ctx.sb.append("  ; AVISO AOT: comando ").append(c.getClass().getSimpleName())
+                      .append(" ignorado pelo emissor AOT (lowering de semântica não implementado no backend LLVM)\n");
+                return false;
+            }
+        }
+    }
+
+    private static void emitirExibaConcatenado(EmissorAotContexto ctx, ExprAst.OpBinaria soma) {
+        List<ExprAst> partes = new ArrayList<>();
+        coletarPartesSoma(soma, partes);
+        for (ExprAst parte : partes) {
+            String text = ThzParser.textoCanonicoDe(parte);
+            if (text.startsWith("\"") && text.endsWith("\"")) {
+                String raw = text.substring(1, text.length() - 1);
+                String gVar = ctx.mapaStringGlobal.get(raw);
+                if (gVar != null) {
+                    ctx.sb.append("  call void @thz_exiba_str(ptr ").append(gVar).append(")\n");
+                }
+            } else {
+                ResultadoLlvm res = avaliarExpr(parte, ctx);
+                switch (res.tipo()) {
+                    case "i64" -> ctx.sb.append("  call void @thz_exiba_i64(i64 ").append(res.valor()).append(")\n");
+                    case "i32" -> ctx.sb.append("  call void @thz_exiba_i32(i32 ").append(res.valor()).append(")\n");
+                    case "i1" -> ctx.sb.append("  call void @thz_exiba_bool(i1 ").append(res.valor()).append(")\n");
+                    case "i128" -> ctx.sb.append("  call void @thz_exiba_i128(i128 ").append(res.valor()).append(", i32 2)\n");
+                    case "ptr" -> ctx.sb.append("  call void @thz_exiba_str(ptr ").append(res.valor()).append(")\n");
+                    default -> ctx.sb.append("  call void @thz_exiba_i64(i64 ").append(res.valor()).append(")\n");
                 }
             }
+        }
+    }
+
+    private static void coletarPartesSoma(ExprAst expr, List<ExprAst> partes) {
+        if (expr instanceof ExprAst.OpBinaria b && b.operador().equals("+")) {
+            coletarPartesSoma(b.esquerda(), partes);
+            coletarPartesSoma(b.direita(), partes);
+        } else {
+            partes.add(expr);
         }
     }
 
