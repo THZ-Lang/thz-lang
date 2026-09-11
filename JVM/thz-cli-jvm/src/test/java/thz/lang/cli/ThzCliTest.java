@@ -151,6 +151,41 @@ public class ThzCliTest {
     }
 
     @Test
+    @DisplayName("ThzCli compile deve rejeitar alvo wasm direto e suportar seleção de alvo")
+    void testCompileAlvoWasmRejeicaoEAlvosEspecificos(@TempDir Path tempDir) throws Exception {
+        System.setProperty("thz.test.mode", "true");
+        Path arquivo = tempDir.resolve("prog_alvo.thz");
+        String src = """
+                PROGRAMA TesteAlvo
+                METADADOS_ARQUITETURA
+                    DOMINIO: "Teste"
+                    VERSAO: "1.0.0"
+                FIM_METADADOS
+                PROCEDIMENTO Principal()
+                INICIO
+                    EXIBA "Alvo"
+                FIM
+                FIM_PROGRAMA
+                """;
+        ThzIO.escreverTexto(arquivo.toString(), src);
+
+        try {
+            // Rejeição explícita para compilação direta WASM sem pipeline nativo
+            var ex = assertThrows(IllegalStateException.class, () ->
+                    ThzCli.main(new String[]{"compile", arquivo.toString(), "--alvo", "wasm"}));
+            assertTrue(ex.getMessage().contains("WebAssembly"));
+
+            // Compilação específica para IR apenas
+            Path dirSaida = tempDir.resolve("saida_ir_apenas");
+            ThzCli.main(new String[]{"compile", arquivo.toString(), "--alvo", "ir", "--saida", dirSaida.toString()});
+            assertTrue(Files.exists(dirSaida.resolve("ir/prog_alvo_ir.json")));
+            assertFalse(Files.exists(dirSaida.resolve("llvm/prog_alvo.ll")));
+        } finally {
+            System.clearProperty("thz.test.mode");
+        }
+    }
+
+    @Test
     @DisplayName("ThzCli deve despachar .thz para CLI e .thzui para Swing/Web automaticamente")
     void testDespachoThzEThzUi(@TempDir Path tempDir) throws Exception {
         System.setProperty("thz.test.mode", "true");

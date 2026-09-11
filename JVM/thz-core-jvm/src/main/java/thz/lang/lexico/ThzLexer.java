@@ -95,6 +95,8 @@ public class ThzLexer {
             if (c == ')') { tokens.add(make(TokenType.FECHA_PARENTESE, ")")); advance(); continue; }
             if (c == '[') { tokens.add(make(TokenType.ABRE_COLCHETE, "[")); advance(); continue; }
             if (c == ']') { tokens.add(make(TokenType.FECHA_COLCHETE, "]")); advance(); continue; }
+            if (c == '{') { tokens.add(make(TokenType.ABRE_CHAVE, "{")); advance(); continue; }
+            if (c == '}') { tokens.add(make(TokenType.FECHA_CHAVE, "}")); advance(); continue; }
             if (c == '%') { tokens.add(make(TokenType.OPERADOR_ARITMETICO, "%")); advance(); continue; }
             if (c == '+') { tokens.add(make(TokenType.OPERADOR_ARITMETICO, "+")); advance(); continue; }
             if (c == '-') {

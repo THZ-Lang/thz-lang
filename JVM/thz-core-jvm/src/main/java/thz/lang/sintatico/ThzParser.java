@@ -46,8 +46,15 @@ public class ThzParser {
             ">=", ">="
     );
 
-    public ThzParser(List<Token> tokens) {
+    private final DialetoLinguagem dialeto;
+
+    public ThzParser(List<Token> tokens, DialetoLinguagem dialeto) {
         this.tokens = tokens;
+        this.dialeto = dialeto != null ? dialeto : DialetoLinguagem.PT_BR;
+    }
+
+    public ThzParser(List<Token> tokens) {
+        this(tokens, DialetoLinguagem.PT_BR);
     }
 
     public ProgramaAst parse() {
@@ -104,8 +111,9 @@ public class ThzParser {
         }
 
         String nome = consumeIdentificador("Esperado o nome do módulo " + tipoModulo.descricao() + ".").value();
+        boolean usaChaves = match(TokenType.ABRE_CHAVE);
 
-        while (!check(terminadorEsperado) && !isAtEnd()) {
+        while ((usaChaves ? !check(TokenType.FECHA_CHAVE) : !check(terminadorEsperado)) && !isAtEnd()) {
             if (match(TokenType.IMPORTAR)) {
                 importacoes.add(parseImportacao());
             } else if (match(TokenType.METADADOS_ARQUITETURA)) {
@@ -127,9 +135,13 @@ public class ThzParser {
             }
         }
 
-        consume(terminadorEsperado, "Esperado '" + tipoModulo.terminadorPadrao() + "' encerrando o bloco " + tipoModulo.descricao() + ".");
+        if (usaChaves) {
+            consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o bloco " + tipoModulo.descricao() + ".");
+        } else {
+            consume(terminadorEsperado, "Esperado '" + tipoModulo.terminadorPadrao() + "' encerrando o bloco " + tipoModulo.descricao() + ".");
+        }
 
-        return new ProgramaAst(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos, DialetoLinguagem.PT_BR, blocosRust, funcoes);
+        return new ProgramaAst(tipoModulo, nome, versaoLinguagem, importacoes, metadados, estruturas, enumeracoes, regras, procedimentos, dialeto, blocosRust, funcoes);
     }
 
     private String parseBlocoNativoRust() {
@@ -168,8 +180,9 @@ public class ThzParser {
         String autor = null;
         String sloLatencia = null;
         List<String> conformidade = new ArrayList<>();
+        boolean comChave = match(TokenType.ABRE_CHAVE);
 
-        while (!match(TokenType.FIM_METADADOS) && !isAtEnd()) {
+        while ((comChave ? !check(TokenType.FECHA_CHAVE) : !check(TokenType.FIM_METADADOS)) && !isAtEnd()) {
             String chave = consumeIdentificador("Esperada chave de metadado.").value().toUpperCase();
             consume(TokenType.DOIS_PONTOS, "Esperado ':' após identificador de metadado.");
 
@@ -188,6 +201,11 @@ public class ThzParser {
                 if ("SLO_LATENCIA_MAXIMA".equals(chave) || "MAX_LATENCY_SLO".equals(chave)) sloLatencia = valor;
             }
         }
+        if (comChave) {
+            consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o bloco de metadados.");
+        } else {
+            consume(TokenType.FIM_METADADOS, "Esperado 'FIM_METADADOS'.");
+        }
         return new MetadadosArquiteturaAst(dominio, subdominio, camada, versao, autor, sloLatencia, conformidade);
     }
 
@@ -201,10 +219,11 @@ public class ThzParser {
         if (match(TokenType.LAYOUT_COLUNAR)) {
             layoutColunar = true;
         }
+        boolean comChave = match(TokenType.ABRE_CHAVE);
 
         List<CampoEstruturaAst> campos = new ArrayList<>();
         List<InvarianteAst> invariantes = new ArrayList<>();
-        while (!match(TokenType.FIM_ESTRUTURA) && !isAtEnd()) {
+        while ((comChave ? !check(TokenType.FECHA_CHAVE) : !check(TokenType.FIM_ESTRUTURA)) && !isAtEnd()) {
             if (check(TokenType.INVARIANTE)) {
                 invariantes.add(parseInvariante());
                 continue;
@@ -212,6 +231,12 @@ public class ThzParser {
             String campoNome = consumeIdentificador("Esperado nome do campo.").value();
             consume(TokenType.DOIS_PONTOS, "Esperado ':' após o nome do campo.");
             campos.add(new CampoEstruturaAst(campoNome, parseTipoDado()));
+        }
+
+        if (comChave) {
+            consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando a declaração da estrutura '" + nome + "'.");
+        } else {
+            consume(TokenType.FIM_ESTRUTURA, "Esperado 'FIM_ESTRUTURA' encerrando a declaração da estrutura '" + nome + "'.");
         }
 
         return new EstruturaAst(nome, layoutColunar, campos, invariantes);
@@ -224,9 +249,15 @@ public class ThzParser {
      */
     private EnumeracaoAst parseEnumeracao() {
         String nome = consumeIdentificador("Esperado nome da enumeração.").value();
+        boolean comChave = match(TokenType.ABRE_CHAVE);
         List<String> membros = new ArrayList<>();
-        while (!match(TokenType.FIM_ENUMERACAO) && !isAtEnd()) {
+        while ((comChave ? !check(TokenType.FECHA_CHAVE) : !check(TokenType.FIM_ENUMERACAO)) && !isAtEnd()) {
             membros.add(consumeIdentificador("Esperado membro da enumeração.").value());
+        }
+        if (comChave) {
+            consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando a enumeração '" + nome + "'.");
+        } else {
+            consume(TokenType.FIM_ENUMERACAO, "Esperado 'FIM_ENUMERACAO' encerrando a enumeração '" + nome + "'.");
         }
         return new EnumeracaoAst(nome, membros);
     }
@@ -248,7 +279,7 @@ public class ThzParser {
             case "TEXT", "STRING" -> "TEXTO";
             case "INTEGER" -> "INTEIRO";
             case "MONETARY" -> "MONETARIO";
-            case "BOOLEAN" -> "BOOLEANO";
+            case "BOOLEAN", "BOOLEANO" -> "LOGICO";
             case "DATE" -> "DATA";
             case "DATETIME" -> "DATA_HORA";
             case "RESULT" -> "RESULTADO";
@@ -295,8 +326,9 @@ public class ThzParser {
         List<ClausulaContratoAst> clausulasEntrada = new ArrayList<>();
         List<ClausulaContratoAst> clausulasSaida = new ArrayList<>();
         List<OperacaoAst> operacoes = new ArrayList<>();
+        boolean comChave = match(TokenType.ABRE_CHAVE);
 
-        while (!check(TokenType.FIM_REGRA_NEGOCIO) && !isAtEnd()) {
+        while ((comChave ? !check(TokenType.FECHA_CHAVE) : !check(TokenType.FIM_REGRA_NEGOCIO)) && !isAtEnd()) {
             Token p = peek();
             String pVal = p.value().toUpperCase();
             if (("IDENTIFICADOR_REGRA".equals(pVal) || "RULE_ID".equals(pVal)) && p.type() == TokenType.IDENTIFICADOR) {
@@ -342,11 +374,15 @@ public class ThzParser {
                 operacoes.add(parseOperacao());
             } else {
                 Token token = peek();
-                throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Elemento não reconhecido dentro de 'REGRA_NEGOCIO'. Esperados 'IDENTIFICADOR_REGRA', 'RASTREIO_REQUISITO', 'DESCRICAO', 'IDEMPOTENTE', 'CHAVE_IDEMPOTENCIA', 'CONTRATO_ENTRADA', 'CONTRATO_SAIDA', 'OPERACAO' ou 'FIM_REGRA_NEGOCIO'. (Encontrado: '" + token.value() + "')");
+                throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Elemento não reconhecido dentro de 'REGRA_NEGOCIO'. Esperados 'IDENTIFICADOR_REGRA', 'RASTREIO_REQUISITO', 'DESCRICAO', 'IDEMPOTENTE', 'CHAVE_IDEMPOTENCIA', 'CONTRATO_ENTRADA', 'CONTRATO_SAIDA', 'OPERACAO' ou " + (comChave ? "'}'" : "'FIM_REGRA_NEGOCIO'") + ". (Encontrado: '" + token.value() + "')");
             }
         }
 
-        consume(TokenType.FIM_REGRA_NEGOCIO, "Esperado 'FIM_REGRA_NEGOCIO'.");
+        if (comChave) {
+            consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando a regra de negócio.");
+        } else {
+            consume(TokenType.FIM_REGRA_NEGOCIO, "Esperado 'FIM_REGRA_NEGOCIO'.");
+        }
         return new RegraNegocioAst(nome, identificador, rastreioRequisito, descricao, clausulasEntrada, clausulasSaida, operacoes, idempotente, chaveIdempotencia);
     }
 
@@ -381,7 +417,10 @@ public class ThzParser {
         tipoRetorno = parseTipoDado();
 
         List<ComandoAst> corpo = new ArrayList<>();
-        if (match(TokenType.INICIO)) {
+        if (match(TokenType.ABRE_CHAVE)) {
+            corpo = parseBlocoComandos(TokenType.FECHA_CHAVE);
+            consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o corpo da operação.");
+        } else if (match(TokenType.INICIO)) {
             corpo = parseBlocoComandos(TokenType.FIM);
             consume(TokenType.FIM, "Esperado 'FIM' encerrando o corpo da operação.");
         }
@@ -408,9 +447,12 @@ public class ThzParser {
             } while (match(TokenType.VIRGULA));
         }
         consume(TokenType.FECHA_PARENTESE, "Esperado ')' fechando os parâmetros.");
-        // Corpo opcional INICIO ... FIM
+        // Corpo opcional INICIO ... FIM ou { ... }
         List<ComandoAst> corpo = new ArrayList<>();
-        if (match(TokenType.INICIO)) {
+        if (match(TokenType.ABRE_CHAVE)) {
+            corpo = parseBlocoComandos(TokenType.FECHA_CHAVE);
+            consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o corpo do procedimento.");
+        } else if (match(TokenType.INICIO)) {
             corpo = parseBlocoComandos(TokenType.FIM);
             consume(TokenType.FIM, "Esperado 'FIM' encerrando o corpo do procedimento.");
         }
@@ -437,8 +479,14 @@ public class ThzParser {
             return new FuncaoAst(nome, parametros, tipoRetorno,
                     List.of(new ComandoAst.Retorne(expressao, expressao.linha(), expressao.coluna())));
         }
-        List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_FUNCAO);
-        consume(TokenType.FIM_FUNCAO, "Esperado 'FIM_FUNCAO' encerrando o corpo da função.");
+        List<ComandoAst> corpo;
+        if (match(TokenType.ABRE_CHAVE)) {
+            corpo = parseBlocoComandos(TokenType.FECHA_CHAVE);
+            consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o corpo da função.");
+        } else {
+            corpo = parseBlocoComandos(TokenType.FIM_FUNCAO);
+            consume(TokenType.FIM_FUNCAO, "Esperado 'FIM_FUNCAO' encerrando o corpo da função.");
+        }
         return new FuncaoAst(nome, parametros, tipoRetorno, corpo);
     }
 
@@ -533,22 +581,51 @@ public class ThzParser {
             case SE: {
                 advance();
                 ExprAst condicao = parseExpressao();
-                match(TokenType.ENTAO);
-                List<ComandoAst> entao = parseBlocoComandos(TokenType.FIM_SE, TokenType.SENAO);
-                List<ComandoAst> senao = new ArrayList<>();
-                if (match(TokenType.SENAO)) {
-                    senao = parseBlocoComandos(TokenType.FIM_SE);
+                boolean comChave = match(TokenType.ABRE_CHAVE);
+                if (!comChave) {
+                    match(TokenType.ENTAO);
                 }
-                consume(TokenType.FIM_SE, "Esperado 'FIM_SE' encerrando o comando 'SE'.");
+                List<ComandoAst> entao;
+                List<ComandoAst> senao = new ArrayList<>();
+                if (comChave) {
+                    entao = parseBlocoComandos(TokenType.FECHA_CHAVE);
+                    consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o bloco 'se'.");
+                    if (match(TokenType.SENAO)) {
+                        if (match(TokenType.ABRE_CHAVE)) {
+                            senao = parseBlocoComandos(TokenType.FECHA_CHAVE);
+                            consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o bloco 'senao'.");
+                        } else if (check(TokenType.SE)) {
+                            senao = List.of(parseComando());
+                        } else {
+                            senao = parseBlocoComandos(TokenType.FIM_SE);
+                            consume(TokenType.FIM_SE, "Esperado 'FIM_SE' encerrando o comando 'SE'.");
+                        }
+                    }
+                } else {
+                    entao = parseBlocoComandos(TokenType.FIM_SE, TokenType.SENAO);
+                    if (match(TokenType.SENAO)) {
+                        senao = parseBlocoComandos(TokenType.FIM_SE);
+                    }
+                    consume(TokenType.FIM_SE, "Esperado 'FIM_SE' encerrando o comando 'SE'.");
+                }
                 return new ComandoAst.Se(condicao, entao, senao, token.line(), token.column());
             }
 
             case ENQUANTO: {
                 advance();
                 ExprAst condicao = parseExpressao();
-                match(TokenType.FACA);
-                List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_ENQUANTO);
-                consume(TokenType.FIM_ENQUANTO, "Esperado 'FIM_ENQUANTO' encerrando o laço 'ENQUANTO'.");
+                boolean comChave = match(TokenType.ABRE_CHAVE);
+                if (!comChave) {
+                    match(TokenType.FACA);
+                }
+                List<ComandoAst> corpo;
+                if (comChave) {
+                    corpo = parseBlocoComandos(TokenType.FECHA_CHAVE);
+                    consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o laço 'ENQUANTO'.");
+                } else {
+                    corpo = parseBlocoComandos(TokenType.FIM_ENQUANTO);
+                    consume(TokenType.FIM_ENQUANTO, "Esperado 'FIM_ENQUANTO' encerrando o laço 'ENQUANTO'.");
+                }
                 return new ComandoAst.Enquanto(condicao, corpo, token.line(), token.column());
             }
 
@@ -579,9 +656,18 @@ public class ThzParser {
             case USAR_BLOCO_MEMORIA: {
                 advance();
                 String nome = consumeIdentificador("Esperado nome do bloco de memória temporária.").value();
-                match(TokenType.FACA);
-                List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_BLOCO_MEMORIA);
-                consume(TokenType.FIM_BLOCO_MEMORIA, "Esperado 'FIM_BLOCO_MEMORIA' encerrando o escopo de memória.");
+                boolean comChave = match(TokenType.ABRE_CHAVE);
+                if (!comChave) {
+                    match(TokenType.FACA);
+                }
+                List<ComandoAst> corpo;
+                if (comChave) {
+                    corpo = parseBlocoComandos(TokenType.FECHA_CHAVE);
+                    consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o escopo de memória.");
+                } else {
+                    corpo = parseBlocoComandos(TokenType.FIM_BLOCO_MEMORIA);
+                    consume(TokenType.FIM_BLOCO_MEMORIA, "Esperado 'FIM_BLOCO_MEMORIA' encerrando o escopo de memória.");
+                }
                 return new ComandoAst.BlocoMemoria(nome, corpo, token.line(), token.column());
             }
 
@@ -602,9 +688,18 @@ public class ThzParser {
                 if (match(TokenType.PASSO)) {
                     passo = parseExpressao();
                 }
-                match(TokenType.FACA);
-                List<ComandoAst> corpo = parseBlocoComandos(TokenType.FIM_PARA);
-                consume(TokenType.FIM_PARA, "Esperado 'FIM_PARA' encerrando o laço 'PARA'.");
+                boolean comChave = match(TokenType.ABRE_CHAVE);
+                if (!comChave) {
+                    match(TokenType.FACA);
+                }
+                List<ComandoAst> corpo;
+                if (comChave) {
+                    corpo = parseBlocoComandos(TokenType.FECHA_CHAVE);
+                    consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o laço 'PARA'.");
+                } else {
+                    corpo = parseBlocoComandos(TokenType.FIM_PARA);
+                    consume(TokenType.FIM_PARA, "Esperado 'FIM_PARA' encerrando o laço 'PARA'.");
+                }
                 return new ComandoAst.Para(variavel, inicio, fim, passo, corpo, token.line(), token.column());
             }
 
@@ -617,7 +712,7 @@ public class ThzParser {
                 advance();
                 boolean podeTerValor = !check(TokenType.FIM) && !check(TokenType.FIM_SE)
                         && !check(TokenType.FIM_ENQUANTO) && !check(TokenType.FIM_PARA)
-                        && !check(TokenType.FIM_BLOCO_MEMORIA);
+                        && !check(TokenType.FIM_BLOCO_MEMORIA) && !check(TokenType.FECHA_CHAVE);
                 return new ComandoAst.Retorne(podeTerValor ? parseExpressao() : null, token.line(), token.column());
             }
 

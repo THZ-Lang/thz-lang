@@ -73,8 +73,10 @@ public final class ThzCompilerFacade {
 
         // 1) Léxico
         List<Token> tokens;
+        ThzLexer lexer;
         try {
-            tokens = new ThzLexer(fonte).tokenize();
+            lexer = new ThzLexer(fonte);
+            tokens = lexer.tokenize();
         } catch (Exception e) {
             DiagnosticoHelper.Diagnostico d = DiagnosticoHelper.fromExcecao(e, "lexico");
             diagnosticos.add(new Diagnostico(d.linha(), d.coluna(), d.mensagem(), d.origem(), d.severidade()));
@@ -83,7 +85,7 @@ public final class ThzCompilerFacade {
 
         // 2) Sintático
         try {
-            ast = new ThzParser(tokens).parse();
+            ast = new ThzParser(tokens, lexer.getDialeto()).parse();
         } catch (Exception e) {
             DiagnosticoHelper.Diagnostico d = DiagnosticoHelper.fromExcecao(e, "sintatico");
             diagnosticos.add(new Diagnostico(d.linha(), d.coluna(), d.mensagem(), d.origem(), d.severidade()));
@@ -118,8 +120,9 @@ public final class ThzCompilerFacade {
      */
     public static ProgramaAst parseAst(String fonte) {
         try {
-            List<Token> tokens = new ThzLexer(fonte).tokenize();
-            return new ThzParser(tokens).parse();
+            ThzLexer lexer = new ThzLexer(fonte);
+            List<Token> tokens = lexer.tokenize();
+            return new ThzParser(tokens, lexer.getDialeto()).parse();
         } catch (Exception e) {
             return null;
         }

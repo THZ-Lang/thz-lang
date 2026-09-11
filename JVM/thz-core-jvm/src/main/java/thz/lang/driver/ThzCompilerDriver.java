@@ -44,8 +44,9 @@ public final class ThzCompilerDriver {
 
     public static ResultadoCompilacao compilarOuExecutar(String fonte, Alvo alvo, boolean modoEstrito, Map<String, ValorThz> argumentos) {
         // 1. Léxico & Sintático
-        List<Token> tokens = new ThzLexer(fonte).tokenize();
-        ProgramaAst ast = new ThzParser(tokens).parse();
+        ThzLexer lexer = new ThzLexer(fonte);
+        List<Token> tokens = lexer.tokenize();
+        ProgramaAst ast = new ThzParser(tokens, lexer.getDialeto()).parse();
 
         // 2. Semântico
         AnalisadorSemantico semantico = new AnalisadorSemantico(ast);

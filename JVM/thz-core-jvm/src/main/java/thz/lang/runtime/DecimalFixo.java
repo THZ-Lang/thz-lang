@@ -123,8 +123,7 @@ public final class DecimalFixo {
 
         BigInteger arredondado = quociente;
         if (modo != ModoArredondamento.TRUNCAR && !resto.equals(BigInteger.ZERO)) {
-            BigInteger metade = fator.divide(BigInteger.TWO);
-            int cmp = resto.compareTo(metade);
+            int cmp = resto.multiply(BigInteger.TWO).compareTo(fator);
             if (cmp > 0) {
                 arredondado = quociente.add(BigInteger.ONE);
             } else if (cmp == 0 && modo == ModoArredondamento.BANCARIO) {
@@ -276,6 +275,9 @@ public final class DecimalFixo {
     public int hashCode() {
         BigInteger canonico = valorEscalado;
         int escalaCanonica = escala;
+        if (canonico.signum() == 0) {
+            return 0;
+        }
         while (escalaCanonica > 0 && canonico.remainder(BigInteger.TEN).signum() == 0) {
             canonico = canonico.divide(BigInteger.TEN);
             escalaCanonica--;

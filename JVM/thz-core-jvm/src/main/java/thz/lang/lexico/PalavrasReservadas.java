@@ -29,6 +29,8 @@ public final class PalavrasReservadas {
         Map.entry("ESTRUTURA", new EntradaPalavra(TokenType.ESTRUTURA, CategoriaPalavra.DECLARACAO)),
         Map.entry("ENUMERACAO", new EntradaPalavra(TokenType.ENUMERACAO, CategoriaPalavra.DECLARACAO)),
         Map.entry("REGRA_NEGOCIO", new EntradaPalavra(TokenType.REGRA_NEGOCIO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("REGRA", new EntradaPalavra(TokenType.REGRA_NEGOCIO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("regra", new EntradaPalavra(TokenType.REGRA_NEGOCIO, CategoriaPalavra.DECLARACAO)),
         Map.entry("PROCEDIMENTO", new EntradaPalavra(TokenType.PROCEDIMENTO, CategoriaPalavra.DECLARACAO)),
         Map.entry("FUNCAO", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
         Map.entry("OPERACAO", new EntradaPalavra(TokenType.OPERACAO, CategoriaPalavra.DECLARACAO)),
@@ -144,6 +146,8 @@ public final class PalavrasReservadas {
         Map.entry("STRUCTURE", new EntradaPalavra(TokenType.ESTRUTURA, CategoriaPalavra.DECLARACAO)),
         Map.entry("ENUM", new EntradaPalavra(TokenType.ENUMERACAO, CategoriaPalavra.DECLARACAO)),
         Map.entry("BUSINESS_RULE", new EntradaPalavra(TokenType.REGRA_NEGOCIO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("RULE", new EntradaPalavra(TokenType.REGRA_NEGOCIO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("rule", new EntradaPalavra(TokenType.REGRA_NEGOCIO, CategoriaPalavra.DECLARACAO)),
         Map.entry("PROCEDURE", new EntradaPalavra(TokenType.PROCEDIMENTO, CategoriaPalavra.DECLARACAO)),
         Map.entry("FUNCTION", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
         Map.entry("OPERATION", new EntradaPalavra(TokenType.OPERACAO, CategoriaPalavra.DECLARACAO)),
@@ -245,6 +249,14 @@ public final class PalavrasReservadas {
     private static final Map<String, String> TRADUCAO_EN_PARA_PT = new HashMap<>();
 
     static {
+        // Mapeamentos canônicos primários explícitos
+        TRADUCAO_PT_PARA_EN.put("REGRA_NEGOCIO", "BUSINESS_RULE");
+        TRADUCAO_EN_PARA_PT.put("BUSINESS_RULE", "REGRA_NEGOCIO");
+        TRADUCAO_PT_PARA_EN.put("REGRA", "RULE");
+        TRADUCAO_EN_PARA_PT.put("RULE", "REGRA");
+        TRADUCAO_PT_PARA_EN.put("regra", "rule");
+        TRADUCAO_EN_PARA_PT.put("rule", "regra");
+
         // Inicializa mapeamento bi-direcional através da correspondência de TokenType
         for (var entryPt : TABELA_PT_BR.entrySet()) {
             for (var entryEn : TABELA_EN_US.entrySet()) {
