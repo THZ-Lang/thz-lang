@@ -234,9 +234,81 @@ public final class GeradorIr {
     }
 
     /**
-     * Emite representação textual LLVM IR completa e funcional para o backend AOT Dual-OS.
+     * Valida se a AST contém nós ou comandos sem suporte implementado pelo backend LLVM AOT.
+     * Retorna uma lista de limitações encontradas (vazia se o programa for 100% suportado).
+     */
+    public static List<String> validarCapacidadeLlvm(ProgramaAst ast) {
+        if (ast == null) return List.of();
+        List<String> limitacoes = new ArrayList<>();
+
+        if (ast.regras() != null) {
+            for (RegraNegocioAst r : ast.regras()) {
+                if (r.operacoes() != null) {
+                    for (OperacaoAst op : r.operacoes()) {
+                        verificarComandosNaoSuportados(op.corpo(), "regra '" + r.nome() + "', operação '" + op.nome() + "'", limitacoes);
+                    }
+                }
+            }
+        }
+
+        if (ast.procedimentos() != null) {
+            for (ProcedimentoAst p : ast.procedimentos()) {
+                verificarComandosNaoSuportados(p.corpo(), "procedimento '" + p.nome() + "'", limitacoes);
+            }
+        }
+
+        if (ast.funcoes() != null) {
+            for (FuncaoAst f : ast.funcoes()) {
+                verificarComandosNaoSuportados(f.corpo(), "função '" + f.nome() + "'", limitacoes);
+            }
+        }
+
+        return List.copyOf(limitacoes);
+    }
+
+    private static void verificarComandosNaoSuportados(List<ComandoAst> comandos, String contexto, List<String> limitacoes) {
+        if (comandos == null) return;
+        for (ComandoAst c : comandos) {
+            switch (c) {
+                case ComandoAst.Exiba _ -> {}
+                case ComandoAst.Chamada _ -> {}
+                case ComandoAst.Retorne _ -> {}
+                case ComandoAst.Tente _ -> limitacoes.add("Tratamento de exceções (TENTE/CAPTURE) em " + contexto + " não suportado pelo emissor AOT.");
+                case ComandoAst.FalharCom _ -> limitacoes.add("Interrupção com falha explícita (FALHAR_COM) em " + contexto + " não suportado pelo emissor AOT.");
+                case ComandoAst.CasoResultado _ -> limitacoes.add("Pattern matching (CASO_RESULTADO) em " + contexto + " não suportado pelo emissor AOT.");
+                case ComandoAst.Ler _ -> limitacoes.add("Comando interativo de entrada (LER) em " + contexto + " não suportado pelo emissor AOT.");
+                case ComandoAst.BlocoMemoria _ -> limitacoes.add("Alocação dinâmica aninhada de arena local em " + contexto + " não suportada diretamente no AOT.");
+                case ComandoAst.VetorizarPara vp -> limitacoes.add("Lowering de laço vetorizado SIMD (VETORIZAR_PARA " + vp.variavel() + ") em " + contexto + " aguarda suporte a intrinsics no emissor LLVM.");
+                case ComandoAst.Para p -> limitacoes.add("Laço PARA (" + p.variavel() + ") em " + contexto + " não possui lowering de controle de fluxo no emissor LLVM.");
+                case ComandoAst.Enquanto _ -> limitacoes.add("Laço ENQUANTO em " + contexto + " não possui lowering de controle de fluxo no emissor LLVM.");
+                case ComandoAst.Se _ -> limitacoes.add("Estrutura condicional SE em " + contexto + " não possui lowering no emissor LLVM.");
+                case ComandoAst.Atribuicao a -> limitacoes.add("Atribuição de estado a '" + String.join(".", a.alvo()) + "' em " + contexto + " não possui lowering no emissor LLVM.");
+                case ComandoAst.DeclVariavel d -> limitacoes.add("Declaração de variável local '" + d.nome() + "' em " + contexto + " não possui lowering no emissor LLVM.");
+            }
+        }
+    }
+
+    /**
+     * Emite representação textual LLVM IR para o backend AOT Dual-OS em modo padrão (não-estrito).
      */
     public static String emitirLlvm(ProgramaAst ast) {
+        return emitirLlvm(ast, false);
+    }
+
+    /**
+     * Emite representação textual LLVM IR para o backend AOT Dual-OS.
+     * Em modo estrito, rejeita a emissão lançando {@link ErroEmissaoBackendException} se houver
+     * comandos ou construções sem lowering AOT suportado.
+     */
+    public static String emitirLlvm(ProgramaAst ast, boolean estrito) {
+        if (estrito) {
+            List<String> limitacoes = validarCapacidadeLlvm(ast);
+            if (!limitacoes.isEmpty()) {
+                throw new ErroEmissaoBackendException("Backend LLVM", "Construções sem lowering",
+                        "Compilação para LLVM rejeitada em modo estrito devido a construções não suportadas pelo emissor AOT:\n - "
+                                + String.join("\n - ", limitacoes));
+            }
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("; ModuleID = 'thz.").append(ast.nome()).append("'\n");
         sb.append("source_filename = \"").append(ast.nome()).append(".thz\"\n");
@@ -533,7 +605,14 @@ public final class GeradorIr {
                         sb.append("  call void @thz_exiba_str(ptr ").append(gVar).append(")\n");
                     }
                 }
-                default -> {}
+                case ComandoAst.Chamada ch -> {
+                    String fn = ThzParser.textoCanonicoDe(ch.expressao());
+                    sb.append("  call void @").append(fn).append("()\n");
+                }
+                default -> {
+                    sb.append("  ; AVISO AOT: comando ").append(c.getClass().getSimpleName())
+                            .append(" ignorado pelo emissor AOT (lowering de semântica não implementado no backend LLVM)\n");
+                }
             }
         }
     }

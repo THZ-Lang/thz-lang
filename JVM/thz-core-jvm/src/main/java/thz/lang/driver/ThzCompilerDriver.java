@@ -73,7 +73,16 @@ public final class ThzCompilerDriver {
                 yield new ResultadoCompilacao(true, ast, List.of(), GeradorIr.serializarIrJson(ir), null);
             }
             case LLVM -> {
-                String llvm = GeradorIr.emitirLlvm(ast);
+                if (modoEstrito) {
+                    List<String> limitacoes = GeradorIr.validarCapacidadeLlvm(ast);
+                    if (!limitacoes.isEmpty()) {
+                        List<ErroSemantico> errosBackend = limitacoes.stream()
+                                .map(msg -> new ErroSemantico(1, 1, "[Backend LLVM] " + msg))
+                                .toList();
+                        yield new ResultadoCompilacao(false, ast, errosBackend, null, null);
+                    }
+                }
+                String llvm = GeradorIr.emitirLlvm(ast, modoEstrito);
                 yield new ResultadoCompilacao(true, ast, List.of(), llvm, null);
             }
             case JAVASCRIPT -> {
@@ -86,10 +95,11 @@ public final class ThzCompilerDriver {
                 yield new ResultadoCompilacao(true, ast, List.of(), md, null);
             }
             case WEBASSEMBLY -> {
-                String js = ThzJsEmitter.emitir(ast);
-                String wasmModuleWrapper = "// THZ-LANG v3.0.0 — WebAssembly (WASM) Module Wrapper\n" +
-                        "// Target: wasm32-unknown-unknown\n" + js;
-                yield new ResultadoCompilacao(true, ast, List.of(), wasmModuleWrapper, null);
+                ErroSemantico erroWasm = new ErroSemantico(
+                        1, 1,
+                        "[Backend WebAssembly] O compilador JVM não gera bytecode binário WebAssembly (.wasm) diretamente. " +
+                        "A compilação WASM requer o pipeline nativo Rust/AOT ou o emissor JavaScript (Alvo.JAVASCRIPT).");
+                yield new ResultadoCompilacao(false, ast, List.of(erroWasm), null, null);
             }
         };
     }

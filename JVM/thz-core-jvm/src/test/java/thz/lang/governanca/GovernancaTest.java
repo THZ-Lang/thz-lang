@@ -77,7 +77,7 @@ public class GovernancaTest {
         assertTrue(md.contains("REQ-FISCAL-9102"));
         assertTrue(md.contains("BR-FISCAL-2026-08"));
         assertTrue(md.contains("LAYOUT_COLUNAR"));
-        assertTrue(md.contains("APROVADO PARA PRODUÇÃO"));
+        assertTrue(md.contains("CONFORMIDADE ESTÁTICA APROVADA"));
 
         String json = AuditorGovernanca.gerarJsonGovernanca(rel);
         assertNotNull(json);

@@ -22,6 +22,7 @@ import thz.lang.cli.comandos.ComandoLivro;
 import thz.lang.cli.comandos.ComandoRun;
 import thz.lang.cli.comandos.ComandoUi;
 import thz.lang.cli.comandos.ComandoAgent;
+import thz.lang.cli.comandos.ComandoRelease;
 
 /**
  * CLI principal da THZ-LANG — despachante delgado.
@@ -43,6 +44,7 @@ public class ThzCli {
         registrar(new ComandoDoc());
         registrar(new ComandoIr());
         registrar(new ComandoAudit());
+        registrar(new ComandoRelease());
         registrar(new ComandoUi());
         registrar(new ComandoRun());
         registrar(new ComandoAgent());

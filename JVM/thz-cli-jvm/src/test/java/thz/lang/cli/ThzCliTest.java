@@ -7,6 +7,8 @@ import thz.lang.io.ThzIO;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -228,5 +230,62 @@ public class ThzCliTest {
     void testBibliotecaConsole() {
         BibliotecaConsole.registrar();
         assertDoesNotThrow(BibliotecaConsole::registrar);
+    }
+
+    @Test
+    @DisplayName("ThzCli deve executar release emitindo laudo oficial criptografico e verificando homologacao")
+    void testComandoReleaseProducao(@TempDir Path tempDir) throws Exception {
+        System.setProperty("thz.test.mode", "true");
+        Path arquivo = tempDir.resolve("servico_release.thz");
+        String src = """
+                PROGRAMA ServicoRelease
+                METADADOS_ARQUITETURA
+                    DOMINIO: "Faturamento"
+                    CAMADA: "Dominio"
+                    VERSAO: "1.0.0"
+                    AUTOR: "Engenharia"
+                    SLO_LATENCIA_MAXIMA: "10ms"
+                    CONFORMIDADE: "SOX-404"
+                FIM_METADADOS
+                ESTRUTURA Fatura
+                    id: TEXTO
+                    total: DECIMAL(18, 2)
+                    INVARIANTE total >= 0.00
+                FIM_ESTRUTURA
+                REGRA_NEGOCIO RegraRelease
+                    IDENTIFICADOR_REGRA: "REG-REL-01"
+                    RASTREIO_REQUISITO: "REQ-REL-01"
+                    CONTRATO_ENTRADA
+                        EXIGE f.total > 0.00
+                    FIM_CONTRATO_ENTRADA
+                    CONTRATO_SAIDA
+                        GARANTE f.total > 0.00
+                    FIM_CONTRATO_SAIDA
+                    OPERACAO Processar(f: Fatura) : DECIMAL(18, 2)
+                    INICIO
+                        RETORNE f.total
+                    FIM
+                FIM_REGRA_NEGOCIO
+                FIM_PROGRAMA
+                """;
+        ThzIO.escreverTexto(arquivo.toString(), src);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream orig = System.out;
+        try {
+            System.setOut(new PrintStream(out));
+            Path laudoSaida = tempDir.resolve("laudo_oficial.md");
+            ThzCli.main(new String[]{"release", arquivo.toString(), "--saida", laudoSaida.toString()});
+
+            assertTrue(Files.exists(laudoSaida), "Arquivo de laudo oficial deve ter sido criado");
+            String conteudoLaudo = Files.readString(laudoSaida, StandardCharsets.UTF_8);
+            assertTrue(conteudoLaudo.contains("LIBERADO PARA PRODUÇÃO"));
+            assertTrue(conteudoLaudo.contains("ServicoRelease"));
+            assertTrue(conteudoLaudo.contains("SHA-256 do Fonte"));
+            assertTrue(conteudoLaudo.contains("Homologação Concluída com Sucesso"));
+        } finally {
+            System.setOut(orig);
+            System.clearProperty("thz.test.mode");
+        }
     }
 }

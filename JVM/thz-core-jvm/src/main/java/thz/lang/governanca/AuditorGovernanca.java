@@ -234,7 +234,7 @@ public final class AuditorGovernanca {
                 .append(m.totalContratosExige()).append(" EXIGE, ")
                 .append(m.totalContratosGarante()).append(" GARANTE, ")
                 .append(m.totalInvariantes()).append(" INVARIANTE)\n");
-        sb.append("* **Parecer Final:** ").append(m.aprovado() ? "✅ **APROVADO PARA PRODUÇÃO**" : "❌ **REQUER AJUSTES DE CONFORMIDADE**").append("\n\n");
+        sb.append("* **Parecer Final da Auditoria Estática:** ").append(m.aprovado() ? "✅ **CONFORMIDADE ESTÁTICA APROVADA** (Elegível para protocolo de homologação e liberação)" : "❌ **REQUER AJUSTES DE CONFORMIDADE**").append("\n\n");
 
         if (!m.pendencias().isEmpty()) {
             sb.append("### ⚠️ Pendências Críticas\n");

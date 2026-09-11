@@ -63,6 +63,6 @@ public class ComandoCompile implements ComandoCli {
         Files.writeString(dirLlvm.resolve(nomeBase + ".ll"), thz.lang.ir.GeradorIr.emitirLlvm(ast), StandardCharsets.UTF_8);
         Files.writeString(dirWasm.resolve(nomeBase + ".wasm.js"), "// THZ-LANG v3.0.0 WASM\n" + thz.lang.js.ThzJsEmitter.emitir(ast), StandardCharsets.UTF_8);
 
-        CliLogger.info("[THZ COMPILE] " + arquivo + " compilado com sucesso para IR, LLVM e WASM em: " + raizSaida.toAbsolutePath());
+        CliLogger.info("[THZ COMPILE] " + arquivo + " compilado com sucesso para IR, LLVM e JS Bridge (WASM direto requer pipeline nativo) em: " + raizSaida.toAbsolutePath());
     }
 }
