@@ -39,7 +39,9 @@ public class ThzParser {
 
     private static final Map<String, String> RELACIONAIS = Map.of(
             "=", "=",
+            "==", "=",
             "<>", "<>",
+            "!=", "<>",
             "<", "<",
             "<=", "<=",
             ">", ">",
@@ -231,6 +233,7 @@ public class ThzParser {
             String campoNome = consumeIdentificador("Esperado nome do campo.").value();
             consume(TokenType.DOIS_PONTOS, "Esperado ':' após o nome do campo.");
             campos.add(new CampoEstruturaAst(campoNome, parseTipoDado()));
+            match(TokenType.VIRGULA);
         }
 
         if (comChave) {
@@ -276,10 +279,12 @@ public class ThzParser {
     private String parseTipoDado() {
         String tipoRaw = consumeIdentificador("Esperado tipo do dado.").value();
         String tipo = switch (tipoRaw.toUpperCase()) {
-            case "TEXT", "STRING" -> "TEXTO";
-            case "INTEGER" -> "INTEIRO";
-            case "MONETARY" -> "MONETARIO";
-            case "BOOLEAN", "BOOLEANO" -> "LOGICO";
+            case "TEXT", "STRING", "STR" -> "TEXTO";
+            case "INTEGER", "INT", "I64" -> "INTEIRO";
+            case "INT32", "I32" -> "INTEIRO32";
+            case "DEC", "DECIMAL" -> "DECIMAL";
+            case "MONETARY", "MONEY" -> "MONETARIO";
+            case "BOOLEAN", "BOOLEANO", "BOOL" -> "LOGICO";
             case "DATE" -> "DATA";
             case "DATETIME" -> "DATA_HORA";
             case "RESULT" -> "RESULTADO";
@@ -370,11 +375,11 @@ public class ThzParser {
                 clausulasEntrada.add(parseClausulaContrato(TokenType.EXIGE));
             } else if (check(TokenType.GARANTE)) {
                 clausulasSaida.add(parseClausulaContrato(TokenType.GARANTE));
-            } else if (match(TokenType.OPERACAO)) {
+            } else if (match(TokenType.OPERACAO) || match(TokenType.FUNCAO)) {
                 operacoes.add(parseOperacao());
             } else {
                 Token token = peek();
-                throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Elemento não reconhecido dentro de 'REGRA_NEGOCIO'. Esperados 'IDENTIFICADOR_REGRA', 'RASTREIO_REQUISITO', 'DESCRICAO', 'IDEMPOTENTE', 'CHAVE_IDEMPOTENCIA', 'CONTRATO_ENTRADA', 'CONTRATO_SAIDA', 'OPERACAO' ou " + (comChave ? "'}'" : "'FIM_REGRA_NEGOCIO'") + ". (Encontrado: '" + token.value() + "')");
+                throw new RuntimeException("[Erro Sintático][Linha " + token.line() + ":" + token.column() + "] Elemento não reconhecido dentro de 'REGRA_NEGOCIO'. Esperados 'IDENTIFICADOR_REGRA', 'RASTREIO_REQUISITO', 'DESCRICAO', 'IDEMPOTENTE', 'CHAVE_IDEMPOTENCIA', 'CONTRATO_ENTRADA', 'CONTRATO_SAIDA', 'OPERACAO', 'FUNCAO' ou " + (comChave ? "'}'" : "'FIM_REGRA_NEGOCIO'") + ". (Encontrado: '" + token.value() + "')");
             }
         }
 
@@ -417,7 +422,11 @@ public class ThzParser {
         tipoRetorno = parseTipoDado();
 
         List<ComandoAst> corpo = new ArrayList<>();
-        if (match(TokenType.ABRE_CHAVE)) {
+        if (check(TokenType.OPERADOR_RELACIONAL) && "=".equals(peek().value())) {
+            advance();
+            ExprAst expressao = parseExpressao();
+            corpo.add(new ComandoAst.Retorne(expressao, expressao.linha(), expressao.coluna()));
+        } else if (match(TokenType.ABRE_CHAVE)) {
             corpo = parseBlocoComandos(TokenType.FECHA_CHAVE);
             consume(TokenType.FECHA_CHAVE, "Esperado '}' encerrando o corpo da operação.");
         } else if (match(TokenType.INICIO)) {
@@ -522,7 +531,13 @@ public class ThzParser {
                 if (match(TokenType.DOIS_PONTOS)) {
                     tipoDado = parseTipoDado();
                 }
-                consume(TokenType.SETA_ATRIBUICAO, "Esperado '<-' na inicialização da variável '" + nome + "'.");
+                if (match(TokenType.SETA_ATRIBUICAO)) {
+                    // aceita <- ou :=
+                } else if (check(TokenType.OPERADOR_RELACIONAL) && "=".equals(peek().value())) {
+                    advance();
+                } else {
+                    throw new RuntimeException("[Erro Sintático][Linha " + peek().line() + ":" + peek().column() + "] Esperado '<-', ':=' ou '=' na inicialização da variável '" + nome + "'.");
+                }
                 ExprAst inicializacao = parseExpressao();
                 return new ComandoAst.DeclVariavel(nome, tipoDado, inicializacao, token.line(), token.column());
             }
@@ -743,14 +758,18 @@ public class ThzParser {
                     }
                     return new ComandoAst.Chamada(expr, token.line(), token.column());
                 }
-                // Declaração tipada direta: x : TIPO <- expr ou x : TIPO := expr
+                // Declaração tipada direta: x : TIPO <- expr ou x : TIPO := expr ou x : TIPO = expr
                 if (alvo.size() == 1 && match(TokenType.DOIS_PONTOS)) {
                     String tipoDado = parseTipoDado();
                     if (match(TokenType.SETA_ATRIBUICAO)) {
                         ExprAst inicializacao = parseExpressao();
                         return new ComandoAst.DeclVariavel(alvo.get(0), tipoDado, inicializacao, token.line(), token.column());
+                    } else if (check(TokenType.OPERADOR_RELACIONAL) && "=".equals(peek().value())) {
+                        advance();
+                        ExprAst inicializacao = parseExpressao();
+                        return new ComandoAst.DeclVariavel(alvo.get(0), tipoDado, inicializacao, token.line(), token.column());
                     }
-                    throw new RuntimeException("[Erro Sintático][Linha " + peek().line() + ":" + peek().column() + "] Esperado '<-' ou ':=' na declaração da variável '" + alvo.get(0) + "'.");
+                    throw new RuntimeException("[Erro Sintático][Linha " + peek().line() + ":" + peek().column() + "] Esperado '<-', ':=' ou '=' na declaração da variável '" + alvo.get(0) + "'.");
                 }
 
                 // Declaração inferida direta: x := expr
@@ -760,7 +779,13 @@ public class ThzParser {
                     return new ComandoAst.DeclVariavel(alvo.get(0), null, expressao, token.line(), token.column());
                 }
 
-                consume(TokenType.SETA_ATRIBUICAO, "Esperado '<-' na atribuição a '" + String.join(".", alvo) + "'.");
+                if (match(TokenType.SETA_ATRIBUICAO)) {
+                    // <- ou :=
+                } else if (check(TokenType.OPERADOR_RELACIONAL) && "=".equals(peek().value())) {
+                    advance();
+                } else {
+                    consume(TokenType.SETA_ATRIBUICAO, "Esperado '<-', ':=' ou '=' na atribuição a '" + String.join(".", alvo) + "'.");
+                }
                 ExprAst expressao = parseExpressao();
                 return new ComandoAst.Atribuicao(alvo, expressao, token.line(), token.column());
             }

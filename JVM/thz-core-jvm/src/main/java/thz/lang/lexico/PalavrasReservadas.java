@@ -1,6 +1,7 @@
 package thz.lang.lexico;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -128,7 +129,48 @@ public final class PalavrasReservadas {
         Map.entry("NATIVO_RUST", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
         Map.entry("CODIGO_RUST", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
         Map.entry("FIM_BLOCO_NATIVO", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO)),
-        Map.entry("FIM_NATIVO", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO))
+        Map.entry("FIM_NATIVO", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO)),
+        // Sintaxe Moderna Dual (PT-BR e Universal)
+        Map.entry("programa", new EntradaPalavra(TokenType.PROGRAMA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("metadados", new EntradaPalavra(TokenType.METADADOS_ARQUITETURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("METADADOS", new EntradaPalavra(TokenType.METADADOS_ARQUITETURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("estrutura", new EntradaPalavra(TokenType.ESTRUTURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("struct", new EntradaPalavra(TokenType.ESTRUTURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("STRUCT", new EntradaPalavra(TokenType.ESTRUTURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("var", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("VAR", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("val", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("VAL", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("let", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("LET", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("fn", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("FN", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("fun", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("FUN", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("funcao", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("operacao", new EntradaPalavra(TokenType.OPERACAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("proc", new EntradaPalavra(TokenType.PROCEDIMENTO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("PROC", new EntradaPalavra(TokenType.PROCEDIMENTO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("procedimento", new EntradaPalavra(TokenType.PROCEDIMENTO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("se", new EntradaPalavra(TokenType.SE, CategoriaPalavra.CONTROLE)),
+        Map.entry("senao", new EntradaPalavra(TokenType.SENAO, CategoriaPalavra.CONTROLE)),
+        Map.entry("enquanto", new EntradaPalavra(TokenType.ENQUANTO, CategoriaPalavra.CONTROLE)),
+        Map.entry("para", new EntradaPalavra(TokenType.PARA, CategoriaPalavra.CONTROLE)),
+        Map.entry("retorne", new EntradaPalavra(TokenType.RETORNE, CategoriaPalavra.CONTROLE)),
+        Map.entry("ret", new EntradaPalavra(TokenType.RETORNE, CategoriaPalavra.CONTROLE)),
+        Map.entry("RET", new EntradaPalavra(TokenType.RETORNE, CategoriaPalavra.CONTROLE)),
+        Map.entry("exiba", new EntradaPalavra(TokenType.EXIBA, CategoriaPalavra.CONTROLE)),
+        Map.entry("print", new EntradaPalavra(TokenType.EXIBA, CategoriaPalavra.CONTROLE)),
+        Map.entry("PRINT", new EntradaPalavra(TokenType.EXIBA, CategoriaPalavra.CONTROLE)),
+        Map.entry("exige", new EntradaPalavra(TokenType.EXIGE, CategoriaPalavra.CONTRATO)),
+        Map.entry("garante", new EntradaPalavra(TokenType.GARANTE, CategoriaPalavra.CONTRATO)),
+        Map.entry("invariante", new EntradaPalavra(TokenType.INVARIANTE, CategoriaPalavra.CONTRATO)),
+        Map.entry("verdadeiro", new EntradaPalavra(TokenType.VERDADEIRO, CategoriaPalavra.LITERAL)),
+        Map.entry("falso", new EntradaPalavra(TokenType.FALSO, CategoriaPalavra.LITERAL)),
+        Map.entry("nulo", new EntradaPalavra(TokenType.NULO, CategoriaPalavra.LITERAL)),
+        Map.entry("de", new EntradaPalavra(TokenType.DE, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("ate", new EntradaPalavra(TokenType.ATE, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("passo", new EntradaPalavra(TokenType.PASSO, CategoriaPalavra.MODIFICADOR))
     );
 
     // 2. Tabela Equivalente EN-US
@@ -241,7 +283,47 @@ public final class PalavrasReservadas {
         Map.entry("NATIVE_RUST", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
         Map.entry("INLINE_RUST", new EntradaPalavra(TokenType.BLOCO_NATIVO_RUST, CategoriaPalavra.DECLARACAO)),
         Map.entry("END_NATIVE_BLOCK", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO)),
-        Map.entry("END_NATIVE", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO))
+        Map.entry("END_NATIVE", new EntradaPalavra(TokenType.FIM_BLOCO_NATIVO, CategoriaPalavra.FIM_BLOCO)),
+        // Modern & Universal Keywords EN-US
+        Map.entry("program", new EntradaPalavra(TokenType.PROGRAMA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("metadata", new EntradaPalavra(TokenType.METADADOS_ARQUITETURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("METADATA", new EntradaPalavra(TokenType.METADADOS_ARQUITETURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("structure", new EntradaPalavra(TokenType.ESTRUTURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("struct", new EntradaPalavra(TokenType.ESTRUTURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("STRUCT", new EntradaPalavra(TokenType.ESTRUTURA, CategoriaPalavra.DECLARACAO)),
+        Map.entry("var", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("VAR", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("val", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("VAL", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("let", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("LET", new EntradaPalavra(TokenType.VARIAVEL, CategoriaPalavra.DECLARACAO)),
+        Map.entry("fn", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("FN", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("fun", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("FUN", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("function", new EntradaPalavra(TokenType.FUNCAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("operation", new EntradaPalavra(TokenType.OPERACAO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("proc", new EntradaPalavra(TokenType.PROCEDIMENTO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("PROC", new EntradaPalavra(TokenType.PROCEDIMENTO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("procedure", new EntradaPalavra(TokenType.PROCEDIMENTO, CategoriaPalavra.DECLARACAO)),
+        Map.entry("if", new EntradaPalavra(TokenType.SE, CategoriaPalavra.CONTROLE)),
+        Map.entry("else", new EntradaPalavra(TokenType.SENAO, CategoriaPalavra.CONTROLE)),
+        Map.entry("while", new EntradaPalavra(TokenType.ENQUANTO, CategoriaPalavra.CONTROLE)),
+        Map.entry("for", new EntradaPalavra(TokenType.PARA, CategoriaPalavra.CONTROLE)),
+        Map.entry("return", new EntradaPalavra(TokenType.RETORNE, CategoriaPalavra.CONTROLE)),
+        Map.entry("ret", new EntradaPalavra(TokenType.RETORNE, CategoriaPalavra.CONTROLE)),
+        Map.entry("RET", new EntradaPalavra(TokenType.RETORNE, CategoriaPalavra.CONTROLE)),
+        Map.entry("print", new EntradaPalavra(TokenType.EXIBA, CategoriaPalavra.CONTROLE)),
+        Map.entry("display", new EntradaPalavra(TokenType.EXIBA, CategoriaPalavra.CONTROLE)),
+        Map.entry("requires", new EntradaPalavra(TokenType.EXIGE, CategoriaPalavra.CONTRATO)),
+        Map.entry("ensures", new EntradaPalavra(TokenType.GARANTE, CategoriaPalavra.CONTRATO)),
+        Map.entry("invariant", new EntradaPalavra(TokenType.INVARIANTE, CategoriaPalavra.CONTRATO)),
+        Map.entry("true", new EntradaPalavra(TokenType.VERDADEIRO, CategoriaPalavra.LITERAL)),
+        Map.entry("false", new EntradaPalavra(TokenType.FALSO, CategoriaPalavra.LITERAL)),
+        Map.entry("null", new EntradaPalavra(TokenType.NULO, CategoriaPalavra.LITERAL)),
+        Map.entry("from", new EntradaPalavra(TokenType.DE, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("to", new EntradaPalavra(TokenType.ATE, CategoriaPalavra.MODIFICADOR)),
+        Map.entry("step", new EntradaPalavra(TokenType.PASSO, CategoriaPalavra.MODIFICADOR))
     );
 
     // Mapeamentos de Tradução Bidirecional
@@ -250,12 +332,103 @@ public final class PalavrasReservadas {
 
     static {
         // Mapeamentos canônicos primários explícitos
+        TRADUCAO_PT_PARA_EN.put("PROGRAMA", "PROGRAM");
+        TRADUCAO_EN_PARA_PT.put("PROGRAM", "PROGRAMA");
+        TRADUCAO_PT_PARA_EN.put("METADADOS_ARQUITETURA", "ARCHITECTURE_METADATA");
+        TRADUCAO_EN_PARA_PT.put("ARCHITECTURE_METADATA", "METADADOS_ARQUITETURA");
+        TRADUCAO_PT_PARA_EN.put("ESTRUTURA", "STRUCTURE");
+        TRADUCAO_EN_PARA_PT.put("STRUCTURE", "ESTRUTURA");
         TRADUCAO_PT_PARA_EN.put("REGRA_NEGOCIO", "BUSINESS_RULE");
         TRADUCAO_EN_PARA_PT.put("BUSINESS_RULE", "REGRA_NEGOCIO");
         TRADUCAO_PT_PARA_EN.put("REGRA", "RULE");
         TRADUCAO_EN_PARA_PT.put("RULE", "REGRA");
         TRADUCAO_PT_PARA_EN.put("regra", "rule");
         TRADUCAO_EN_PARA_PT.put("rule", "regra");
+        TRADUCAO_PT_PARA_EN.put("FUNCAO", "FUNCTION");
+        TRADUCAO_EN_PARA_PT.put("FUNCTION", "FUNCAO");
+        TRADUCAO_PT_PARA_EN.put("OPERACAO", "OPERATION");
+        TRADUCAO_EN_PARA_PT.put("OPERATION", "OPERACAO");
+        TRADUCAO_PT_PARA_EN.put("PROCEDIMENTO", "PROCEDURE");
+        TRADUCAO_EN_PARA_PT.put("PROCEDURE", "PROCEDIMENTO");
+        TRADUCAO_PT_PARA_EN.put("VARIAVEL", "VARIABLE");
+        TRADUCAO_EN_PARA_PT.put("VARIABLE", "VARIAVEL");
+        TRADUCAO_PT_PARA_EN.put("SE", "IF");
+        TRADUCAO_EN_PARA_PT.put("IF", "SE");
+        TRADUCAO_PT_PARA_EN.put("SENAO", "ELSE");
+        TRADUCAO_EN_PARA_PT.put("ELSE", "SENAO");
+        TRADUCAO_PT_PARA_EN.put("ENQUANTO", "WHILE");
+        TRADUCAO_EN_PARA_PT.put("WHILE", "ENQUANTO");
+        TRADUCAO_PT_PARA_EN.put("PARA", "FOR");
+        TRADUCAO_EN_PARA_PT.put("FOR", "PARA");
+        TRADUCAO_PT_PARA_EN.put("RETORNE", "RETURN");
+        TRADUCAO_EN_PARA_PT.put("RETURN", "RETORNE");
+        TRADUCAO_PT_PARA_EN.put("EXIBA", "PRINT");
+        TRADUCAO_EN_PARA_PT.put("PRINT", "EXIBA");
+        TRADUCAO_EN_PARA_PT.put("DISPLAY", "EXIBA");
+        TRADUCAO_PT_PARA_EN.put("EXIGE", "REQUIRES");
+        TRADUCAO_EN_PARA_PT.put("REQUIRES", "EXIGE");
+        TRADUCAO_PT_PARA_EN.put("GARANTE", "ENSURES");
+        TRADUCAO_EN_PARA_PT.put("ENSURES", "GARANTE");
+        TRADUCAO_PT_PARA_EN.put("INVARIANTE", "INVARIANT");
+        TRADUCAO_EN_PARA_PT.put("INVARIANT", "INVARIANTE");
+        TRADUCAO_PT_PARA_EN.put("VERDADEIRO", "TRUE");
+        TRADUCAO_EN_PARA_PT.put("TRUE", "VERDADEIRO");
+        TRADUCAO_PT_PARA_EN.put("FALSO", "FALSE");
+        TRADUCAO_EN_PARA_PT.put("FALSE", "FALSO");
+        TRADUCAO_PT_PARA_EN.put("NULO", "NULL");
+        TRADUCAO_EN_PARA_PT.put("NULL", "NULO");
+        TRADUCAO_PT_PARA_EN.put("E", "AND");
+        TRADUCAO_EN_PARA_PT.put("AND", "E");
+        TRADUCAO_PT_PARA_EN.put("OU", "OR");
+        TRADUCAO_EN_PARA_PT.put("OR", "OU");
+        TRADUCAO_PT_PARA_EN.put("NAO", "NOT");
+        TRADUCAO_EN_PARA_PT.put("NOT", "NAO");
+
+        // Correspondências em minúsculas
+        TRADUCAO_PT_PARA_EN.put("programa", "program");
+        TRADUCAO_EN_PARA_PT.put("program", "programa");
+        TRADUCAO_PT_PARA_EN.put("metadados", "metadata");
+        TRADUCAO_EN_PARA_PT.put("metadata", "metadados");
+        TRADUCAO_PT_PARA_EN.put("estrutura", "structure");
+        TRADUCAO_EN_PARA_PT.put("structure", "estrutura");
+        TRADUCAO_PT_PARA_EN.put("se", "if");
+        TRADUCAO_EN_PARA_PT.put("if", "se");
+        TRADUCAO_PT_PARA_EN.put("senao", "else");
+        TRADUCAO_EN_PARA_PT.put("else", "senao");
+        TRADUCAO_PT_PARA_EN.put("enquanto", "while");
+        TRADUCAO_EN_PARA_PT.put("while", "enquanto");
+        TRADUCAO_PT_PARA_EN.put("para", "for");
+        TRADUCAO_EN_PARA_PT.put("for", "para");
+        TRADUCAO_PT_PARA_EN.put("retorne", "return");
+        TRADUCAO_EN_PARA_PT.put("return", "retorne");
+        TRADUCAO_PT_PARA_EN.put("exiba", "print");
+        TRADUCAO_EN_PARA_PT.put("display", "exiba");
+        TRADUCAO_PT_PARA_EN.put("exige", "requires");
+        TRADUCAO_EN_PARA_PT.put("requires", "exige");
+        TRADUCAO_PT_PARA_EN.put("garante", "ensures");
+        TRADUCAO_EN_PARA_PT.put("ensures", "garante");
+        TRADUCAO_PT_PARA_EN.put("invariante", "invariant");
+        TRADUCAO_EN_PARA_PT.put("invariant", "invariante");
+        TRADUCAO_PT_PARA_EN.put("verdadeiro", "true");
+        TRADUCAO_EN_PARA_PT.put("true", "verdadeiro");
+        TRADUCAO_PT_PARA_EN.put("falso", "false");
+        TRADUCAO_EN_PARA_PT.put("false", "falso");
+        TRADUCAO_PT_PARA_EN.put("nulo", "null");
+        TRADUCAO_EN_PARA_PT.put("null", "nulo");
+        TRADUCAO_PT_PARA_EN.put("de", "from");
+        TRADUCAO_EN_PARA_PT.put("from", "de");
+        TRADUCAO_PT_PARA_EN.put("ate", "to");
+        TRADUCAO_EN_PARA_PT.put("to", "ate");
+        TRADUCAO_PT_PARA_EN.put("passo", "step");
+        TRADUCAO_EN_PARA_PT.put("step", "passo");
+
+        // Palavras universais
+        for (String uni : List.of("var", "val", "let", "fn", "fun", "proc", "struct", "ret", "print")) {
+            TRADUCAO_PT_PARA_EN.put(uni, uni);
+            TRADUCAO_EN_PARA_PT.put(uni, uni);
+            TRADUCAO_PT_PARA_EN.put(uni.toUpperCase(), uni.toUpperCase());
+            TRADUCAO_EN_PARA_PT.put(uni.toUpperCase(), uni.toUpperCase());
+        }
 
         // Inicializa mapeamento bi-direcional através da correspondência de TokenType
         for (var entryPt : TABELA_PT_BR.entrySet()) {

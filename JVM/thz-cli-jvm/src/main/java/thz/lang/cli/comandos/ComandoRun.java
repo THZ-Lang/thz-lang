@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import thz.lang.ast.FuncaoAst;
 import thz.lang.ast.ProcedimentoAst;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
@@ -231,7 +232,40 @@ public class ComandoRun implements ComandoCli {
                 CliLogger.info("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
                 return;
             }
+
+            FuncaoAst func = ast.funcoes() != null
+                    ? ast.funcoes().stream().filter(f -> f.nome().equals(nomePrincipal)).findFirst().orElse(null)
+                    : null;
+            if (func != null) {
+                CliLogger.info("[FUNÇÃO] " + func.nome() + "()\n");
+                Map<String, ValorThz> a = func.parametros().isEmpty() ? Map.of()
+                        : InjetorLoteDemo.construirArgsFuncao(func, p -> mapaArgs.get(p.nome()));
+                ValorThz res = interp.executarFuncao(func.nome(), a);
+                CliLogger.info("--------------------------------------------------------------");
+                if (res != null)
+                    CliLogger.info("[RESULTADO] " + interp.formatar(res));
+                blocoMemoria.liberarTudo();
+                CliLogger.info("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
+                return;
+            }
             CliErros.erroPrincipalNaoEncontrado(nomePrincipal);
+        }
+        var funcoes = interp.listarFuncoes();
+        var fnMain = funcoes.stream()
+                .filter(f -> f.nome().equalsIgnoreCase("main") || f.nome().equalsIgnoreCase("Principal"))
+                .findFirst();
+        if (fnMain.isPresent()) {
+            var fn = fnMain.get();
+            CliLogger.info("[FUNÇÃO] " + fn.nome() + "()\n");
+            Map<String, ValorThz> a = fn.parametros().isEmpty() ? Map.of()
+                    : InjetorLoteDemo.construirArgsFuncao(fn, p -> mapaArgs.get(p.nome()));
+            ValorThz res = interp.executarFuncao(fn.nome(), a);
+            CliLogger.info("--------------------------------------------------------------");
+            if (res != null)
+                CliLogger.info("[RESULTADO] " + interp.formatar(res));
+            blocoMemoria.liberarTudo();
+            CliLogger.info("\n[MEMÓRIA] Bloco de memória temporária liberado com sucesso.");
+            return;
         }
         var procs = interp.listarProcedimentos();
         if (!procs.isEmpty()) {

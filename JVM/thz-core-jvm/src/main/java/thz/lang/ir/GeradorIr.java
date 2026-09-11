@@ -461,8 +461,9 @@ public final class GeradorIr {
         if (ast.funcoes() != null) {
             for (FuncaoAst funcao : ast.funcoes()) {
                 String tipoRet = mapearTipoLlvm(funcao.tipoRetorno());
+                String llvmNome = funcao.nome().equals("main") ? "thz_fn_main" : funcao.nome();
                 sb.append("define ").append(tipoRet).append(" @")
-                  .append(funcao.nome()).append("(");
+                  .append(llvmNome).append("(");
                 for (int i = 0; i < funcao.parametros().size(); i++) {
                     ParametroOperacaoAst p = funcao.parametros().get(i);
                     if (i > 0) sb.append(", ");
@@ -474,7 +475,7 @@ public final class GeradorIr {
                 if (ehRetornoPuro) {
                     emitirRetornoLlvm(sb, funcao);
                 } else {
-                    EmissorAotContexto ctx = new EmissorAotContexto(sb, mapaStringGlobal);
+                    EmissorAotContexto ctx = new EmissorAotContexto(sb, mapaStringGlobal, ast);
                     for (ParametroOperacaoAst p : funcao.parametros()) {
                         String ptrParam = "%var." + p.nome();
                         String tipoParam = mapearTipoLlvm(p.tipo());
@@ -505,7 +506,7 @@ public final class GeradorIr {
                             sb.append(mapearTipoLlvm(p.tipo())).append(" %").append(p.nome());
                         }
                         sb.append(") {\nentry:\n");
-                        EmissorAotContexto ctx = new EmissorAotContexto(sb, mapaStringGlobal);
+                        EmissorAotContexto ctx = new EmissorAotContexto(sb, mapaStringGlobal, ast);
                         for (ParametroOperacaoAst p : op.parametros()) {
                             String ptrParam = "%var." + p.nome();
                             String tipoParam = mapearTipoLlvm(p.tipo());
@@ -532,7 +533,7 @@ public final class GeradorIr {
             for (ProcedimentoAst proc : ast.procedimentos()) {
                 sb.append("define void @").append(proc.nome()).append("() {\n");
                 sb.append("entry:\n");
-                EmissorAotContexto ctx = new EmissorAotContexto(sb, mapaStringGlobal);
+                EmissorAotContexto ctx = new EmissorAotContexto(sb, mapaStringGlobal, ast);
                 boolean terminou = emitirComandos(ctx, proc.corpo());
 
                 if (!isGuiModule && proc.nome().equalsIgnoreCase("Principal")) {
@@ -604,6 +605,18 @@ public final class GeradorIr {
                             sb.append("  call void @").append(r.nome()).append("_").append(op.nome()).append("()\n");
                             chamouAlgumaCoisa = true;
                         }
+                    }
+                }
+            }
+
+            if (!chamouAlgumaCoisa && ast.funcoes() != null) {
+                for (FuncaoAst f : ast.funcoes()) {
+                    if (f.nome().equalsIgnoreCase("main") || f.nome().equalsIgnoreCase("Principal")) {
+                        String llvmNome = f.nome().equals("main") ? "thz_fn_main" : f.nome();
+                        String tipoRet = mapearTipoLlvm(f.tipoRetorno());
+                        sb.append("  call ").append(tipoRet).append(" @").append(llvmNome).append("()\n");
+                        chamouAlgumaCoisa = true;
+                        break;
                     }
                 }
             }
@@ -685,15 +698,17 @@ public final class GeradorIr {
     private static final class EmissorAotContexto {
         final StringBuilder sb;
         final Map<String, String> mapaStringGlobal;
+        final ProgramaAst ast;
         final Map<String, VariavelLocal> variaveis = new LinkedHashMap<>();
         int regContador = 1;
         int labelContador = 1;
 
         record VariavelLocal(String ptrLlvm, String tipoLlvm) {}
 
-        EmissorAotContexto(StringBuilder sb, Map<String, String> mapaStringGlobal) {
+        EmissorAotContexto(StringBuilder sb, Map<String, String> mapaStringGlobal, ProgramaAst ast) {
             this.sb = sb;
             this.mapaStringGlobal = mapaStringGlobal;
+            this.ast = ast;
         }
 
         String novoReg() {
@@ -810,6 +825,31 @@ public final class GeradorIr {
                 ctx.sb.append("  ").append(reg).append(" = ").append(arith).append(" ").append(tipoComum)
                       .append(" ").append(valEsq).append(", ").append(valDir).append("\n");
                 return new ResultadoLlvm(reg, tipoComum);
+            }
+            case ExprAst.Chamada ch -> {
+                String nomeFn = String.join(".", ch.caminho());
+                String llvmFn = nomeFn.equals("main") ? "thz_fn_main" : nomeFn;
+                String tipoRet = "i64";
+                if (ctx.ast != null && ctx.ast.funcoes() != null) {
+                    for (FuncaoAst f : ctx.ast.funcoes()) {
+                        if (f.nome().equals(nomeFn)) {
+                            tipoRet = mapearTipoLlvm(f.tipoRetorno());
+                            break;
+                        }
+                    }
+                }
+                StringBuilder callArgs = new StringBuilder();
+                if (ch.argumentos() != null) {
+                    for (int i = 0; i < ch.argumentos().size(); i++) {
+                        if (i > 0) callArgs.append(", ");
+                        ResultadoLlvm argRes = avaliarExpr(ch.argumentos().get(i), ctx);
+                        callArgs.append(argRes.tipo()).append(" ").append(argRes.valor());
+                    }
+                }
+                String reg = ctx.novoReg();
+                ctx.sb.append("  ").append(reg).append(" = call ").append(tipoRet).append(" @").append(llvmFn)
+                      .append("(").append(callArgs).append(")\n");
+                return new ResultadoLlvm(reg, tipoRet);
             }
             default -> {
                 return new ResultadoLlvm("0", "i64");
@@ -1048,17 +1088,17 @@ public final class GeradorIr {
         return "ptr";
     }
 
-    private static String valorRetornoLlvm(FuncaoAst funcao) {
-        if (funcao.corpo() != null) {
-            for (ComandoAst c : funcao.corpo()) {
-                if (c instanceof ComandoAst.Retorne r) {
-                    String valor = valorExpressaoLlvm(r.expressao(), funcao);
-                    if (valor != null) return valor;
-                }
-            }
-        }
-        return "0";
-    }
+    // private static String valorRetornoLlvm(FuncaoAst funcao) {
+    //     if (funcao.corpo() != null) {
+    //         for (ComandoAst c : funcao.corpo()) {
+    //             if (c instanceof ComandoAst.Retorne r) {
+    //                 String valor = valorExpressaoLlvm(r.expressao(), funcao);
+    //                 if (valor != null) return valor;
+    //             }
+    //         }
+    //     }
+    //     return "0";
+    // }
 
     private static void emitirRetornoLlvm(StringBuilder sb, FuncaoAst funcao) {
         String tipo = mapearTipoLlvm(funcao.tipoRetorno());

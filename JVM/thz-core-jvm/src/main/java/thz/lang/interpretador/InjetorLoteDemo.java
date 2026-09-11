@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import thz.lang.ast.EstruturaAst;
+import thz.lang.ast.FuncaoAst;
 import thz.lang.ast.OperacaoAst;
 import thz.lang.ast.ParametroOperacaoAst;
 import thz.lang.ast.ProcedimentoAst;
@@ -125,6 +126,24 @@ public final class InjetorLoteDemo {
 
         Map<String, ValorThz> out = new HashMap<>();
         for (ParametroOperacaoAst p : proc.parametros()) {
+            String val = provedorParametro != null ? provedorParametro.apply(p) : null;
+            if (val == null) {
+                throw new RuntimeException("[Erro de Execução] Parâmetro '" + p.nome() + "' não fornecido.");
+            }
+            out.put(p.nome(), InterpretadorThz.valorThzDe(p.tipo(), val));
+        }
+        return out;
+    }
+
+    /**
+     * Constrói argumentos para FUNCAO parametrizada.
+     */
+    public static Map<String, ValorThz> construirArgsFuncao(
+            FuncaoAst func,
+            Function<ParametroOperacaoAst, String> provedorParametro) {
+
+        Map<String, ValorThz> out = new HashMap<>();
+        for (ParametroOperacaoAst p : func.parametros()) {
             String val = provedorParametro != null ? provedorParametro.apply(p) : null;
             if (val == null) {
                 throw new RuntimeException("[Erro de Execução] Parâmetro '" + p.nome() + "' não fornecido.");

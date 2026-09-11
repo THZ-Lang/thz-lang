@@ -1,0 +1,40 @@
+programa GestaoPedidosModerno {
+    metadados {
+        DOMINIO: "Logistica"
+        CAMADA: "Dominio"
+        VERSAO: "1.0.0"
+        AUTOR: "Engenharia THZ"
+    }
+
+    struct ItemPedido {
+        id: Int,
+        descricao: String,
+        quantidade: Int,
+        precoUnitario: Int
+    }
+
+    fn calcularBonus(pontos: Int): Int = pontos * 10
+
+    fn main(): Int {
+        var limite = 500
+        var totalVendas = 0
+
+        para i de 1 ate 5 passo 1 {
+            totalVendas = totalVendas + 100
+        }
+
+        se totalVendas >= limite {
+            print "Meta de vendas atingida!"
+        } senao {
+            print "Abaixo da meta de faturamento."
+        }
+
+        var bonus = calcularBonus(5)
+        print "Total de Vendas:"
+        print totalVendas
+        print "Bonus Calculado:"
+        print bonus
+
+        retorne totalVendas + bonus
+    }
+}

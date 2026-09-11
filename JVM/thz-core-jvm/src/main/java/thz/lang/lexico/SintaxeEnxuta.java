@@ -28,6 +28,11 @@ public final class SintaxeEnxuta {
 
     public static boolean detectar(String fonte) {
         if (fonte == null || fonte.isBlank()) return false;
+        // Se o código utiliza blocos estruturais com chaves fora de literais de texto,
+        // trata-se do paradigma de chaves, dispensando a dessugarização por indentação.
+        String semStrings = fonte.replaceAll("\"(\\\\.|[^\"\\\\])*\"", "");
+        if (semStrings.contains("{") || semStrings.contains("}")) return false;
+
         return fonte.lines().anyMatch(linha -> {
             String t = linha.strip();
             if (t.isEmpty()) return false;

@@ -88,7 +88,14 @@ public class ThzLexer {
                 }
                 tokens.add(make(TokenType.DOIS_PONTOS, ":")); advance(); continue;
             }
-            if (c == '=') { tokens.add(make(TokenType.OPERADOR_RELACIONAL, "=")); advance(); continue; }
+            if (c == '=') {
+                char nxt = pos + 1 < input.length() ? input.charAt(pos + 1) : 0;
+                if (nxt == '=') {
+                    tokens.add(make(TokenType.OPERADOR_RELACIONAL, "=="));
+                    advance(); advance(); continue;
+                }
+                tokens.add(make(TokenType.OPERADOR_RELACIONAL, "=")); advance(); continue;
+            }
             if (c == '.') { tokens.add(make(TokenType.PONTO, ".")); advance(); continue; }
             if (c == ',') { tokens.add(make(TokenType.VIRGULA, ",")); advance(); continue; }
             if (c == '(') { tokens.add(make(TokenType.ABRE_PARENTESE, "(")); advance(); continue; }
