@@ -5,9 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import thz.lang.lexico.ThzLexer;
-import thz.lang.lexico.Token;
-import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
 import thz.lang.cli.CliLogger;
@@ -27,8 +24,19 @@ public class ComandoIr implements ComandoCli {
             CliErros.erroArquivoNaoEncontrado(arquivo);
         }
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
-        List<Token> tokens = new ThzLexer(fonte).tokenize();
-        ProgramaAst ast = new ThzParser(tokens).parse();
+        var analise = thz.lang.fachada.ThzCompilerFacade.analisar(fonte, estrito);
+        if (analise.temErros()) {
+            for (String bloco : analise.textoDiagnosticos()) {
+                CliLogger.erro(bloco + "\n");
+            }
+            CliErros.statusComandoCheck(analise.diagnosticos().size());
+            if (Boolean.getBoolean("thz.test.mode")) {
+                throw new IllegalStateException("Geração de IR abortada: " + analise.diagnosticos().size() + " erro(s) encontrado(s).");
+            }
+            System.exit(1);
+        }
+
+        ProgramaAst ast = analise.ast();
 
         boolean llvm = argumentos.contains("--llvm");
         String idxSaida = null;

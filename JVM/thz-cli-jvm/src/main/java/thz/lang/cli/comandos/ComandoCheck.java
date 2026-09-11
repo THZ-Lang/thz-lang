@@ -5,14 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import thz.lang.diagnosticos.DiagnosticoEntrada;
-import thz.lang.diagnosticos.Diagnosticos;
-import thz.lang.lexico.ThzLexer;
-import thz.lang.lexico.Token;
-import thz.lang.semantico.AnalisadorSemantico;
-import thz.lang.semantico.ErroSemantico;
-import thz.lang.semantico.OpcoesAnalise;
-import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
 import thz.lang.cli.CliLogger;
@@ -32,18 +24,17 @@ public class ComandoCheck implements ComandoCli {
             CliErros.erroArquivoNaoEncontrado(arquivo);
         }
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
-        List<Token> tokens = new ThzLexer(fonte).tokenize();
-        ProgramaAst ast = new ThzParser(tokens).parse();
-
-        List<ErroSemantico> erros = new AnalisadorSemantico(ast).analisar(new OpcoesAnalise(estrito));
-        if (!erros.isEmpty()) {
-            List<DiagnosticoEntrada> diags = erros.stream()
-                    .map(e -> new DiagnosticoEntrada(e.linha(), e.coluna(), e.mensagem())).toList();
-            for (String bloco : Diagnosticos.formatarDiagnosticos(fonte, diags, "Semântico"))
+        var analise = thz.lang.fachada.ThzCompilerFacade.analisar(fonte, estrito);
+        if (analise.temErros()) {
+            for (String bloco : analise.textoDiagnosticos())
                 CliLogger.erro(bloco + "\n");
-            CliErros.statusComandoCheck(erros.size());
+            CliErros.statusComandoCheck(analise.diagnosticos().size());
+            if (Boolean.getBoolean("thz.test.mode")) {
+                throw new IllegalStateException("Check falhou: " + analise.diagnosticos().size() + " erro(s).");
+            }
             System.exit(1);
         }
+        ProgramaAst ast = analise.ast();
         String versao = "";
         CliLogger.info("[THZ CHECK] Código validado com sucesso! AST íntegra para o programa: "
                 + ast.nome() + versao + (estrito ? " [lint estrito aprovado]" : ""));

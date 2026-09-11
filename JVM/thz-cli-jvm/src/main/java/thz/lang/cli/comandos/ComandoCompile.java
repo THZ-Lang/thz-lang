@@ -5,9 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import thz.lang.lexico.ThzLexer;
-import thz.lang.lexico.Token;
-import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliHelper;
 import thz.lang.cli.CliLogger;
@@ -35,8 +32,19 @@ public class ComandoCompile implements ComandoCli {
         }
 
         String fonte = Files.readString(Path.of(arquivo), StandardCharsets.UTF_8);
-        List<Token> tokens = new ThzLexer(fonte).tokenize();
-        ProgramaAst ast = new ThzParser(tokens).parse();
+        var analise = thz.lang.fachada.ThzCompilerFacade.analisar(fonte, estrito);
+        if (analise.temErros()) {
+            for (String bloco : analise.textoDiagnosticos()) {
+                CliLogger.erro(bloco + "\n");
+            }
+            CliErros.statusComandoCheck(analise.diagnosticos().size());
+            if (Boolean.getBoolean("thz.test.mode")) {
+                throw new IllegalStateException("Compilação abortada: " + analise.diagnosticos().size() + " erro(s) encontrado(s).");
+            }
+            System.exit(1);
+        }
+
+        ProgramaAst ast = analise.ast();
         String nomeBase = Path.of(arquivo).getFileName().toString().replace(".thz", "");
 
         String dirSaida = "dist/exemplos_compilados";

@@ -6,9 +6,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import thz.lang.lexico.ThzLexer;
-import thz.lang.lexico.Token;
-import thz.lang.sintatico.ThzParser;
 import thz.lang.ast.ProgramaAst;
 import thz.lang.cli.CliLogger;
 import thz.lang.cli.CliErros;
@@ -67,8 +64,16 @@ public class ComandoCompileAll implements ComandoCli {
             String nomeBase = arq.getFileName().toString().replace(".thz", "");
             try {
                 String fonte = Files.readString(arq, StandardCharsets.UTF_8);
-                List<Token> tokens = new ThzLexer(fonte).tokenize();
-                ProgramaAst ast = new ThzParser(tokens).parse();
+                var analise = thz.lang.fachada.ThzCompilerFacade.analisar(fonte, estrito);
+                if (analise.temErros()) {
+                    falhas++;
+                    CliErros.falhaEmLote(arq.getFileName().toString(), analise.diagnosticos().size() + " erro(s) semântico(s)/sintático(s)");
+                    for (String d : analise.textoDiagnosticos()) {
+                        CliLogger.erro(d + "\n");
+                    }
+                    continue;
+                }
+                ProgramaAst ast = analise.ast();
 
                 String jsonIr = thz.lang.ir.GeradorIr.serializarIrJson(thz.lang.ir.GeradorIr.baixarParaIr(ast));
                 Files.writeString(dirIr.resolve(nomeBase + "_ir.json"), jsonIr, StandardCharsets.UTF_8);

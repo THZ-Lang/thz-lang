@@ -92,16 +92,59 @@ public class ThzCliTest {
             ThzCli.main(new String[]{"ir", arquivo.toString()});
             assertTrue(out.toString().contains("versaoIr") || out.toString().contains("thz-ir"));
 
-            // 6. fmt
+            // 6. compile
+            out.reset();
+            Path dirSaida = tempDir.resolve("saida_compile");
+            ThzCli.main(new String[]{"compile", arquivo.toString(), "--saida", dirSaida.toString()});
+            assertTrue(java.nio.file.Files.exists(dirSaida.resolve("ir/programa_ir.json")));
+            assertTrue(java.nio.file.Files.exists(dirSaida.resolve("llvm/programa.ll")));
+            assertTrue(java.nio.file.Files.exists(dirSaida.resolve("wasm/programa.wasm.js")));
+
+            // 7. fmt
             out.reset();
             ThzCli.main(new String[]{"fmt", "--escrever", arquivo.toString()});
 
-            // 7. run
+            // 8. run
             out.reset();
             ThzCli.main(new String[]{"run", arquivo.toString()});
             assertTrue(out.toString().contains("Olá CLI"));
         } finally {
             System.setOut(orig);
+        }
+    }
+
+    @Test
+    @DisplayName("ThzCli deve bloquear compile, ir e check quando houver erro semântico")
+    void testComandosBloqueiamErrosSemanticos(@TempDir Path tempDir) throws Exception {
+        System.setProperty("thz.test.mode", "true");
+        Path arquivoInvalido = tempDir.resolve("semantico_invalido.thz");
+        String src = """
+                PROGRAMA Invalido
+                METADADOS_ARQUITETURA
+                    DOMINIO: "Teste"
+                    VERSAO: "1.0.0"
+                FIM_METADADOS
+                REGRA_NEGOCIO Regra
+                    OPERACAO Executar() : INTEIRO32
+                    INICIO
+                        RETORNE variavel_inexistente + 1
+                    FIM
+                FIM_REGRA_NEGOCIO
+                FIM_PROGRAMA
+                """;
+        ThzIO.escreverTexto(arquivoInvalido.toString(), src);
+
+        try {
+            assertThrows(IllegalStateException.class, () ->
+                    ThzCli.main(new String[]{"check", arquivoInvalido.toString()}));
+
+            assertThrows(IllegalStateException.class, () ->
+                    ThzCli.main(new String[]{"compile", arquivoInvalido.toString()}));
+
+            assertThrows(IllegalStateException.class, () ->
+                    ThzCli.main(new String[]{"ir", arquivoInvalido.toString()}));
+        } finally {
+            System.clearProperty("thz.test.mode");
         }
     }
 
