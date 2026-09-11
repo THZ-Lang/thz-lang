@@ -210,9 +210,9 @@ public final class SintaxeEnxuta {
         }
 
         Matcher tipada = DECLARACAO_TIPADA.matcher(texto);
-        if (tipada.matches()) return "VARIAVEL " + tipada.group(1) + ": " + tipoCanonico(tipada.group(2)) + " <- " + tipada.group(3);
+        if (tipada.matches()) return tipada.group(1) + ": " + tipoCanonico(tipada.group(2)) + " := " + tipada.group(3);
         Matcher inferida = DECLARACAO_INFERIDA.matcher(texto);
-        if (inferida.matches()) return "VARIAVEL " + inferida.group(1) + " <- " + inferida.group(2);
+        if (inferida.matches()) return inferida.group(1) + " := " + inferida.group(2);
         Matcher atribuicao = ATRIBUICAO.matcher(texto);
         if (atribuicao.matches()) return atribuicao.group(1) + " <- " + atribuicao.group(2).stripLeading();
 

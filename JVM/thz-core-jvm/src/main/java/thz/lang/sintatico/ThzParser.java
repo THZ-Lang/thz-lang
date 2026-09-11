@@ -648,6 +648,23 @@ public class ThzParser {
                     }
                     return new ComandoAst.Chamada(expr, token.line(), token.column());
                 }
+                // Declaração tipada direta: x : TIPO <- expr ou x : TIPO := expr
+                if (alvo.size() == 1 && match(TokenType.DOIS_PONTOS)) {
+                    String tipoDado = parseTipoDado();
+                    if (match(TokenType.SETA_ATRIBUICAO)) {
+                        ExprAst inicializacao = parseExpressao();
+                        return new ComandoAst.DeclVariavel(alvo.get(0), tipoDado, inicializacao, token.line(), token.column());
+                    }
+                    throw new RuntimeException("[Erro Sintático][Linha " + peek().line() + ":" + peek().column() + "] Esperado '<-' ou ':=' na declaração da variável '" + alvo.get(0) + "'.");
+                }
+
+                // Declaração inferida direta: x := expr
+                if (alvo.size() == 1 && check(TokenType.SETA_ATRIBUICAO) && peek().value().equals(":=")) {
+                    advance();
+                    ExprAst expressao = parseExpressao();
+                    return new ComandoAst.DeclVariavel(alvo.get(0), null, expressao, token.line(), token.column());
+                }
+
                 consume(TokenType.SETA_ATRIBUICAO, "Esperado '<-' na atribuição a '" + String.join(".", alvo) + "'.");
                 ExprAst expressao = parseExpressao();
                 return new ComandoAst.Atribuicao(alvo, expressao, token.line(), token.column());

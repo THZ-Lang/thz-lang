@@ -321,15 +321,15 @@ public final class PalavrasReservadas {
             if (TABELA_PT_BR.containsKey(palavra) && !TABELA_EN_US.containsKey(palavra)) {
                 String equivalente = traduzir(palavra, DialetoLinguagem.EN_US);
                 throw new ErroLexico(linha, col,
-                        "Palavra-chave '" + palavra + "' pertence ao dialeto [pt-BR] e não pode ser usada em arquivo configurado para [en-US]. " +
-                        "Use a palavra equivalente em inglês '" + equivalente + "' ou altere a diretiva para 'LINGUAGEM: pt-BR'.");
+                        "Keyword '" + palavra + "' belongs to dialect [pt-BR] and cannot be used in a file configured for [en-US]. " +
+                        "Use the English equivalent '" + equivalente + "' or set the directive to 'LANGUAGE: pt-BR' ('lang ptbr').");
             }
         } else {
             if (TABELA_EN_US.containsKey(palavra) && !TABELA_PT_BR.containsKey(palavra)) {
                 String equivalente = traduzir(palavra, DialetoLinguagem.PT_BR);
                 throw new ErroLexico(linha, col,
                         "Palavra-chave '" + palavra + "' pertence ao dialeto [en-US] e não pode ser usada em arquivo configurado para [pt-BR]. " +
-                        "Use a palavra equivalente em português '" + equivalente + "' ou declare 'LANGUAGE: en-US' no cabeçalho.");
+                        "Use a palavra equivalente em português '" + equivalente + "' ou declare 'LANGUAGE: en-US' ('lang enus') no cabeçalho.");
             }
         }
     }

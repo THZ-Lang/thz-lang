@@ -30,18 +30,28 @@ public class ThzLexer {
      */
     private static DialetoLinguagem detectarDialetoCabecalho(String src) {
         if (src == null || src.isEmpty()) return DialetoLinguagem.PT_BR;
-        String[] linhas = src.split("\\R", 6);
-        for (String l : linhas) {
+        String[] linhas = src.split("\\R", 10);
+        for (int i = 0; i < linhas.length; i++) {
+            String l = linhas[i];
             String trim = l.trim();
             if (trim.startsWith("#")) {
                 trim = trim.substring(1).trim();
             }
-            if (trim.toUpperCase().startsWith("LINGUAGEM:") || trim.toUpperCase().startsWith("LANGUAGE:")
-                    || trim.toUpperCase().startsWith("DIALETO:") || trim.toUpperCase().startsWith("DIALECT:")) {
+            if (trim.isEmpty()) continue;
+            int col = l.indexOf(trim) + 1;
+            int numLinha = i + 1;
+
+            String upper = trim.toUpperCase(java.util.Locale.ROOT);
+            if (upper.startsWith("LINGUAGEM:") || upper.startsWith("LANGUAGE:")
+                    || upper.startsWith("DIALETO:") || upper.startsWith("DIALECT:")) {
                 int idx = trim.indexOf(':');
-                if (idx != -1) {
-                    return DialetoLinguagem.detectar(trim.substring(idx + 1).trim());
-                }
+                String valor = trim.substring(idx + 1).trim();
+                return DialetoLinguagem.detectarComPosicao(valor, numLinha, col);
+            }
+            if (upper.startsWith("LANG ") || upper.startsWith("LANG:")) {
+                int start = upper.startsWith("LANG:") ? 5 : 4;
+                String valor = trim.substring(start).trim();
+                return DialetoLinguagem.detectarComPosicao(valor, numLinha, col);
             }
         }
         return DialetoLinguagem.PT_BR;
@@ -70,7 +80,14 @@ public class ThzLexer {
 
             if (c == '"') { tokens.add(readString()); continue; }
             if (Character.isDigit(c)) { tokens.add(readNumber()); continue; }
-            if (c == ':') { tokens.add(make(TokenType.DOIS_PONTOS, ":")); advance(); continue; }
+            if (c == ':') {
+                char nxt = pos + 1 < input.length() ? input.charAt(pos + 1) : 0;
+                if (nxt == '=') {
+                    tokens.add(make(TokenType.SETA_ATRIBUICAO, ":="));
+                    advance(); advance(); continue;
+                }
+                tokens.add(make(TokenType.DOIS_PONTOS, ":")); advance(); continue;
+            }
             if (c == '=') { tokens.add(make(TokenType.OPERADOR_RELACIONAL, "=")); advance(); continue; }
             if (c == '.') { tokens.add(make(TokenType.PONTO, ".")); advance(); continue; }
             if (c == ',') { tokens.add(make(TokenType.VIRGULA, ",")); advance(); continue; }
@@ -162,11 +179,21 @@ public class ThzLexer {
             sb.append(input.charAt(tempPos));
             tempPos++;
         }
-        String palavra = sb.toString().toUpperCase();
+        String palavra = sb.toString().toUpperCase(java.util.Locale.ROOT);
         if (palavra.equals("LINGUAGEM") || palavra.equals("LANGUAGE") || palavra.equals("DIALETO") || palavra.equals("DIALECT")) {
             while (tempPos < input.length() && (input.charAt(tempPos) == ' ' || input.charAt(tempPos) == '\t')) tempPos++;
             if (tempPos < input.length() && input.charAt(tempPos) == ':') {
                 // Consome a linha inteira da diretiva
+                while (pos < input.length() && input.charAt(pos) != '\n') {
+                    advance();
+                }
+                return true;
+            }
+        }
+        if (palavra.equals("LANG")) {
+            while (tempPos < input.length() && (input.charAt(tempPos) == ' ' || input.charAt(tempPos) == '\t')) tempPos++;
+            if (tempPos < input.length() && (input.charAt(tempPos) == ':' || Character.isLetter(input.charAt(tempPos)))) {
+                // Consome a linha inteira da diretiva lang
                 while (pos < input.length() && input.charAt(pos) != '\n') {
                     advance();
                 }

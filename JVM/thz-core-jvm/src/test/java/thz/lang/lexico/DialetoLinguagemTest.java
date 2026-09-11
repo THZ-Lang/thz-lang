@@ -193,4 +193,71 @@ public class DialetoLinguagemTest {
 
         assertEquals("Linha 1\nLinha 2\tTabulado© Copyright", tokenString.value());
     }
+
+    @Test
+    @DisplayName("Diretiva 'lang enus' deve selecionar dialeto EN_US")
+    void deveReconhecerDiretivaLangEnUs() {
+        String codigo = """
+            lang enus
+            PROGRAM OrderProcessing
+            END_PROGRAM
+            """;
+        ThzLexer lexer = new ThzLexer(codigo);
+        assertEquals(DialetoLinguagem.EN_US, lexer.getDialeto());
+        var tokens = lexer.tokenize();
+        assertEquals(TokenType.PROGRAMA, tokens.get(0).type());
+        assertEquals("OrderProcessing", tokens.get(1).value());
+    }
+
+    @Test
+    @DisplayName("Diretiva com idioma desconhecido deve produzir ErroLexico com linha e coluna")
+    void deveRejeitarIdiomaDesconhecidoComErroLexico() {
+        String codigo = "LINGUAGEM: desconhecido\nPROGRAMA Teste\nFIM_PROGRAMA";
+        ErroLexico erro = assertThrows(ErroLexico.class, () -> new ThzLexer(codigo).tokenize());
+        assertTrue(erro.getMessage().contains("desconhecido"));
+        assertEquals(1, erro.linha());
+    }
+
+    @Test
+    @DisplayName("Mensagem de mistura em arquivo EN_US deve estar em inglês")
+    void mensagemDeMisturaEmArquivoEnUsDeveEstarEmIngles() {
+        String codigo = """
+            lang enus
+            PROGRAM OrderProcessing
+            REGRA_NEGOCIO ProcessOrder
+            END_PROGRAM
+            """;
+        ThzLexer lexer = new ThzLexer(codigo);
+        ErroLexico erro = assertThrows(ErroLexico.class, lexer::tokenize);
+        assertTrue(erro.getMessage().contains("Keyword 'REGRA_NEGOCIO' belongs to dialect [pt-BR] and cannot be used in a file configured for [en-US]"),
+                "Mensagem deve ser em inglês: " + erro.getMessage());
+    }
+
+    @Test
+    @DisplayName("Declaração inferida 'x := 2' deve preservar a coluna original do identificador")
+    void devePreservarColunaOriginalEmDeclaracaoInferida() {
+        String codigo = "    x := 2\n";
+        var tokens = new ThzLexer(codigo).tokenize();
+        var tokenX = tokens.get(0);
+        assertEquals("x", tokenX.value());
+        assertEquals(TokenType.IDENTIFICADOR, tokenX.type());
+        assertEquals(1, tokenX.line());
+        assertEquals(5, tokenX.column(), "Identificador 'x' com 4 espaços iniciais deve ter coluna 5, não 14.");
+
+        String programa = """
+            PROGRAMA Teste
+            PROCEDIMENTO Principal()
+            INICIO
+                x := 2
+            FIM
+            FIM_PROGRAMA
+            """;
+        var ast = new ThzParser(new ThzLexer(programa).tokenize()).parse();
+        assertNotNull(ast);
+        var proc = ast.procedimentos().get(0);
+        assertInstanceOf(thz.lang.ast.ComandoAst.DeclVariavel.class, proc.corpo().get(0));
+        var decl = (thz.lang.ast.ComandoAst.DeclVariavel) proc.corpo().get(0);
+        assertEquals("x", decl.nome());
+        assertEquals(5, decl.coluna());
+    }
 }

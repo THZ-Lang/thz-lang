@@ -27,13 +27,23 @@ public enum DialetoLinguagem {
     }
 
     public static DialetoLinguagem detectar(String texto) {
+        return detectarComPosicao(texto, 1, 1);
+    }
+
+    public static DialetoLinguagem detectarComPosicao(String texto, int linha, int coluna) {
         if (texto == null || texto.isBlank()) return PT_BR;
-        String normalizado = texto.trim().toLowerCase(Locale.ROOT);
-        if (normalizado.contains("en-us") || normalizado.contains("en_us") || normalizado.equals("en")
+        String normalizado = texto.trim().toLowerCase(Locale.ROOT)
+                .replace("-", "")
+                .replace("_", "");
+        if (normalizado.equals("enus") || normalizado.equals("en")
                 || normalizado.startsWith("language") || normalizado.contains("english")) {
             return EN_US;
         }
-        return PT_BR;
+        if (normalizado.equals("ptbr") || normalizado.equals("pt")
+                || normalizado.startsWith("linguagem") || normalizado.contains("portuguese")) {
+            return PT_BR;
+        }
+        throw new ErroLexico(linha, coluna, "Idioma ou dialeto não reconhecido: '" + texto.trim() + "'. Use 'pt-BR' ('ptbr') ou 'en-US' ('enus').");
     }
 
     @Override
