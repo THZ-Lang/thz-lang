@@ -1,4 +1,4 @@
-﻿# THZ-LANG
+# THZ-LANG
 
 <div align="center">
 
@@ -9,114 +9,114 @@
 [![LLVM Clang](https://img.shields.io/badge/LLVM-Clang%20AOT-red.svg?logo=llvm&logoColor=white)](https://llvm.org/)
 [![Containers](https://img.shields.io/badge/Containers-Docker%20%7C%20Podman-2496ED.svg?logo=docker&logoColor=white)](docs/DOCKER_PODMAN_DEVCONTAINER.md)
 [![Dev Containers](https://img.shields.io/badge/Dev%20Containers-Ready-blueviolet.svg?logo=visualstudiocode&logoColor=white)](.devcontainer/devcontainer.json)
-[![Version](https://img.shields.io/badge/version-﻿0.4.0-blue.svg)](version.txt)
-[![Status](https://img.shields.io/badge/Status-ativo%20%7C%20v0.4.0-green.svg)](#-visÃ£o-geral)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](version.txt)
+[![Status](https://img.shields.io/badge/Status-ativo%20%7C%20v0.4.0-green.svg)](#-visão-geral)
 
-### A Linguagem Corporativa para Sistemas CrÃ­ticos, GovernanÃ§a Viva e Dados em Escala
+### A Linguagem Corporativa para Sistemas Críticos, Governança Viva e Dados em Escala
 
-**AritmÃ©tica Financeira Exata (ISO/IEC 10967) â€¢ Design by Contract â€¢ MemÃ³ria em Arena $O(1)$ â€¢ SIMD AVX-512 â€¢ Paradigma Dual â€¢ AOT Nativo â€¢ IA On-Device**
+**Aritmética Financeira Exata (ISO/IEC 10967) • Design by Contract • Memória em Arena $O(1)$ • SIMD AVX-512 • Paradigma Dual • AOT Nativo • IA On-Device**
 
 ---
 
-[VisÃ£o Geral](#-visÃ£o-geral) â€¢
-[O Que Torna o THZ Ãšnico?](#-o-que-torna-o-thz-Ãºnico) â€¢
-[Arquitetura do Ecossistema](#-arquitetura-do-ecossistema) â€¢
-[O Showcase One-Shot](#-o-showcase-one-shot-todos-os-recursos-em-aÃ§Ã£o) â€¢
-[Paradigma Dual](#-paradigma-dual-corporativo-vs-moderno) â€¢
-[Quick Start](#-quick-start-em-3-passos) â€¢
-[CLI & Ferramentas](#-manual-de-comandos-da-cli-17-comandos) â€¢
-[Mapa do Monorepo](#-estrutura-do-monorepo) â€¢
-[DocumentaÃ§Ã£o Completa](#-documentaÃ§Ã£o-oficial)
+[Visão Geral](#-visão-geral) •
+[O Que Torna o THZ Único?](#-o-que-torna-o-thz-único) •
+[Arquitetura do Ecossistema](#-arquitetura-do-ecossistema) •
+[O Showcase One-Shot](#-o-showcase-one-shot-todos-os-recursos-em-ação) •
+[Paradigma Dual](#-paradigma-dual-corporativo-vs-moderno) •
+[Quick Start](#-quick-start-em-3-passos) •
+[CLI & Ferramentas](#-manual-de-comandos-da-cli-17-comandos) •
+[Mapa do Monorepo](#-estrutura-do-monorepo) •
+[Documentação Completa](#-documentação-oficial)
 
 </div>
 
 ---
 
-## ðŸŒŸ VisÃ£o Geral
+## 🌟 Visão Geral
 
-O **THZ-LANG** (`.thz`, `.thzui`) Ã© uma linguagem de programaÃ§Ã£o corporativa de sistemas projetada para eliminar o abismo histÃ³rico entre as **regras de negÃ³cio do mundo corporativo** e a **engenharia de software de ultra-alta performance**.
+O **THZ-LANG** (`.thz`, `.thzui`) é uma linguagem de programação corporativa de sistemas projetada para eliminar o abismo histórico entre as **regras de negócio do mundo corporativo** e a **engenharia de software de ultra-alta performance**.
 
-Tradicionalmente, empresas precisam escolher entre linguagens de alto nÃ­vel legÃ­veis (onde regras de negÃ³cio sÃ£o expressivas, mas a performance e o controle de memÃ³ria sÃ£o limitados) ou linguagens de baixo nÃ­vel (rÃ¡pidas, porÃ©m excessivamente complexas para auditorias e analistas). O **THZ-LANG** resolve essa equaÃ§Ã£o combinando:
+Tradicionalmente, empresas precisam escolher entre linguagens de alto nível legíveis (onde regras de negócio são expressivas, mas a performance e o controle de memória são limitados) ou linguagens de baixo nível (rápidas, porém excessivamente complexas para auditorias e analistas). O **THZ-LANG** resolve essa equação combinando:
 
-1. **GovernanÃ§a e Contratos como CÃ³digo:** ClÃ¡usulas executÃ¡veis de prÃ© e pÃ³s-condiÃ§Ãµes (`EXIGE`/`GARANTE`), invariantes e metadados arquiteturais de rastreabilidade (SOX, BACEN, LGPD) integrados nativamente na AST.
-2. **AritmÃ©tica Financeira DeterminÃ­stica (ISO/IEC 10967 & ISO 4217):** ProibiÃ§Ã£o categÃ³rica de ponto flutuante binÃ¡rio IEEE 754 para moedas e decimais, garantindo precisÃ£o absoluta com arredondamento bancÃ¡rio meio-par (*Half-Even*).
-3. **Engenharia Orientada a Dados (DoD):** AlocaÃ§Ã£o linear em Arenas contÃ­guas descartÃ¡veis em $O(1)$, layout colunar *Structure of Arrays* (SoA) e laÃ§os vetorizados via instruÃ§Ãµes SIMD de hardware (AVX2/AVX-512).
-4. **Paradigma Dual Moderno ("Kotlin/Rust Corporativo"):** FluÃªncia completa tanto na clÃ¡ssica sintaxe corporativa estruturada em lÃ­ngua portuguesa quanto na moderna sintaxe concisa com chaves `{ ... }`, `fn`, `struct`, `var`, `val`, `=` e `:=`.
-5. **Autonomia AOT e Soberania TecnolÃ³gica:** CompilaÃ§Ã£o direta para cÃ³digo de mÃ¡quina nativo (.exe / .elf) via LLVM Clang linkando com o runtime de alta performance em Rust (`src/runtime_rs`), sem qualquer dependÃªncia de JVM em produÃ§Ã£o.
-6. **Tooling Industrial Completo:** Desktop IDE moderna em Swing FlatLaf, servidor LSP com depurador DAP nativo, assistente autÃ´nomo de cÃ³digo em terminal (`thz agent`) e protocolo oficial de liberaÃ§Ã£o para produÃ§Ã£o (`thz release`).
+1. **Governança e Contratos como Código:** Cláusulas executáveis de pré e pós-condições (`EXIGE`/`GARANTE`), invariantes e metadados arquiteturais de rastreabilidade (SOX, BACEN, LGPD) integrados nativamente na AST.
+2. **Aritmética Financeira Determinística (ISO/IEC 10967 & ISO 4217):** Proibição categórica de ponto flutuante binário IEEE 754 para moedas e decimais, garantindo precisão absoluta com arredondamento bancário meio-par (*Half-Even*).
+3. **Engenharia Orientada a Dados (DoD):** Alocação linear em Arenas contíguas descartáveis em $O(1)$, layout colunar *Structure of Arrays* (SoA) e laços vetorizados via instruções SIMD de hardware (AVX2/AVX-512).
+4. **Paradigma Dual Moderno ("Kotlin/Rust Corporativo"):** Fluência completa tanto na clássica sintaxe corporativa estruturada em língua portuguesa quanto na moderna sintaxe concisa com chaves `{ ... }`, `fn`, `struct`, `var`, `val`, `=` e `:=`.
+5. **Autonomia AOT e Soberania Tecnológica:** Compilação direta para código de máquina nativo (.exe / .elf) via LLVM Clang linkando com o runtime de alta performance em Rust (`src/runtime_rs`), sem qualquer dependência de JVM em produção.
+6. **Tooling Industrial Completo:** Desktop IDE moderna em Swing FlatLaf, servidor LSP com depurador DAP nativo, assistente autônomo de código em terminal (`thz agent`) e protocolo oficial de liberação para produção (`thz release`).
 
 ---
 
-## ðŸ’Ž O Que Torna o THZ Ãšnico?
+## 💎 O Que Torna o THZ Único?
 
-| Pilar | Abordagem Tradicional (Java / Python / Go) | Abordagem THZ-LANG | BenefÃ­cio Real |
+| Pilar | Abordagem Tradicional (Java / Python / Go) | Abordagem THZ-LANG | Benefício Real |
 | :--- | :--- | :--- | :--- |
-| **AritmÃ©tica MonetÃ¡ria** | `double`/`float` geram dÃ­zimas; `BigDecimal` gera overhead massivo no Heap | Inteiros escalados `DecimalFixo` e `i128` nativos com escala fixa | **Zero desvio financeiro** com velocidade de inteiros de hardware |
-| **Contratos de NegÃ³cio** | AnotaÃ§Ãµes `@Valid`, `assert` desligado ou `if` disperso | ClÃ¡usulas formais de primeira classe: `EXIGE`, `GARANTE`, `INVARIANTE` | **Auditoria 100% verificÃ¡vel** em tempo de compilaÃ§Ã£o e execuÃ§Ã£o |
-| **Processamento Massivo** | `List<Objeto>` com ponteiros espalhados, cache misses e GC pauses | `LAYOUT_COLUNAR` (SoA), `USAR_BLOCO_MEMORIA` (Arena $O(1)$) e SIMD | **VetorizaÃ§Ã£o AVX nativa** e descarte de memÃ³ria contÃ­gua em 0ms |
-| **Arquitetura Viva** | DocumentaÃ§Ã£o estÃ¡tica desatualizada no Confluence | `METADADOS_ARQUITETURA` e `RASTREIO_REQUISITO` compilÃ¡veis | **Rastreabilidade regulatÃ³ria** (SOX, BACEN, LGPD) ligada ao cÃ³digo |
-| **IA & Machine Learning** | DependÃªncia de ecossistemas pesados em Python / C++ | Embeddings determinÃ­sticos e ML tabular on-device (`IA.*`, `ML.*`) | **Zero latÃªncia externa**, zero custos de API e soberania LGPD |
-| **Entrega para ProduÃ§Ã£o** | Deploys baseados em pipelines opacos de CI | Protocolo criptogrÃ¡fico `thz release` com evidÃªncias SHA-256 | **Laudo formal auditÃ¡vel** emitido a cada homologaÃ§Ã£o |
+| **Aritmética Monetária** | `double`/`float` geram dízimas; `BigDecimal` gera overhead massivo no Heap | Inteiros escalados `DecimalFixo` e `i128` nativos com escala fixa | **Zero desvio financeiro** com velocidade de inteiros de hardware |
+| **Contratos de Negócio** | Anotações `@Valid`, `assert` desligado ou `if` disperso | Cláusulas formais de primeira classe: `EXIGE`, `GARANTE`, `INVARIANTE` | **Auditoria 100% verificável** em tempo de compilação e execução |
+| **Processamento Massivo** | `List<Objeto>` com ponteiros espalhados, cache misses e GC pauses | `LAYOUT_COLUNAR` (SoA), `USAR_BLOCO_MEMORIA` (Arena $O(1)$) e SIMD | **Vetorização AVX nativa** e descarte de memória contígua em 0ms |
+| **Arquitetura Viva** | Documentação estática desatualizada no Confluence | `METADADOS_ARQUITETURA` e `RASTREIO_REQUISITO` compiláveis | **Rastreabilidade regulatória** (SOX, BACEN, LGPD) ligada ao código |
+| **IA & Machine Learning** | Dependência de ecossistemas pesados em Python / C++ | Embeddings determinísticos e ML tabular on-device (`IA.*`, `ML.*`) | **Zero latência externa**, zero custos de API e soberania LGPD |
+| **Entrega para Produção** | Deploys baseados em pipelines opacos de CI | Protocolo criptográfico `thz release` com evidências SHA-256 | **Laudo formal auditável** emitido a cada homologação |
 
 ---
 
-## ðŸ›ï¸ Arquitetura do Ecossistema
+## 🏛️ Arquitetura do Ecossistema
 
-O THZ-LANG adota uma arquitetura unificada de camadas onde a **experiÃªncia do desenvolvedor**, o **nÃºcleo de governanÃ§a** e os **mecanismos de execuÃ§Ã£o** operam em perfeita sintonia:
+O THZ-LANG adota uma arquitetura unificada de camadas onde a **experiência do desenvolvedor**, o **núcleo de governança** e os **mecanismos de execução** operam em perfeita sintonia:
 
 ```mermaid
 flowchart TB
-    subgraph DEV_TOOLS["ðŸ’» Camada de ApresentaÃ§Ã£o & Ferramentas"]
+    subgraph DEV_TOOLS["💻 Camada de Apresentação & Ferramentas"]
         direction LR
-        VSCODE["ðŸ”Œ VS Code / Antigravity<br/>(LSP4J + DAP + TextMate)"]
-        GUI["ðŸ–¥ï¸ Desktop IDE FlatLaf<br/>(thz gui / Swing Dark-Light)"]
-        CLI["âš¡ CLI Unificada & REPL<br/>(thz run / dev / check / repl)"]
-        AGENT["ðŸ¤– Agente AutÃ´nomo de IA<br/>(thz agent / ReAct + RAG)"]
-        API["ðŸŒ Spring Boot REST API<br/>(thz-api-jvm / Porta 8080)"]
+        VSCODE["🔌 VS Code / Antigravity<br/>(LSP4J + DAP + TextMate)"]
+        GUI["🖥️ Desktop IDE FlatLaf<br/>(thz gui / Swing Dark-Light)"]
+        CLI["⚡ CLI Unificada & REPL<br/>(thz run / dev / check / repl)"]
+        AGENT["🤖 Agente Autônomo de IA<br/>(thz agent / ReAct + RAG)"]
+        API["🌐 Spring Boot REST API<br/>(thz-api-jvm / Porta 8080)"]
     end
 
-    subgraph CORE_ENGINE["â˜• NÃºcleo do Compilador (Java 25 Multi-MÃ³dulo)"]
+    subgraph CORE_ENGINE["☕ Núcleo do Compilador (Java 25 Multi-Módulo)"]
         direction TB
-        PARSER["LÃ©xico & Parser Dual<br/>(CanÃ´nico PT-BR & Moderno Kotlin/Rust)"]
-        AST["Ãrvore de Sintaxe Abstrata (AST)<br/>Sealed Records & Metadados de Arquitetura"]
-        SEMANTIC["AnÃ¡lise SemÃ¢ntica & Design by Contract<br/>(EXIGE â€¢ GARANTE â€¢ INVARIANTE â€¢ Tipagem EstÃ¡tica)"]
+        PARSER["Léxico & Parser Dual<br/>(Canônico PT-BR & Moderno Kotlin/Rust)"]
+        AST["Árvore de Sintaxe Abstrata (AST)<br/>Sealed Records & Metadados de Arquitetura"]
+        SEMANTIC["Análise Semântica & Design by Contract<br/>(EXIGE • GARANTE • INVARIANTE • Tipagem Estática)"]
         
         subgraph MODULES["Bibliotecas Nativas & Conectores"]
             direction LR
-            BRASIL["ðŸ‡§ðŸ‡· BRASIL.*<br/>(PIX, Boletos, CEPs, CPF)"]
-            DATA["ðŸ“Š DATA & DAX.*<br/>(ETL, Planilhas, EstatÃ­stica)"]
-            CONNECT["ðŸ—„ï¸ BANCO & MENSAGERIA<br/>(JPA, RawSQL, Kafka, SQS)"]
-            IA_ML["ðŸ§  IA & ML.*<br/>(Embeddings, RegressÃ£o, Cosine)"]
+            BRASIL["🇧🇷 BRASIL.*<br/>(PIX, Boletos, CEPs, CPF)"]
+            DATA["📊 DATA & DAX.*<br/>(ETL, Planilhas, Estatística)"]
+            CONNECT["🗄️ BANCO & MENSAGERIA<br/>(JPA, RawSQL, Kafka, SQS)"]
+            IA_ML["🧠 IA & ML.*<br/>(Embeddings, Regressão, Cosine)"]
         end
 
-        IR_GEN["Gerador de CÃ³digo IntermediÃ¡rio<br/>(THZ-IR/1 & LLVM IR Builder)"]
-        RELEASE_PROT["Protocolo de LiberaÃ§Ã£o<br/>(thz release â€¢ Assinatura SHA-256)"]
+        IR_GEN["Gerador de Código Intermediário<br/>(THZ-IR/1 & LLVM IR Builder)"]
+        RELEASE_PROT["Protocolo de Liberação<br/>(thz release • Assinatura SHA-256)"]
 
         PARSER --> AST --> SEMANTIC --> MODULES --> IR_GEN
         SEMANTIC --> RELEASE_PROT
     end
 
-    subgraph RUNTIMES["âš™ï¸ Runtimes & Alvos de ExecuÃ§Ã£o"]
+    subgraph RUNTIMES["⚙️ Runtimes & Alvos de Execução"]
         direction LR
         subgraph JVM_TARGET["Pipeline JVM 25"]
-            INTERP["Interpretador de Alta VazÃ£o"]
+            INTERP["Interpretador de Alta Vazão"]
             VTHREADS["Project Loom Virtual Threads"]
             DOCS_PDF["Motor Corporativo OpenPDF/POI"]
         end
 
         subgraph NATIVE_TARGET["Pipeline Nativo AOT (Zero JVM)"]
             LLVM_CLANG["LLVM Clang Compiler<br/>(scripts/build-llvm.ps1/.sh)"]
-            RUST_RUNTIME["ðŸ¦€ Runtime Nativo Rust (src/runtime_rs)<br/>â€¢ Alocador de Arena O(1)<br/>â€¢ VetorizaÃ§Ã£o SIMD AVX2/AVX-512<br/>â€¢ Criptografia Militar Argon2id/AES-GCM<br/>â€¢ Bridge WebAssembly W3C"]
+            RUST_RUNTIME["🦀 Runtime Nativo Rust (src/runtime_rs)<br/>• Alocador de Arena O(1)<br/>• Vetorização SIMD AVX2/AVX-512<br/>• Criptografia Militar Argon2id/AES-GCM<br/>• Bridge WebAssembly W3C"]
             LLVM_CLANG --> RUST_RUNTIME
         end
     end
 
-    subgraph ARTIFACTS["ðŸ“¦ Artefatos Finais Gerados"]
+    subgraph ARTIFACTS["📦 Artefatos Finais Gerados"]
         direction LR
-        ELF_PE["BinÃ¡rios Nativos AutÃ´nomos<br/>(.exe PE Windows / .elf Linux)"]
-        WASM_BIN["MÃ³dulo WebAssembly<br/>(.wasm Browser / Edge)"]
-        VSIX_PKG["ExtensÃ£o Oficial IDE<br/>(.vsix para VS Code/Antigravity)"]
-        BOOK_PDF["Manual TÃ©cnico Unificado<br/>(MANUAL_THZ_LANG.pdf)"]
+        ELF_PE["Binários Nativos Autônomos<br/>(.exe PE Windows / .elf Linux)"]
+        WASM_BIN["Módulo WebAssembly<br/>(.wasm Browser / Edge)"]
+        VSIX_PKG["Extensão Oficial IDE<br/>(.vsix para VS Code/Antigravity)"]
+        BOOK_PDF["Manual Técnico Unificado<br/>(MANUAL_THZ_LANG.pdf)"]
     end
 
     DEV_TOOLS --> CORE_ENGINE
@@ -140,14 +140,14 @@ flowchart TB
 
 ---
 
-## ðŸ”¥ O Showcase One-Shot: Todos os Recursos em AÃ§Ã£o!
+## 🔥 O Showcase One-Shot: Todos os Recursos em Ação!
 
-Abaixo estÃ¡ um programa completo demonstrando em um Ãºnico arquivo a expressividade, o rigor matemÃ¡tico e a engenharia de alta performance do **THZ-LANG**:
+Abaixo está um programa completo demonstrando em um único arquivo a expressividade, o rigor matemático e a engenharia de alta performance do **THZ-LANG**:
 
 ```thz
 programa SistemaFinanceiroConsolidado {
 
-    // 1. ARQUITETURA VIVA: GovernanÃ§a, Rastreio RegulatÃ³rio e Metadados Formais
+    // 1. ARQUITETURA VIVA: Governança, Rastreio Regulatório e Metadados Formais
     metadados {
         SISTEMA: "LiquidacaoInstantanea"
         MODULO: "MotorTributarioESIMD"
@@ -167,7 +167,7 @@ programa SistemaFinanceiroConsolidado {
         valorLiquido: Decimal(18, 2)
     }
 
-    // 3. FUNÃ‡Ã•ES PURAS & DESIGN BY CONTRACT
+    // 3. FUNÇÕES PURAS & DESIGN BY CONTRACT
     fn calcularTarifa(base: Decimal(18, 2)): Decimal(18, 2) = base * 0.0015
 
     regra ProcessarLoteFiscal {
@@ -176,10 +176,10 @@ programa SistemaFinanceiroConsolidado {
         garante: lote.valorLiquido[0] >= 0.00
 
         operacao ExecutarCalculo(lote: TransacaoLote) {
-            // 4. MEMÃ“RIA EM ARENA O(1): AlocaÃ§Ã£o contÃ­gua sem Garbage Collection
+            // 4. MEMÓRIA EM ARENA O(1): Alocação contígua sem Garbage Collection
             usar_bloco_memoria {
                 
-                // 5. VETORIZAÃ‡ÃƒO SIMD: AceleraÃ§Ã£o vetorial por hardware (AVX2 / AVX-512)
+                // 5. VETORIZAÇÃO SIMD: Aceleração vetorial por hardware (AVX2 / AVX-512)
                 vetorizar_para i de 0 ate tamanho(lote) - 1 passo_simd 8 {
                     var bruto = lote.quantidade[i] * lote.valorUnitario[i]
                     var imposto = bruto * lote.aliquotaImposto[i]
@@ -194,7 +194,7 @@ programa SistemaFinanceiroConsolidado {
     fn main(): Int {
         print "=== THZ-LANG v0.4.0: MOTOR EXECUTIVO & PERFORMANCE ==="
 
-        // 7. BRASIL DIGITAL: ValidaÃ§Ã£o fiscal de documentos e geraÃ§Ã£o de PIX EMVco
+        // 7. BRASIL DIGITAL: Validação fiscal de documentos e geração de PIX EMVco
         var cpfValido = BRASIL.validarCPF("123.456.789-00")
         var payloadPix = BRASIL.gerarPix("chave@empresa.com.br", 1500.50, "SP", "PAGTO-01")
         print "Payload PIX Copia e Cola:"
@@ -206,54 +206,54 @@ programa SistemaFinanceiroConsolidado {
                               ordenar_por saldo desc
                               limite 10
 
-        // 9. CONECTORES DE BANCO & MENSAGERIA DISTRIBUÃDA
+        // 9. CONECTORES DE BANCO & MENSAGERIA DISTRIBUÍDA
         BANCO.executar("UPDATE parametros SET ultimo_processamento = CURRENT_TIMESTAMP")
         MENSAGERIA.publicar("topico.liquidacoes", "Lote processado com sucesso!")
 
-        // 10. IA & MACHINE LEARNING ON-DEVICE (Zero DependÃªncia de Python)
-        var embedding1 = IA.embedding("TransaÃ§Ã£o Financeira Suspeita")
-        var embedding2 = IA.embedding("TransferÃªncia de Alto Valor")
+        // 10. IA & MACHINE LEARNING ON-DEVICE (Zero Dependência de Python)
+        var embedding1 = IA.embedding("Transação Financeira Suspeita")
+        var embedding2 = IA.embedding("Transferência de Alto Valor")
         var similaridade = IA.similaridade(embedding1, embedding2)
-        print "Similaridade SemÃ¢ntica Calculada On-Device:"
+        print "Similaridade Semântica Calculada On-Device:"
         print similaridade
 
-        print "Processamento concluÃ­do com sucesso e conformidade ISO/IEC 10967 garantida."
+        print "Processamento concluído com sucesso e conformidade ISO/IEC 10967 garantida."
         retorne 0
     }
 }
 ```
 
 > [!TIP]
-> O cÃ³digo acima compila e executa **tanto no interpretador JVM 25** com Virtual Threads quanto em **binÃ¡rio nativo compilado AOT via LLVM Clang (.exe / .elf)**, linkando com o runtime Rust sem alteraÃ§Ã£o de uma Ãºnica linha de cÃ³digo.
+> O código acima compila e executa **tanto no interpretador JVM 25** com Virtual Threads quanto em **binário nativo compilado AOT via LLVM Clang (.exe / .elf)**, linkando com o runtime Rust sem alteração de uma única linha de código.
 
 ---
 
-## âš–ï¸ Paradigma Dual: Corporativo vs Moderno
+## ⚖️ Paradigma Dual: Corporativo vs Moderno
 
-O THZ-LANG entende que diferentes contextos exigem diferentes nÃ­veis de cerimÃ´nia. Por isso, a linguagem oferece **Paridade 1:1** entre o estilo clÃ¡ssico corporativo e o estilo moderno conciso:
+O THZ-LANG entende que diferentes contextos exigem diferentes níveis de cerimônia. Por isso, a linguagem oferece **Paridade 1:1** entre o estilo clássico corporativo e o estilo moderno conciso:
 
 <div align="center">
 
-| Recurso | Estilo Corporativo ClÃ¡ssico (PT-BR) | Estilo Moderno ("Kotlin/Rust Corporativo") |
+| Recurso | Estilo Corporativo Clássico (PT-BR) | Estilo Moderno ("Kotlin/Rust Corporativo") |
 | :--- | :--- | :--- |
-| **DeclaraÃ§Ã£o de MÃ³dulo** | `PROGRAMA NEGOCIO Faturamento ... FIM_PROGRAMA` | `programa Faturamento { ... }` |
+| **Declaração de Módulo** | `PROGRAMA NEGOCIO Faturamento ... FIM_PROGRAMA` | `programa Faturamento { ... }` |
 | **Metadados de Arquitetura** | `METADADOS_ARQUITETURA ... FIM_METADADOS` | `metadados { ... }` |
-| **DefiniÃ§Ã£o de Tipos** | `ESTRUTURA Pedido ... FIM_ESTRUTURA` | `struct Pedido { ... }` |
-| **DeclaraÃ§Ã£o de VariÃ¡vel** | `VARIAVEL total : INTEIRO <- 100` | `var total: Int = 100` ou `var total = 100` |
-| **Constante ImutÃ¡vel** | `CONSTANTE taxa : DECIMAL <- 0.05` | `val taxa: Decimal = 0.05` |
-| **FunÃ§Ãµes & ExpressÃµes** | `FUNCAO somar(a: INT): INT ... FIM_FUNCAO` | `fn somar(a: Int, b: Int): Int = a + b` |
+| **Definição de Tipos** | `ESTRUTURA Pedido ... FIM_ESTRUTURA` | `struct Pedido { ... }` |
+| **Declaração de Variável** | `VARIAVEL total : INTEIRO <- 100` | `var total: Int = 100` ou `var total = 100` |
+| **Constante Imutável** | `CONSTANTE taxa : DECIMAL <- 0.05` | `val taxa: Decimal = 0.05` |
+| **Funções & Expressões** | `FUNCAO somar(a: INT): INT ... FIM_FUNCAO` | `fn somar(a: Int, b: Int): Int = a + b` |
 | **Condicionais** | `SE condicao ENTAO ... SENAO ... FIM_SE` | `se condicao { ... } senao { ... }` |
-| **LaÃ§os de RepetiÃ§Ã£o** | `PARA i DE 0 ATE 10 PASSO 1 ... FIM_PARA` | `para i de 0 ate 10 passo 1 { ... }` |
-| **SaÃ­da no Console** | `EXIBA "Mensagem"` | `print "Mensagem"` |
-| **Retorno de FunÃ§Ã£o** | `RETORNE total` | `ret total` ou `retorne total` |
+| **Laços de Repetição** | `PARA i DE 0 ATE 10 PASSO 1 ... FIM_PARA` | `para i de 0 ate 10 passo 1 { ... }` |
+| **Saída no Console** | `EXIBA "Mensagem"` | `print "Mensagem"` |
+| **Retorno de Função** | `RETORNE total` | `ret total` ou `retorne total` |
 
 </div>
 
 ---
 
-## âš¡ Quick Start em 3 Passos
+## ⚡ Quick Start em 3 Passos
 
-### 1. Clonar o RepositÃ³rio
+### 1. Clonar o Repositório
 ```bash
 git clone https://github.com/thz-lang/thz-lang.git
 cd thz-lang
@@ -263,153 +263,152 @@ cd thz-lang
 O projeto conta com scripts multiplataforma e o wrapper oficial do Gradle:
 
 ```bash
-# DiagnÃ³stico completo do ambiente (Java 25, Clang, Rust, Node, etc.)
+# Diagnóstico completo do ambiente (Java 25, Clang, Rust, Node, etc.)
 powershell -ExecutionPolicy Bypass -File scripts/health-check.ps1  # Windows
 ./scripts/health-check.sh                                         # Linux / macOS
 
-# Executar a suÃ­te de testes JUnit 5
+# Executar a suíte de testes JUnit 5
 ./gradlew test
 ```
 
 ### 3. Rodar seu Primeiro Programa
 ```bash
-# ExecuÃ§Ã£o na JVM com hot reload e anÃ¡lise semÃ¢ntica:
+# Execução na JVM com hot reload e análise semântica:
 ./gradlew cli --args="run exemplos/gestao_pedidos_moderno.thz"
 
 # Iniciar a Desktop IDE moderna Swing + FlatLaf:
 ./gradlew gui
 
-# Iniciar o Agente AutÃ´nomo de IA no terminal:
+# Iniciar o Agente Autônomo de IA no terminal:
 ./gradlew cli --args="agent"
 ```
 
 ---
 
-## ðŸ› ï¸ Manual de Comandos da CLI (17 Comandos)
+## 🛠️ Manual de Comandos da CLI (17 Comandos)
 
-A ferramenta de linha de comando (`thz`) Ã© a central de operaÃ§Ãµes do ecossistema. Use `./gradlew cli --args="<comando>"` ou invoque o binÃ¡rio nativo `thz`:
+A ferramenta de linha de comando (`thz`) é a central de operações do ecossistema. Use `./gradlew cli --args="<comando>"` ou invoque o binário nativo `thz`:
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                      THZ-LANG CLI COMMAND SUITE                        â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌────────────────────────────────────────────────────────────────────────┐
+│                      THZ-LANG CLI COMMAND SUITE                        │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
-| Comando | DescriÃ§Ã£o | Sintaxe TÃ­pica |
+| Comando | Descrição | Sintaxe Típica |
 | :--- | :--- | :--- |
-| **`check`** | AnÃ¡lise lÃ©xica, sintÃ¡tica, verificaÃ§Ã£o de contratos e lint | `thz check pedido.thz --estrito` |
-| **`run`** | ExecuÃ§Ã£o rÃ¡pida de programas (canÃ´nicos ou com `fn main`) | `thz run faturamento.thz` |
-| **`dev`** | Servidor de desenvolvimento com Live Reload instantÃ¢neo | `thz dev faturamento.thz` |
-| **`audit`** | Matriz de governanÃ§a, auditoria e rastreabilidade com Git | `thz audit pedido.thz --git` |
-| **`release`** / **`liberar`** | Protocolo de homologaÃ§Ã£o com evidÃªncias e assinatura SHA-256 | `thz release fat.thz --dados homolog.json` |
-| **`agent`** | Inicia o Agente AutÃ´nomo de IA para codificaÃ§Ã£o e RAG | `thz agent --modelo llama3` |
+| **`check`** | Análise léxica, sintática, verificação de contratos e lint | `thz check pedido.thz --estrito` |
+| **`run`** | Execução rápida de programas (canônicos ou com `fn main`) | `thz run faturamento.thz` |
+| **`dev`** | Servidor de desenvolvimento com Live Reload instantâneo | `thz dev faturamento.thz` |
+| **`audit`** | Matriz de governança, auditoria e rastreabilidade com Git | `thz audit pedido.thz --git` |
+| **`release`** / **`liberar`** | Protocolo de homologação com evidências e assinatura SHA-256 | `thz release fat.thz --dados homolog.json` |
+| **`agent`** | Inicia o Agente Autônomo de IA para codificação e RAG | `thz agent --modelo llama3` |
 | **`init`** | Inicializa um novo projeto criando o manifesto `thz.config.json` | `thz init meu_sistema` |
-| **`compile`** | CompilaÃ§Ã£o AOT de um arquivo para cÃ³digo de mÃ¡quina nativo | `thz compile app.thz --alvo ambos` |
-| **`compile-all`** | CompilaÃ§Ã£o em lote de todos os programas do projeto | `thz compile-all` |
-| **`fmt`** | Formatador de cÃ³digo idempotente | `thz fmt --escrever pedido.thz` |
-| **`doc`** | GeraÃ§Ã£o de documentaÃ§Ã£o viva em Markdown e diagramas Mermaid | `thz doc pedido.thz --saida docs/` |
-| **`ui`** | Renderizador e compilador de formulÃ¡rios `.thzui` em HTML5 | `thz ui tela.thzui --html` |
-| **`ir`** | InspeÃ§Ã£o da representaÃ§Ã£o intermediÃ¡ria THZ-IR e LLVM IR | `thz ir app.thz --llvm` |
-| **`ast`** | Dump estruturado da Ãrvore de Sintaxe Abstrata (AST) em JSON | `thz ast app.thz` |
-| **`livro`** / **`manual`** | CompilaÃ§Ã£o de todos os tratados tÃ©cnicos em PDF unificado | `thz livro --saida dist/MANUAL.pdf` |
-| **`repl`** | Shell interativo multi-linha com inspeÃ§Ã£o em tempo real | `thz repl` |
-| **`gui`** | InicializaÃ§Ã£o da Desktop IDE Swing FlatLaf | `thz gui` |
+| **`compile`** | Compilação AOT de um arquivo para código de máquina nativo | `thz compile app.thz --alvo ambos` |
+| **`compile-all`** | Compilação em lote de todos os programas do projeto | `thz compile-all` |
+| **`fmt`** | Formatador de código idempotente | `thz fmt --escrever pedido.thz` |
+| **`doc`** | Geração de documentação viva em Markdown e diagramas Mermaid | `thz doc pedido.thz --saida docs/` |
+| **`ui`** | Renderizador e compilador de formulários `.thzui` em HTML5 | `thz ui tela.thzui --html` |
+| **`ir`** | Inspeção da representação intermediária THZ-IR e LLVM IR | `thz ir app.thz --llvm` |
+| **`ast`** | Dump estruturado da Árvore de Sintaxe Abstrata (AST) em JSON | `thz ast app.thz` |
+| **`livro`** / **`manual`** | Compilação de todos os tratados técnicos em PDF unificado | `thz livro --saida dist/MANUAL.pdf` |
+| **`repl`** | Shell interativo multi-linha com inspeção em tempo real | `thz repl` |
+| **`gui`** | Inicialização da Desktop IDE Swing FlatLaf | `thz gui` |
 
 ---
 
-## ðŸš€ CompilaÃ§Ã£o Nativa AOT (Zero DependÃªncia de JVM)
+## 🚀 Compilação Nativa AOT (Zero Dependência de JVM)
 
-Para ambientes de produÃ§Ã£o com contÃªineres mÃ­nimos (`scratch`/`alpine`), o THZ-LANG disponibiliza compilaÃ§Ã£o AOT que gera binÃ¡rios nativos autÃ´nomos linkando diretamente com o runtime em Rust:
+Para ambientes de produção com contêineres mínimos (`scratch`/`alpine`), o THZ-LANG disponibiliza compilação AOT que gera binários nativos autônomos linkando diretamente com o runtime em Rust:
 
 ```bash
-# No Windows (PowerShell): Gera executÃ¡vel PE (.exe)
+# No Windows (PowerShell): Gera executável PE (.exe)
 powershell.exe -ExecutionPolicy Bypass -File scripts/build-llvm.ps1 -ArquivoThz exemplos/gestao_pedidos_moderno.thz
 
-# No Linux (Bash): Gera executÃ¡vel ELF (.elf)
+# No Linux (Bash): Gera executável ELF (.elf)
 ./scripts/build-llvm.sh exemplos/gestao_pedidos_moderno.thz
 
-# Executar o binÃ¡rio de cÃ³digo de mÃ¡quina nativo gerado:
+# Executar o binário de código de máquina nativo gerado:
 ./dist/bin/gestao_pedidos_moderno.exe   # Windows
 ./dist/bin/gestao_pedidos_moderno.elf   # Linux
 ```
 
 > [!NOTE]
-> Os binÃ¡rios nativos gerados nÃ£o contÃªm bytecode, nÃ£o necessitam do runtime Java instalado e inicializam em menos de **3 milissegundos**, consumindo menos de **12 MB** de memÃ³ria residente.
+> Os binários nativos gerados não contêm bytecode, não necessitam do runtime Java instalado e inicializam em menos de **3 milissegundos**, consumindo menos de **12 MB** de memória residente.
 
 ---
 
-## ðŸ³ Docker, Podman & Dev Containers
+## 🐳 Docker, Podman & Dev Containers
 
-Execute e desenvolva sem necessidade de instalar dependÃªncias locais:
+Execute e desenvolva sem necessidade de instalar dependências locais:
 
 ```bash
-# Subir a API REST e o ambiente em contÃªiner (auto-detecta Podman ou Docker):
+# Subir a API REST e o ambiente em contêiner (auto-detecta Podman ou Docker):
 npm run docker:up
 
-# REPL interativo dentro do contÃªiner:
+# REPL interativo dentro do contêiner:
 npm run docker:repl
 
-# Testes automatizados dentro do contÃªiner:
+# Testes automatizados dentro do contêiner:
 npm run docker:test
 ```
-ðŸ‘‰ [Consulte o Guia Completo de Docker, Podman e Dev Containers](docs/DOCKER_PODMAN_DEVCONTAINER.md)
+👉 [Consulte o Guia Completo de Docker, Podman e Dev Containers](docs/DOCKER_PODMAN_DEVCONTAINER.md)
 
 ---
 
-## ðŸ§± Estrutura do Monorepo
+## 🧱 Estrutura do Monorepo
 
 ```
 thz-lang/
-â”œâ”€â”€ compilador/                 # ðŸš€ Compilador Self-Hosted escrito em THZ (.thz)
-â”œâ”€â”€ exemplos/                   # ðŸ’¡ ColeÃ§Ã£o canÃ´nica e moderna de exemplos reais
-â”œâ”€â”€ scripts/                    # ðŸ› ï¸ SuÃ­te multiplataforma de automaÃ§Ã£o (.ps1 e .sh)
-â”œâ”€â”€ src/
-â”‚   â””â”€â”€ runtime_rs/             # ðŸ¦€ Runtime Nativo Oficial em Rust com C ABI (Arena, SIMD, Crypto, WASM)
-â”œâ”€â”€ JVM/                        # â˜• Monorepo Java 25 (Gradle Composite Build)
-â”‚   â”œâ”€â”€ thz-core-jvm/           # NÃºcleo: Lexer, Parser, AST, SemÃ¢ntico, Runtime, DecimalFixo, IR, DAP
-â”‚   â”œâ”€â”€ thz-cli-jvm/            # CLI unificada (17 comandos), REPL e Dev Server
-â”‚   â”œâ”€â”€ thz-gui-jvm/            # Desktop IDE Swing FlatLaf (Editor, Gutter, FormulÃ¡rios)
-â”‚   â”œâ”€â”€ thz-lsp-jvm/            # Servidor LSP oficial (LSP4J)
-â”‚   â”œâ”€â”€ thz-agent-jvm/          # Agente AutÃ´nomo de IA em terminal (ReAct, RAG, Tools)
-â”‚   â”œâ”€â”€ thz-bench-jvm/          # Microbenchmarks de alta precisÃ£o JMH
-â”‚   â””â”€â”€ thz-api-jvm/            # API REST Spring Boot para integraÃ§Ã£o externa
-â”œâ”€â”€ Extensions/
-â”‚   â””â”€â”€ thz-lsp-vscode/         # ðŸ”Œ ExtensÃ£o oficial para VS Code e Antigravity IDE
-â”œâ”€â”€ docs/                       # ðŸ“– Manuais tÃ©cnicos formais, tratados arquiteturais e ADRs
-â””â”€â”€ dist/                       # ðŸ“¦ Pacotes e binÃ¡rios finais gerados (.exe, .elf, .jar, .vsix, .pdf)
+├── compilador/                 # 🚀 Compilador Self-Hosted escrito em THZ (.thz)
+├── exemplos/                   # 💡 Coleção canônica e moderna de exemplos reais
+├── scripts/                    # 🛠️ Suíte multiplataforma de automação (.ps1 e .sh)
+├── src/
+│   └── runtime_rs/             # 🦀 Runtime Nativo Oficial em Rust com C ABI (Arena, SIMD, Crypto, WASM)
+├── JVM/                        # ☕ Monorepo Java 25 (Gradle Composite Build)
+│   ├── thz-core-jvm/           # Núcleo: Lexer, Parser, AST, Semântico, Runtime, DecimalFixo, IR, DAP
+│   ├── thz-cli-jvm/            # CLI unificada (17 comandos), REPL e Dev Server
+│   ├── thz-gui-jvm/            # Desktop IDE Swing FlatLaf (Editor, Gutter, Formulários)
+│   ├── thz-lsp-jvm/            # Servidor LSP oficial (LSP4J)
+│   ├── thz-agent-jvm/          # Agente Autônomo de IA em terminal (ReAct, RAG, Tools)
+│   ├── thz-bench-jvm/          # Microbenchmarks de alta precisão JMH
+│   └── thz-api-jvm/            # API REST Spring Boot para integração externa
+├── Extensions/
+│   └── thz-lsp-vscode/         # 🔌 Extensão oficial para VS Code e Antigravity IDE
+├── docs/                       # 📖 Manuais técnicos formais, tratados arquiteturais e ADRs
+└── dist/                       # 📦 Pacotes e binários finais gerados (.exe, .elf, .jar, .vsix, .pdf)
 ```
 
 ---
 
-## ðŸ“– DocumentaÃ§Ã£o Oficial
+## 📖 Documentação Oficial
 
-Explore a suÃ­te completa de documentaÃ§Ã£o tÃ©cnica do ecossistema:
+Explore a suíte completa de documentação técnica do ecossistema:
 
 <div align="center">
 
-| Categoria | Documento | ConteÃºdo Principal |
+| Categoria | Documento | Conteúdo Principal |
 | :--- | :--- | :--- |
-| **Fundamentos** | ðŸ“˜ [**Manual Completo da Linguagem**](docs/MANUAL_LINGUAGEM.md) | Guia completo da sintaxe, tipagem, contratos e regras |
-| **Arquitetura** | âš™ï¸ [**Arquitetura de CompilaÃ§Ã£o Nativa**](docs/ARQUITETURA_COMPILACAO_NATIVA.md) | Tratado completo de IR/IL, LLVM Clang, GraalVM e AOT |
-| **Performance** | ðŸ§± [**Runtime Nativo Rust**](docs/RUNTIME_NATIVO.md) | Rust C ABI, Arenas $O(1)$, SIMD AVX-512 e WASM |
-| **Performance** | âš¡ [**Guia de Performance & Tuning**](docs/GUIA_PERFORMANCE.md) | Ajustes finos de SoA, SIMD, Arenas e mÃ©tricas JMH |
-| **Conectores** | ðŸ—„ï¸ [**Banco de Dados & Mensageria**](docs/CONECTORES_BANCO_E_MENSAGERIA.md) | ORM JPA-like, Raw SQL, Busca KNN, RabbitMQ, Kafka e SQS |
-| **InovaÃ§Ã£o** | ðŸ‡§ðŸ‡· [**Brasil Digital & Snapshot Engine**](docs/BRASIL_DIGITAL_E_SNAPSHOT_ENGINE.md) | PIX EMVco, Boletos Febraban, CEPs offline `.thzdbi` e Snapshots |
-| **Analytics** | ðŸ“Š [**Engenharia de Dados & Analytics**](docs/ENGENHARIA_DE_DADOS_E_ANALYTICS.md) | MÃ³dulos DAX, estatÃ­stica descritiva, PROCV e sanitizaÃ§Ã£o |
-| **Big Data** | ðŸŒŠ [**Pipelines de Dados Massivos**](docs/PIPELINE_DADOS.md) | IngestÃ£o, transformaÃ§Ã£o colunar e streaming reativo |
-| **Interface** | ðŸ–¼ï¸ [**DSL Visual TELA / .thzui**](docs/TELA_THZUI.md) | ConstruÃ§Ã£o declarativa de interfaces grÃ¡ficas e WebView |
-| **Tooling** | ðŸ› ï¸ [**Manual de CLI & Ferramentas**](docs/CLI_E_TOOLING.md) | ReferÃªncia completa dos 17 comandos da CLI e IDEs |
-| **Conformidade**| ðŸ›ï¸ [**Conformidade & Normas TÃ©cnicas**](docs/CONFORMIDADE_E_NORMAS.md) | AderÃªncia a ISO/IEC 10967, ISO 4217, ISO 42010 e LGPD |
-| **DecisÃµes** | ðŸ“š [**ADRs (Registros Arquiteturais)**](docs/ADRs/README.md) | 6 decisÃµes formais (LLVM, Arenas, i128, FlatLaf, Sintaxe...) |
-| **EstratÃ©gia** | ðŸ—ºï¸ [**Roadmap EstratÃ©gico**](docs/ROADMAP.md) | Os 5 pilares de evoluÃ§Ã£o tÃ©cnica rumo Ã  v1.0.0 estÃ¡vel |
-| **GovernanÃ§a** | ðŸ“¦ [**Changelog Oficial**](CHANGELOG.md) | HistÃ³rico de releases em conformidade com SemVer 2.0.0 |
-| **Comunidade** | ðŸ¤ [**Guia de ContribuiÃ§Ã£o**](CONTRIBUTING.md) | Normas e diretrizes para colaboradores e desenvolvedores |
+| **Fundamentos** | 📘 [**Manual Completo da Linguagem**](docs/MANUAL_LINGUAGEM.md) | Guia completo da sintaxe, tipagem, contratos e regras |
+| **Arquitetura** | ⚙️ [**Arquitetura de Compilação Nativa**](docs/ARQUITETURA_COMPILACAO_NATIVA.md) | Tratado completo de IR/IL, LLVM Clang, GraalVM e AOT |
+| **Performance** | 🧱 [**Runtime Nativo Rust**](docs/RUNTIME_NATIVO.md) | Rust C ABI, Arenas $O(1)$, SIMD AVX-512 e WASM |
+| **Performance** | ⚡ [**Guia de Performance & Tuning**](docs/GUIA_PERFORMANCE.md) | Ajustes finos de SoA, SIMD, Arenas e métricas JMH |
+| **Conectores** | 🗄️ [**Banco de Dados & Mensageria**](docs/CONECTORES_BANCO_E_MENSAGERIA.md) | ORM JPA-like, Raw SQL, Busca KNN, RabbitMQ, Kafka e SQS |
+| **Inovação** | 🇧🇷 [**Brasil Digital & Snapshot Engine**](docs/BRASIL_DIGITAL_E_SNAPSHOT_ENGINE.md) | PIX EMVco, Boletos Febraban, CEPs offline `.thzdbi` e Snapshots |
+| **Analytics** | 📊 [**Engenharia de Dados & Analytics**](docs/ENGENHARIA_DE_DADOS_E_ANALYTICS.md) | Módulos DAX, estatística descritiva, PROCV e sanitização |
+| **Big Data** | 🌊 [**Pipelines de Dados Massivos**](docs/PIPELINE_DADOS.md) | Ingestão, transformação colunar e streaming reativo |
+| **Interface** | 🖼️ [**DSL Visual TELA / .thzui**](docs/TELA_THZUI.md) | Construção declarativa de interfaces gráficas e WebView |
+| **Tooling** | 🛠️ [**Manual de CLI & Ferramentas**](docs/CLI_E_TOOLING.md) | Referência completa dos 17 comandos da CLI e IDEs |
+| **Conformidade**| 🏛️ [**Conformidade & Normas Técnicas**](docs/CONFORMIDADE_E_NORMAS.md) | Aderência a ISO/IEC 10967, ISO 4217, ISO 42010 e LGPD |
+| **Decisões** | 📚 [**ADRs (Registros Arquiteturais)**](docs/ADRs/README.md) | 6 decisões formais (LLVM, Arenas, i128, FlatLaf, Sintaxe...) |
+| **Estratégia** | 🗺️ [**Roadmap Estratégico**](docs/ROADMAP.md) | Os 5 pilares de evolução técnica rumo à v1.0.0 estável |
+| **Governança** | 📦 [**Changelog Oficial**](CHANGELOG.md) | Histórico de releases em conformidade com SemVer 2.0.0 |
+| **Comunidade** | 🤝 [**Guia de Contribuição**](CONTRIBUTING.md) | Normas e diretrizes para colaboradores e desenvolvedores |
 
 </div>
 
 ---
 
-## âš–ï¸ LicenÃ§a
+## ⚖️ Licença
 
-Este projeto estÃ¡ licenciado sob a [LicenÃ§a MIT](LICENSE) â€” livre para uso corporativo, acadÃªmico e comercial.
-
+Este projeto está licenciado sob a [Licença MIT](LICENSE) — livre para uso corporativo, acadêmico e comercial.

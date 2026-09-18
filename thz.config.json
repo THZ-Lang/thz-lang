@@ -1,10 +1,10 @@
-﻿{
+{
   "projeto": {
     "nome": "thz-lang",
-    "versao": "﻿0.4.0",
+    "versao": "0.4.0",
     "autor": "Lucas Thomaz",
     "dialeto": "pt-BR",
-    "descricao": "THZ-LANG â€” Linguagem Corporativa de Sistemas, GovernanÃ§a DDD e Alta Performance"
+    "descricao": "THZ-LANG — Linguagem Corporativa de Sistemas, Governança DDD e Alta Performance"
   },
   "banco": {
     "driver": "auto",
@@ -40,4 +40,3 @@
     ]
   }
 }
-
