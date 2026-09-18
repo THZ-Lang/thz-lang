@@ -1,0 +1,52 @@
+TELA PortalFinanceiroEmbutido
+
+METADADOS_ARQUITETURA
+    DOMINIO: "FinancasCorporativas"
+    CAMADA: "InterfaceWeb"
+    VERSAO: "3.0.0"
+    AUTOR: "Engenharia THZ-LANG"
+    SLO_LATENCIA_MAXIMA: "10ms"
+    CONFORMIDADE: "SOX-404", "ISO-10967"
+FIM_METADADOS
+
+# --- MODELO DE DADOS FINANCEIRO ---
+ESTRUTURA TransacaoFinanceira
+    id           : UUID
+    descricao    : TEXTO
+    categoria    : TEXTO
+    tipo         : TEXTO
+    valor        : MONETARIO("BRL")
+    data_emissao : DATA
+FIM_ESTRUTURA
+
+# --- REGRAS DE NEGÓCIO E CONTRATOS ---
+REGRA_NEGOCIO GestaoFinanceira
+    IDENTIFICADOR_REGRA: "BR-FIN-WEB-01"
+    RASTREIO_REQUISITO: "REQ-FIN-001"
+    DESCRICAO: "Validação estrita e processamento de lançamentos financeiros corporativos."
+
+    CONTRATO_ENTRADA
+        EXIGE valor > 0.00
+        EXIGE descricao != ""
+    FIM_CONTRATO_ENTRADA
+
+    OPERACAO RegistrarLancamento(descricao : TEXTO, tipo : TEXTO, valor : MONETARIO("BRL")) : MONETARIO("BRL")
+    INICIO
+        EXIBA "[LANCAMENTO] Descrição: " + descricao + " | Tipo: " + tipo + " | Valor: " + valor
+        RETORNE valor
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- PROCEDIMENTOS DE AÇÃO DA INTERFACE ---
+PROCEDIMENTO AtualizarDashboard()
+INICIO
+    EXIBA "[PORTAL WEB] Sincronizando métricas e fluxo de caixa em tempo real..."
+    EXIBA "[PORTAL WEB] Receita Total: R$ 1.450.800,00 | Despesas: R$ 890.350,00 | EBITDA: +38.6%"
+FIM
+
+PROCEDIMENTO ExportarRelatorioFiscal()
+INICIO
+    EXIBA "[PORTAL WEB] Gerando arquivo SPED Fiscal / EFD Contribuições com integridade SHA-256..."
+FIM
+
+FIM_TELA

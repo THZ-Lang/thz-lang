@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# THZ-LANG Health Check - Diagnóstico do Ambiente (Linux/macOS)
+# Verifica: Java 25, GraalVM, LLVM/Clang, GCC, Node.js, Gradle Wrapper
+# Uso: ./scripts/health-check.sh
+# ==============================================================================
+
+RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$RAIZ"
+
+echo -e "\033[0;36m=================================================\033[0m"
+echo -e "\033[0;36m THZ-LANG -- Health Check (Linux/macOS)\033[0m"
+echo -e "\033[0;36m=================================================\033[0m"
+
+OK=true
+
+test_cmd() {
+    local cmd="$1"
+    local desc="$2"
+    if command -v "$cmd" >/dev/null 2>&1; then
+        echo -e "\033[0;32m[OK] $desc : $(command -v "$cmd")\033[0m"
+        return 0
+    else
+        echo -e "\033[0;31m[FALTA] $desc ($cmd) não encontrado\033[0m"
+        return 1
+    fi
+}
+
+# 1. Java 25
+if test_cmd "java" "Java (JDK)"; then
+    java -version 2>&1 | head -n 1 | sed 's/^/      /'
+else
+    OK=false
+fi
+
+# 2. GraalVM Native Image
+if test_cmd "native-image" "GraalVM Native Image"; then
+    native-image --version 2>&1 | head -n 1 | sed 's/^/      /'
+else
+    echo -e "\033[0;33m[AVISO] native-image não encontrado no PATH (opcional para binários nativos AOT)\033[0m"
+fi
+
+# 3. LLVM / Clang
+if test_cmd "clang" "LLVM Clang"; then
+    clang --version 2>&1 | head -n 1 | sed 's/^/      /'
+fi
+
+# 4. GCC
+if test_cmd "gcc" "GNU GCC"; then
+    gcc --version 2>&1 | head -n 1 | sed 's/^/      /'
+fi
+
+# 5. Node.js e npm
+if test_cmd "node" "Node.js"; then
+    node -v | sed 's/^/      /'
+else
+    OK=false
+fi
+
+if test_cmd "npm" "npm"; then
+    npm -v | sed 's/^/      /'
+fi
+
+# 6. Gradle Wrapper
+if [ -f "$RAIZ/gradlew" ]; then
+    echo -e "\033[0;32m[OK] Gradle Wrapper : $RAIZ/gradlew\033[0m"
+    chmod +x "$RAIZ/gradlew"
+else
+    echo -e "\033[0;31m[FALTA] gradlew não encontrado na raiz\033[0m"
+    OK=false
+fi
+
+# 7. Contêineres (Docker / Podman)
+if command -v podman >/dev/null 2>&1; then
+    echo -e "\033[0;32m[OK] Podman Container Runtime : $(command -v podman)\033[0m"
+elif command -v docker >/dev/null 2>&1; then
+    echo -e "\033[0;32m[OK] Docker Container Runtime : $(command -v docker)\033[0m"
+else
+    echo -e "\033[0;33m[INFO] Docker / Podman não encontrados (opcional)\033[0m"
+fi
+
+# 8. Módulos do Projeto
+MODULOS=(
+    "thz-core-jvm:../thz-core-jvm:JVM/thz-core-jvm"
+    "thz-cli-jvm:../thz-cli-jvm:JVM/thz-cli-jvm"
+    "thz-gui-jvm:../thz-gui-jvm:JVM/thz-gui-jvm"
+    "thz-lsp-jvm:../thz-lsp-jvm:JVM/thz-lsp-jvm"
+    "thz-api-jvm:../thz-api-jvm:JVM/thz-api-jvm"
+    "thz-agent-jvm:../thz-agent-jvm:JVM/thz-agent-jvm"
+    "thz-bench-jvm:../thz-bench-jvm:JVM/thz-bench-jvm"
+    "thz-compiler:../thz-compiler:compilador"
+    "thz-runtime-rs:../thz-runtime-rs:src/runtime_rs"
+    "thz-vscode:../thz-vscode:Extensions/thz-lsp-vscode"
+    "exemplos:exemplos:exemplos"
+)
+for entry in "${MODULOS[@]}"; do
+    IFS=':' read -r nome sib loc <<< "$entry"
+    if [ -d "$RAIZ/$sib" ] || [ -d "$RAIZ/$loc" ]; then
+        echo -e "\033[0;32m[OK] Módulo $nome\033[0m"
+    else
+        echo -e "\033[0;31m[FALTA] Módulo $nome não encontrado\033[0m"
+        OK=false
+    fi
+done
+
+echo -e "\033[0;36m=================================================\033[0m"
+if [ "$OK" = true ]; then
+    echo -e "\033[0;32m Ambiente 100% OK -- pronto para ./scripts/setup.sh\033[0m"
+else
+    echo -e "\033[0;31m Ambiente possui pendências listadas acima.\033[0m"
+fi

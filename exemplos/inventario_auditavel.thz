@@ -1,0 +1,31 @@
+PROGRAMA NEGOCIO InventarioAuditavel
+
+METADADOS_ARQUITETURA
+    SISTEMA: "AcervoDigital"
+    MODULO: "InventarioAuditavel"
+    DOMINIO: "ArquivologiaDigital"
+    VERSAO: "0.1.0"
+    AUTOR: "THZ-Lang"
+    SLO_LATENCIA_MAXIMA: "100ms por item"
+    CONFORMIDADE: "ISO-IEC-IEEE-42010"
+FIM_METADADOS
+
+# A sintaxe permanece na forma executável atual. A migração para `lang ptbr`
+# e blocos com chaves será feita após a gramática bilíngue ser formalizada.
+REGRA_NEGOCIO ImportarInventario
+    IDENTIFICADOR_REGRA: "BR-INV-001"
+    RASTREIO_REQUISITO: "REQ-INV-IMPORTACAO-AUDITAVEL"
+
+    CONTRATO_ENTRADA
+        EXIGE arquivo <> ""
+        EXIGE referencia <> ""
+        EXIGE justificativa <> ""
+    FIM_CONTRATO_ENTRADA
+
+    OPERACAO Executar(arquivo: TEXTO, referencia: TEXTO, justificativa: TEXTO): REGISTRO
+    INICIO
+        RETORNE INVENTARIO.importar(arquivo, referencia, justificativa)
+    FIM
+FIM_REGRA_NEGOCIO
+
+FIM_PROGRAMA

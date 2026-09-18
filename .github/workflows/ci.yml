@@ -1,0 +1,100 @@
+name: THZ-LANG CI
+
+on:
+  push:
+    branches: [ main, master, "feat/*" ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  engine-jvm:
+    name: Java 25 Engine & Suite JUnit 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25 (Oracle)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'oracle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Conceder permissão de execução ao gradlew
+        run: chmod +x gradlew
+
+      - name: Executar todos os testes da plataforma (thz-core, thz-cli, thz-gui, thz-api, thz-lsp)
+        run: xvfb-run ./gradlew test --no-daemon --parallel
+
+      - name: Validar integridade semântica de exemplos e compilador self-hosted
+        run: |
+          ./gradlew :thz-cli-jvm:run --args="check exemplos/faturamento.thz"
+          ./gradlew :thz-cli-jvm:run --args="check exemplos/pedidos.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/tokens.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/ast.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/lexer.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/parser.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/codegen.thz"
+          ./gradlew :thz-cli-jvm:run --args="check compilador/driver.thz"
+
+      - name: Gerar artefatos distribuíveis (Shadow JARs e Spring Boot JAR)
+        run: |
+          ./gradlew :thz-cli-jvm:shadowJar
+          ./gradlew :thz-lsp-jvm:shadowJar
+          ./gradlew :thz-api-jvm:bootJar
+
+  vscode-extension:
+    name: VS Code Extension (TextMate & LSP Client)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: Extensions/thz-lsp-vscode/package.json
+
+      - name: Instalar dependências e compilar extensão
+        working-directory: Extensions/thz-lsp-vscode
+        run: |
+          npm ci
+          npm run compile
+
+  native-aot-clang:
+    name: Native AOT LLVM Clang Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'oracle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Instalar Clang e GCC
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm gcc
+
+      - name: Conceder permissão ao gradlew
+        run: chmod +x gradlew
+
+      - name: Gerar LLVM IR e compilar objeto ELF nativo
+        run: |
+          mkdir -p dist/bin
+          ./gradlew :thz-cli-jvm:run --args="ir compilador/driver.thz --llvm --saida dist/bin/driver.ll"
+          clang -target x86_64-unknown-linux-gnu -c dist/bin/driver.ll -o dist/bin/driver.o
+          cargo build --release --manifest-path src/runtime_rs/Cargo.toml
+          gcc -O3 dist/bin/driver.o -L src/runtime_rs/target/release -lthz_runtime -o dist/bin/driver.elf -lm -lpthread
+          ./dist/bin/driver.elf

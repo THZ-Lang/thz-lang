@@ -1,0 +1,14 @@
+# Estruturas preservam os tipos explícitos do domínio.
+programa ModeloDePedido:
+    estrutura ItemPedido:
+        descricao: TEXTO
+        quantidade: INTEIRO32
+        valor_unitario: DECIMAL(12, 2)
+
+    estrutura Pedido:
+        codigo: TEXTO
+        cliente: TEXTO
+        quantidade_itens: INTEIRO32
+
+    procedimento Principal():
+        exiba "Modelo de pedido carregado"

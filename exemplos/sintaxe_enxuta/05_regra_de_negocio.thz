@@ -1,0 +1,9 @@
+# Regras corporativas continuam explícitas, mas dispensam blocos cerimoniais.
+programa NEGOCIO FaturamentoEnxuto:
+    regra CalcularDesconto:
+        exige percentual >= 0
+        garante percentual >= 0
+
+        operacao aplicar(valor: DECIMAL(12, 2), percentual: DECIMAL(5, 2)) -> DECIMAL(12, 2):
+            desconto := valor * percentual / 100
+            retorne valor - desconto
