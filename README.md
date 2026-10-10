@@ -9,7 +9,7 @@
 [![LLVM Clang](https://img.shields.io/badge/LLVM-Clang%20AOT-red.svg?logo=llvm&logoColor=white)](https://llvm.org/)
 [![Containers](https://img.shields.io/badge/Containers-Docker%20%7C%20Podman-2496ED.svg?logo=docker&logoColor=white)](docs/DOCKER_PODMAN_DEVCONTAINER.md)
 [![Dev Containers](https://img.shields.io/badge/Dev%20Containers-Ready-blueviolet.svg?logo=visualstudiocode&logoColor=white)](.devcontainer/devcontainer.json)
-[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](version.txt)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](version.txt)
 [![Status](https://img.shields.io/badge/Status-ativo%20%7C%20v0.4.0-green.svg)](#-visão-geral)
 
 ### A Linguagem Corporativa para Sistemas Críticos, Governança Viva e Dados em Escala
