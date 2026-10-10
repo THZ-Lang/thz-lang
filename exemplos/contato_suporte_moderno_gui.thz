@@ -1,0 +1,64 @@
+programa ContatoSuporteModerno {
+    metadados {
+        DOMINIO: "AtendimentoAoCliente"
+        SUBDOMINIO: "CanalDeContato"
+        CAMADA: "InterfaceGrafica"
+        VERSAO: "2.0.0"
+        AUTOR: "Lucas Thomaz"
+        SLO_LATENCIA_MAXIMA: "30ms"
+        CONFORMIDADE: "LGPD-Art7", "ISO-27001", "ISO-42010"
+    }
+
+    struct FormularioContato {
+        titulo: String,
+        nome: String,
+        email: String,
+        mensagem: String
+    }
+
+    regra CanalContato {
+        exige TEXTO.comprimento(TEXTO.aparar(nome)) >= 3
+        exige TEXTO.contem(email, "@")
+        exige TEXTO.comprimento(TEXTO.aparar(mensagem)) >= 10
+        garante TEXTO.comprimento(RESULTADO) > 0
+
+        operacao Enviar(nome: String, email: String, mensagem: String): String {
+            var nomeLimpo = TEXTO.aparar(nome)
+            var emailLimpo = TEXTO.aparar(email)
+            var msgLimpa = TEXTO.aparar(mensagem)
+
+            print "=================================================="
+            print "[NOVO CONTATO RECEBIDO]"
+            print "Nome:     " + nomeLimpo
+            print "Email:    " + emailLimpo
+            print "Mensagem: " + msgLimpa
+            print "=================================================="
+
+            TELA.alerta("Mensagem Enviada", "Obrigado, " + nomeLimpo + "! Sua mensagem foi recebida com sucesso.")
+
+            retorne "Mensagem de [" + nomeLimpo + " <" + emailLimpo + ">] registrada com sucesso no sistema!"
+        }
+    }
+
+    regra Inicializacao {
+        garante TEXTO.comprimento(RESULTADO) > 0
+
+        operacao MontarTela(): String {
+            var form = CRIAR FormularioContato(
+                titulo: "Central de Contato e Suporte — THZ GUI (Modo Moderno)",
+                nome: "Lucas Thomaz",
+                email: "lucas@exemplo.com",
+                mensagem: "Olá equipe THZ! Formulário de contato reescrito na modalidade moderna do THZ-LANG (chaves, struct, var, print e fn main)."
+            )
+
+            var status = TELA.renderizarFormulario(form, "CanalContato.Enviar")
+            print status
+            retorne status
+        }
+    }
+
+    fn main(): Int {
+        Inicializacao.MontarTela()
+        retorne 0
+    }
+}

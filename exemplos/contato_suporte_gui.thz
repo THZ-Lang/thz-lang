@@ -1,0 +1,89 @@
+PROGRAMA ContatoSuporteGui
+
+# --- DECLARAÇÕES DE METADADOS ARQUITETURAIS ---
+METADADOS_ARQUITETURA
+    DOMINIO: "AtendimentoAoCliente"
+    SUBDOMINIO: "CanalDeContato"
+    CAMADA: "InterfaceGrafica"
+    VERSAO: "1.0.0"
+    AUTOR: "Lucas Thomaz"
+    SLO_LATENCIA_MAXIMA: "30ms"
+    CONFORMIDADE: "LGPD-Art7", "ISO-27001", "ISO-42010"
+FIM_METADADOS
+
+# --- DEFINIÇÃO DECLARATIVA DO FORMULÁRIO ---
+ESTRUTURA FormularioContato
+    titulo: TEXTO
+    nome: TEXTO
+    email: TEXTO
+    mensagem: TEXTO
+FIM_ESTRUTURA
+
+# --- REGRAS DE NEGÓCIO E CONTRATOS FORMAIS ---
+REGRA_NEGOCIO CanalContato
+    IDENTIFICADOR_REGRA: "RN-CONTATO-001"
+    RASTREIO_REQUISITO: "REQ-MSG-101"
+    DESCRICAO: "Valida e processa o envio de mensagens coletadas no formulário de contato"
+
+    CONTRATO_ENTRADA
+        EXIGE TEXTO.comprimento(TEXTO.aparar(nome)) >= 3
+        EXIGE TEXTO.contem(email, "@")
+        EXIGE TEXTO.comprimento(TEXTO.aparar(mensagem)) >= 10
+    FIM_CONTRATO_ENTRADA
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO Enviar(nome: TEXTO, email: TEXTO, mensagem: TEXTO): TEXTO
+    INICIO
+        VARIAVEL nomeLimpo: TEXTO <- TEXTO.aparar(nome)
+        VARIAVEL emailLimpo: TEXTO <- TEXTO.aparar(email)
+        VARIAVEL msgLimpa: TEXTO <- TEXTO.aparar(mensagem)
+
+        EXIBA "=================================================="
+        EXIBA "[NOVO CONTATO RECEBIDO]"
+        EXIBA "Nome:     " + nomeLimpo
+        EXIBA "Email:    " + emailLimpo
+        EXIBA "Mensagem: " + msgLimpa
+        EXIBA "=================================================="
+
+        # Dispara diálogo visual informativo de confirmação
+        TELA.alerta("Mensagem Enviada", "Obrigado, " + nomeLimpo + "! Sua mensagem foi recebida com sucesso.")
+
+        RETORNE "Mensagem de [" + nomeLimpo + " <" + emailLimpo + ">] registrada com sucesso no sistema!"
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- INICIALIZAÇÃO DA INTERFACE GRÁFICA ---
+REGRA_NEGOCIO Inicializacao
+    IDENTIFICADOR_REGRA: "RN-INIT-001"
+    RASTREIO_REQUISITO: "REQ-UI-001"
+    DESCRICAO: "Inicializa o formulário declarativo de contato no host renderer"
+
+    CONTRATO_SAIDA
+        GARANTE TEXTO.comprimento(RESULTADO) > 0
+    FIM_CONTRATO_SAIDA
+
+    OPERACAO MontarTela(): TEXTO
+    INICIO
+        VARIAVEL form: FormularioContato <- CRIAR FormularioContato(
+            titulo: "Central de Contato e Suporte — THZ GUI",
+            nome: "Lucas Thomaz",
+            email: "lucas@exemplo.com",
+            mensagem: "Olá equipe THZ! Gostaria de parabenizar pelo ecossistema modular e pela facilidade de criação de interfaces declarativas em THZ-Lang."
+        )
+
+        VARIAVEL status: TEXTO <- TELA.renderizarFormulario(form, "CanalContato.Enviar")
+        EXIBA status
+        RETORNE status
+    FIM
+FIM_REGRA_NEGOCIO
+
+# --- PONTO DE ENTRADA DO PROGRAMA ---
+PROCEDIMENTO Principal()
+INICIO
+    Inicializacao.MontarTela()
+FIM
+
+FIM_PROGRAMA
