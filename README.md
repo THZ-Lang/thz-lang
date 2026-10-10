@@ -253,13 +253,39 @@ O THZ-LANG entende que diferentes contextos exigem diferentes níveis de cerimô
 
 ## ⚡ Quick Start em 3 Passos
 
-### 1. Clonar o Repositório
+### 🚀 Opção 1: Instalação Rápida em 1 Linha (Recomendado para Usuários)
+
+Instale a CLI e o Desktop Studio autônomos sem precisar de Java instalado na sua máquina:
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/THZ-Lang/thz-lang/main/install.ps1 | iex
+```
+
+**Linux / macOS / WSL:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/THZ-Lang/thz-lang/main/install.sh | bash
+```
+
+Após instalar:
+```bash
+thz init meu_projeto    # Inicializa um projeto novo
+cd meu_projeto
+thz run app.thz         # Executa seu primeiro programa
+thz gui                 # Inicia a Desktop IDE com FlatLaf Glassmorphic
+```
+
+---
+
+### 💻 Opção 2: Desenvolvimento a partir do Código-Fonte
+
+#### 1. Clonar o Repositório
 ```bash
 git clone https://github.com/thz-lang/thz-lang.git
 cd thz-lang
 ```
 
-### 2. Verificar o Ambiente e Executar os Testes
+#### 2. Verificar o Ambiente e Executar os Testes
 O projeto conta com scripts multiplataforma e o wrapper oficial do Gradle:
 
 ```bash
