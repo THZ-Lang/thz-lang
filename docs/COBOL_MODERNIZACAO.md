@@ -65,3 +65,32 @@ declare void @thz_cobol_i128_to_comp3(i128 %val, i32 %totalDigits, i32 %scale, p
 ; Ligacao direta C-ABI
 declare i32 @cob_call(ptr %nomePrograma, i32 %totalArgs, ptr %ponteirosArgs)
 ```
+
+---
+
+## 🧠 Gerenciamento de Memória Transparente (Zero-Copy) e o Papel de JNI / FFI
+
+### 1. Como fica o JNI ou FFI nisso tudo?
+- **No Ambiente de Produção Nativa (LLVM AOT / Zero JVM):**
+  - **Não existe JNI e não há camada intermediária de FFI.** 
+  - O código THZ compilado e o código COBOL compilado residem no **mesmo espaço de endereçamento de processo**, no mesmo binário (`.exe` ou `.elf`).
+  - Chamadas entre THZ e COBOL obedecem à convenção de chamada nativa C padrão (Microsoft x64 ou System V AMD64). Para o processador, a invocação é uma simples instrução de máquina `call`, sem overhead de transição de contexto.
+- **No Ambiente de Desenvolvimento (Java 25 Dev-Host):**
+  - **O antigo JNI foi 100% descartado.**
+  - Utilizamos a **Project Panama (Foreign Function & Memory API - `java.lang.foreign.*`)**:
+    - Alocação de memória nativa contígua fora da heap da JVM (*off-heap*) via `MemorySegment` e `Arena.ofConfined()`.
+    - Os bytes alocados têm exatamente o mesmo layout físico e offsets que o COBOL e o LLVM IR esperam, sem cópias ou serializações intermediárias.
+
+### 2. Memória Compartilhada e Paridade Absoluta com a Máquina
+Em um mainframe clássico, os programas COBOL não realizam alocações dinâmicas dispersas; eles operam sobre blocos contíguos de bytes (`WORKING-STORAGE` e `LINKAGE SECTION`), passando ponteiros por referência (`BY REFERENCE`).
+
+No THZ-LANG, essa mecânica é espelhada com perfeição:
+1. **Layout Contíguo Unificado (`CobolMemoryLayout`):** Calcula os offsets exatos em bytes para cada campo (Alfanumérico, Display e COMP-3 Packed Decimal).
+2. **Buffer Compartilhado Zero-Copy (`CobolSharedMemorySegment`):**
+   - O THZ aloca a memória e escreve nos offsets dos campos.
+   - O COBOL recebe o ponteiro do buffer compartilhado, executa instruções da `PROCEDURE DIVISION` (`MOVE`, `COMPUTE`, `ADD`) e **muta os bytes in-place**.
+   - O THZ lê imediatamente do **mesmo endereço de memória**. Não há áreas reservadas exclusivas onde o outro não tenha conhecimento.
+3. **No LLVM IR Nativo:**
+   - O acesso a qualquer campo ocorre via instrução `getelementptr inbounds i8, ptr %bufferCompartilhado, i64 %offsetByte`.
+   - Para o otimizador LLVM, para o linker LLD e para a CPU, **THZ-LANG e COBOL são indistinguíveis**: são apenas instruções `load` e `store` operando cooperativamente sobre os mesmos registradores e o mesmo bloco de memória.
+
