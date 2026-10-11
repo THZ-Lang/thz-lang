@@ -4,16 +4,28 @@ O THZ-LANG oferece suporte integrado e nativo para compreensão, ingestão e exe
 
 ---
 
-## 🚀 Capacidades Principais
+## 🏛️ As 3 Variações de Modernização de COBOL
+
+O ecossistema THZ-LANG atende a três estratégias distintas de modernização, da coexistência cirúrgica à execução autônoma de legados inteiros:
+
+| Variação | Modalidade | Descrição | Caso de Uso Principal |
+| :--- | :--- | :--- | :--- |
+| **Variação 1** | **COBOL Embutido (`BLOCO_COBOL`)** | Blocos de código COBOL declarados dentro de arquivos `.thz`. | Migração pontual de sub-rotinas sem alterar a estrutura do programa THZ. |
+| **Variação 2** | **Contratos e Copybooks (`.cpy`)** | Transpilação de definições de dados de mainframe diretamente para `ESTRUTURA` THZ nativas. | Reuso de modelos de dados, schemas bancários e tabelas em lote sem recriar tipos. |
+| **Variação 3** | **THZ-COBOL Standalone (Puro)** | Execução e compilação direta de arquivos `.cbl` 100% puros sob o runtime do THZ, sem misturar sintaxes (análogo a **Jython**, **IronPython** e **Cython**). | "Drop-in replacement" para rodar programas legados em massa com arenas $O(1)$ e compilação AOT nativa via LLVM IR (Zero JVM). |
+
+---
+
+## 🚀 Capacidades Técnicas Detalhadas
 
 1. **Importação de Copybooks (`.cpy`)**:
    Converte definições de dados de mainframe (inclusive `COMP-3`, `PIC X`, `PIC 9`, condições de nível `88`) em `ESTRUTURA` tipadas nativas do THZ-LANG.
 2. **COBOL Embutido (`BLOCO_COBOL ... FIM_BLOCO_COBOL`)**:
    Permite embutir código COBOL diretamente dentro de programas `.thz`.
-3. **Transpilação de Lógica**:
-   Converte rotinas da `PROCEDURE DIVISION` em `REGRA_NEGOCIO` do THZ-LANG, gerando contratos `CONTRATO_ENTRADA` (`EXIGE`) e `CONTRATO_SAIDA` (`GARANTE`).
+3. **THZ-COBOL Autônomo (Variação 3)**:
+   O compilador aceita arquivos `.cbl` puros, executa os parágrafos da `PROCEDURE DIVISION` e emite LLVM IR nativo completo com a função `@main` do sistema operacional.
 4. **Compilação Nativa AOT (Zero JVM)**:
-   Emissão direta de representação intermediária **LLVM IR** (`.ll`), permitindo ligar rotinas nativas de COBOL compiladas via C-ABI em binários `.exe` (Windows) e `.elf` (Linux) que não exigem JVM instalada em produção.
+   Emissão direta de representação intermediária **LLVM IR** (`.ll`), gerando binários `.exe` (Windows) e `.elf` (Linux) que não exigem JVM instalada em produção.
 
 ---
 
